@@ -14,6 +14,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\DevBook.Web.ApiService\DevBook.Web.ApiService.csproj" />
+    <ProjectReference Include="..\DevBook.Web.Client\DevBook.Web.Client.csproj" />
   </ItemGroup>
 
 </Project>

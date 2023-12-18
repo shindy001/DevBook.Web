@@ -1,23 +1,76 @@
 ﻿@inherits LayoutComponentBase
 
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
+@* MudBlazor default components *@
+<MudThemeProvider @ref="@_mudThemeProvider" @bind-IsDarkMode="@_isDarkModeEnabled" />
+<MudDialogProvider FullWidth="true" />
+<MudSnackbarProvider />
 
-    <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
-        </div>
+<MudLayout>
+	<MudAppBar Elevation="1">
+		<MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start"
+			OnClick="MenuDrawerToggle" />
+		<MudText Typo="Typo.h5" Class="ml-3">DevBook</MudText>
+		<MudSpacer />
+		<div>
+			<MudTooltip Delay="_tooltipDelayInMs" Text="Toggle Dark Mode" Placement="Placement.Bottom">
+				<MudIconButton Class='@(_isDarkModeEnabled ? "d-none" : "")' OnClick="ToggleTheme" Icon="@Icons.Material.Filled.DarkMode" Color="Color.Inherit" />
+			</MudTooltip>
+			<MudTooltip Delay="_tooltipDelayInMs" Text="Toggle Light Mode" Placement="Placement.Bottom">
+				<MudIconButton Class='@(_isDarkModeEnabled ? "" : "d-none")' OnClick="ToggleTheme" Icon="@Icons.Material.Filled.LightMode" Color="Color.Inherit" />
+			</MudTooltip>
+		</div>
+		
+	</MudAppBar>
+	<MudDrawer @bind-Open="_menuDrawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
+		<NavMenu />
+	</MudDrawer>
+	<MudMainContent>
+		<ErrorBoundary @ref="_errorBoundary">
+			<ChildContent>
+				<div>
+					@Body
+				</div>
+			</ChildContent>
+			<ErrorContent>
+				<div id="blazor-error-ui">
+					An unhandled error has occurred.
+					<a href="" class="reload">Reload</a>
+					<a class="dismiss">🗙</a>
+				</div>
+			</ErrorContent>
+		</ErrorBoundary>
+	</MudMainContent>
+</MudLayout>
 
-        <article class="content px-4">
-            @Body
-        </article>
-    </main>
-</div>
+@code {
+	ErrorBoundary? _errorBoundary;
+	private bool _menuDrawerOpen = true;
+	private bool _isDarkModeEnabled;
+	private MudThemeProvider _mudThemeProvider = default!;
+	private double _tooltipDelayInMs = 600;
 
-<div id="blazor-error-ui">
-    An unhandled error has occurred.
-    <a href="" class="reload">Reload</a>
-    <a class="dismiss">🗙</a>
-</div>
+	protected override void OnParametersSet()
+	{
+		// On each page navigation, reset any error state
+		_errorBoundary?.Recover();
+	}
+
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (firstRender)
+		{
+			_isDarkModeEnabled = await _mudThemeProvider.GetSystemPreference();
+			StateHasChanged();
+		}
+	}
+
+	private void ToggleTheme()
+	{
+		_isDarkModeEnabled = !_isDarkModeEnabled;
+	}
+
+	private void MenuDrawerToggle()
+	{
+		_menuDrawerOpen = !_menuDrawerOpen;
+	}
+}

@@ -39,4 +39,17 @@
     <Folder Include="Generated\" />
   </ItemGroup>
 
+  <Target Name="RunTailwindGen" AfterTargets="BeforePublish">
+    <Message Importance="high" Text="Make sure that your machine supports included tailwindcss.exe (win-x64)..." />
+    <Message Importance="high" Text="Generating tailwind.css..." />
+    <Exec Command="$(ProjectDir)tailwindcss.exe -i .\Styles\tailwind.css -o .\wwwroot\tailwind.css" />
+  </Target>
+
+  <!-- Start tailwindcss.exe in watch mode for hot reload - spawns a new powershell window after debug build/rebuild -->
+  <Target Name="StartTailwindWatch" AfterTargets="AfterBuild; AfterRebuild" Condition="'$(Configuration)' == 'Debug'">
+    <Message Importance="high" Text="Make sure that your machine supports included tailwindcss.exe (win-x64)..." />
+    <Message Importance="high" Text="Starting tailwind watch..." />
+    <Exec Command="powershell Start-Process $(ProjectDir)tailwindwatch.bat" />
+  </Target>
+
 </Project>

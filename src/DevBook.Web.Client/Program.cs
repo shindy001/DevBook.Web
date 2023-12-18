@@ -1,4 +1,4 @@
-using DevBook.Web.Client.Components;
+using DevBook.Web.Client.Features.Shared;
 using MudBlazor.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -18,9 +18,11 @@ app.MapDefaultEndpoints();
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Error", createScopeForErrors: true);
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-    app.UseHsts();
+	// Beware of SSR - after SignalR initialization, exception are handled by Blazor Error Boundaries and this handler will not be called
+	app.UseExceptionHandler("/Error", createScopeForErrors: true); 
+
+	// The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+	app.UseHsts();
 }
 
 app.UseHttpsRedirection();
@@ -30,5 +32,7 @@ app.UseAntiforgery();
 
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
+
+app.UseStatusCodePagesWithRedirects("/404");
 
 app.Run();

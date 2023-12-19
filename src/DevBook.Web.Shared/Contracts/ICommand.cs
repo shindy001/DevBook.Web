@@ -8,6 +8,13 @@ namespace DevBook.Web.Shared.Contracts;
 /// </summary>
 public interface ICommandBase;
 
+/// <summary>
+/// Represent Command action that does not return any value
+/// </summary>
 public interface ICommand : IRequest;
 
+/// <summary>
+/// Represents Command action that returns a response
+/// </summary>
+/// <typeparam name="TResponse"></typeparam>
 public interface ICommand<TResponse> : IRequest<TResponse>;

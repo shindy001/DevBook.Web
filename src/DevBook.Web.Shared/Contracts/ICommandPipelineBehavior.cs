@@ -6,8 +6,8 @@ namespace DevBook.Web.Shared.Contracts;
 /// Pipeline behavior to surround the inner command handler.
 /// Implementations add additional behavior and await the next delegate.
 /// </summary>
-/// <typeparam name="TRequest"></typeparam>
-/// <typeparam name="TResponse"></typeparam>
-public interface ICommandPipelineBehavior<TRequest, TResponse>
-	: IPipelineBehavior<TRequest, TResponse>
-	where TRequest : ICommandBase;
+/// <typeparam name="TCommand"></typeparam>
+/// <typeparam name="TResult"></typeparam>
+public interface ICommandPipelineBehavior<TCommand, TResult>
+	: IPipelineBehavior<TCommand, TResult>
+	where TCommand : ICommandBase;

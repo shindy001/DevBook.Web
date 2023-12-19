@@ -14,7 +14,7 @@ public interface ICommandBase;
 public interface ICommand : IRequest;
 
 /// <summary>
-/// Represents Command action that returns a response
+/// Represents Command action that returns a result
 /// </summary>
-/// <typeparam name="TResponse"></typeparam>
-public interface ICommand<TResponse> : IRequest<TResponse>;
+/// <typeparam name="TResult"></typeparam>
+public interface ICommand<TResult> : IRequest<TResult>;

@@ -3,6 +3,7 @@
 namespace DevBook.Web.Shared.Contracts;
 
 /// <summary>
-/// Represent Query action with a response
+/// Represent Query action with a result
 /// </summary>
-public interface IQuery<TResponse> : IRequest<TResponse>;
+/// <typeparam name="TResult"></typeparam>
+public interface IQuery<TResult> : IRequest<TResult>;

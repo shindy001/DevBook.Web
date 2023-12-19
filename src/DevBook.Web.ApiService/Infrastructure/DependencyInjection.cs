@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using DevBook.Web.Shared;
+using DevBook.Web.Shared.Contracts;
+using Microsoft.EntityFrameworkCore;
 
 namespace DevBook.Web.ApiService.Infrastructure;
 
@@ -12,6 +14,12 @@ internal static class DependencyInjection
 			opt => opt.UseSqlite(
 				GetSqliteConnectionString(),
 				opt => opt.MigrationsAssembly(assembly.GetName().Name)));
+
+		services.AddCommandsAndQueriesExecutor(assembly);
+		
+		services.AddScoped<IUnitOfWork, UnitOfWork>();
+		services.AddPipelineBehavior(typeof(UnitOfWorkCommandPipelineBehavior<,>));
+		services.AddPipelineBehavior(typeof(UnitOfWorkQueryPipelineBehavior<,>));
 
 		return services;
 	}

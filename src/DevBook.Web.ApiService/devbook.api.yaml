@@ -6,7 +6,7 @@ paths:
   /projects:
     get:
       tags:
-        - TimeTrackingModule
+        - ProjectEndpoints
       responses:
         '200':
           description: Success
@@ -18,7 +18,7 @@ paths:
                   $ref: '#/components/schemas/Project'
     post:
       tags:
-        - TimeTrackingModule
+        - ProjectEndpoints
       requestBody:
         content:
           application/json:
@@ -31,7 +31,7 @@ paths:
   '/projects/{id}':
     get:
       tags:
-        - TimeTrackingModule
+        - ProjectEndpoints
       operationId: GetProjectById
       parameters:
         - name: id
@@ -52,7 +52,7 @@ paths:
           description: Not Found
     put:
       tags:
-        - TimeTrackingModule
+        - ProjectEndpoints
       parameters:
         - name: id
           in: path
@@ -74,7 +74,7 @@ paths:
           description: Not Found
     patch:
       tags:
-        - TimeTrackingModule
+        - ProjectEndpoints
       parameters:
         - name: id
           in: path
@@ -96,7 +96,7 @@ paths:
           description: Not Found
     delete:
       tags:
-        - TimeTrackingModule
+        - ProjectEndpoints
       parameters:
         - name: id
           in: path

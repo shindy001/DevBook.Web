@@ -3,7 +3,7 @@ using DevBook.Web.Shared.Contracts;
 using FluentValidation;
 using System.ComponentModel.DataAnnotations;
 
-namespace DevBook.Web.ApiService.Features.TimeTracking;
+namespace DevBook.Web.ApiService.Features.TimeTracking.Projects;
 
 public sealed record CreateProjectCommand : ICommand<Guid>
 {

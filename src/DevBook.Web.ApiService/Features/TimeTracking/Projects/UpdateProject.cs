@@ -5,7 +5,7 @@ using OneOf;
 using OneOf.Types;
 using System.ComponentModel.DataAnnotations;
 
-namespace DevBook.Web.ApiService.Features.TimeTracking;
+namespace DevBook.Web.ApiService.Features.TimeTracking.Projects;
 
 public record UpdateProjectCommandDto
 {

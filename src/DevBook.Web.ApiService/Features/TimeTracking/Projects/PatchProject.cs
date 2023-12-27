@@ -4,7 +4,7 @@ using FluentValidation;
 using OneOf;
 using OneOf.Types;
 
-namespace DevBook.Web.ApiService.Features.TimeTracking;
+namespace DevBook.Web.ApiService.Features.TimeTracking.Projects;
 
 public record PatchProjectCommandDto(
 	string? Name,

@@ -1,4 +1,4 @@
-﻿using DevBook.Web.ApiService.Features.TimeTracking;
+﻿using DevBook.Web.ApiService.Features.TimeTracking.Projects;
 using Microsoft.EntityFrameworkCore;
 
 namespace DevBook.Web.ApiService.Infrastructure;

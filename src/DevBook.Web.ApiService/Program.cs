@@ -10,7 +10,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddInfrastructure();
-builder.Services.RegisterFeatureModules();
+builder.Services.RegisterFeatureModules([typeof(Program).Assembly]);
 
 var app = builder.Build();
 

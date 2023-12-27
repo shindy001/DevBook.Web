@@ -1,6 +1,7 @@
 ﻿using DevBook.Web.Shared.Contracts;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
+using System.Reflection;
 
 namespace DevBook.Web.Shared.Extensions;
 
@@ -13,13 +14,11 @@ public static class FeatureModuleExtensions
 	/// </summary>
 	/// <param name="services"></param>
 	/// <returns></returns>
-	public static IServiceCollection RegisterFeatureModules(this IServiceCollection services)
+	public static IServiceCollection RegisterFeatureModules(this IServiceCollection services, params Assembly[] commandAndQueriesAssemblies)
 	{
-		var modules = DiscoverModules();
-		foreach (var module in modules)
+		foreach(var assembly in commandAndQueriesAssemblies)
 		{
-			module.RegisterModule(services);
-			registeredModules.Add(module);
+			RegisterModules(services, assembly);
 		}
 
 		return services;
@@ -40,9 +39,19 @@ public static class FeatureModuleExtensions
 		return app;
 	}
 
-	private static IEnumerable<IFeatureModule> DiscoverModules()
+	private static void RegisterModules(IServiceCollection services, Assembly assembly)
 	{
-		return typeof(IFeatureModule).Assembly
+		var modules = DiscoverModules(assembly);
+		foreach (var module in modules)
+		{
+			module.RegisterModule(services);
+			registeredModules.Add(module);
+		}
+	}
+
+	private static IEnumerable<IFeatureModule> DiscoverModules(Assembly assembly)
+	{
+		return assembly
 			.GetTypes()
 			.Where(t => t.IsClass && t.IsAssignableTo(typeof(IFeatureModule)))
 			.Select(Activator.CreateInstance)

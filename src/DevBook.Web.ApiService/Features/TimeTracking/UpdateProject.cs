@@ -13,7 +13,7 @@ public record UpdateProjectCommand(
 	string? Details,
 	int? HourlyRate,
 	string? Currency,
-	Color? Color)
+	string? HexColor)
 	: ICommand<OneOf<Success, NotFound>>;
 
 public sealed class UpdateProjectCommandValidator : AbstractValidator<UpdateProjectCommand>
@@ -25,7 +25,7 @@ public sealed class UpdateProjectCommandValidator : AbstractValidator<UpdateProj
 	}
 }
 
-public sealed class UpdateProjectCommandHandler(DevBookDbContext dbContext) : ICommandHandler<UpdateProjectCommand, OneOf<Success, NotFound>>
+internal sealed class UpdateProjectCommandHandler(DevBookDbContext dbContext) : ICommandHandler<UpdateProjectCommand, OneOf<Success, NotFound>>
 {
 	public async Task<OneOf<Success, NotFound>> Handle(UpdateProjectCommand command, CancellationToken cancellationToken)
 	{
@@ -42,7 +42,7 @@ public sealed class UpdateProjectCommandHandler(DevBookDbContext dbContext) : IC
 				[nameof(Project.Details)] = command.Details,
 				[nameof(Project.HourlyRate)] = command.HourlyRate,
 				[nameof(Project.Currency)] = command.Currency,
-				[nameof(Project.Color)] = command.Color,
+				[nameof(Project.HexColor)] = command.HexColor,
 			};
 
 			dbContext.Projects.Entry(project).CurrentValues.SetValues(update);

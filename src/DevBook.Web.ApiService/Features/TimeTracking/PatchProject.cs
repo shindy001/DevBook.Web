@@ -3,7 +3,6 @@ using DevBook.Web.Shared.Contracts;
 using FluentValidation;
 using OneOf;
 using OneOf.Types;
-using System.Drawing;
 
 namespace DevBook.Web.ApiService.Features.TimeTracking;
 
@@ -13,7 +12,7 @@ public record PatchProjectCommand(
 	string? Details,
 	int? HourlyRate,
 	string? Currency,
-	Color? Color)
+	string? HexColor)
 	: ICommand<OneOf<Success, NotFound>>;
 
 public sealed class PatchProjectCommandValidator : AbstractValidator<PatchProjectCommand>
@@ -24,7 +23,7 @@ public sealed class PatchProjectCommandValidator : AbstractValidator<PatchProjec
 	}
 }
 
-public sealed class PatchProjectCommandHandler(DevBookDbContext dbContext) : ICommandHandler<PatchProjectCommand, OneOf<Success, NotFound>>
+internal sealed class PatchProjectCommandHandler(DevBookDbContext dbContext) : ICommandHandler<PatchProjectCommand, OneOf<Success, NotFound>>
 {
 	public async Task<OneOf<Success, NotFound>> Handle(PatchProjectCommand command, CancellationToken cancellationToken)
 	{
@@ -41,7 +40,7 @@ public sealed class PatchProjectCommandHandler(DevBookDbContext dbContext) : ICo
 				[nameof(Project.Details)] = command.Details ?? project.Details,
 				[nameof(Project.HourlyRate)] = command.HourlyRate ?? project.HourlyRate,
 				[nameof(Project.Currency)] = command.Currency ?? project.Currency,
-				[nameof(Project.Color)] = command.Color ?? project.Color,
+				[nameof(Project.HexColor)] = command.HexColor ?? project.HexColor,
 			};
 
 			dbContext.Projects.Entry(project).CurrentValues.SetValues(update);

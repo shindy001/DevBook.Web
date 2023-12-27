@@ -3,9 +3,9 @@ using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 
-namespace DevBook.Web.Shared;
+namespace DevBook.Web.Shared.Extensions;
 
-public static class ExecutorDependencyInjection
+public static class ExecutorExtensions
 {
 	public static IServiceCollection AddCommandsAndQueriesExecutor(this IServiceCollection services, params Assembly[] commandAndQueriesAssemblies)
 	{

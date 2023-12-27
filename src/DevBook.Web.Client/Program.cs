@@ -1,4 +1,5 @@
 using DevBook.Web.Client.Features.Shared;
+using DevBook.Web.Shared.Extensions;
 using MudBlazor.Services;
 
 var builder = WebApplication.CreateBuilder(args);

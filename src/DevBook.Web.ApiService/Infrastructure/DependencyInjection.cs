@@ -1,5 +1,5 @@
-﻿using DevBook.Web.Shared;
-using DevBook.Web.Shared.Contracts;
+﻿using DevBook.Web.Shared.Contracts;
+using DevBook.Web.Shared.Extensions;
 using Microsoft.EntityFrameworkCore;
 
 namespace DevBook.Web.ApiService.Infrastructure;

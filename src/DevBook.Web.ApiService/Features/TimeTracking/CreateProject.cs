@@ -1,15 +1,19 @@
 ﻿using DevBook.Web.ApiService.Infrastructure;
 using DevBook.Web.Shared.Contracts;
 using FluentValidation;
+using System.ComponentModel.DataAnnotations;
 
 namespace DevBook.Web.ApiService.Features.TimeTracking;
 
-public sealed record CreateProjectCommand(
-	string Name,
-	string? Details,
-	int? HourlyRate,
-	string? Currency,
-	string? HexColor) : ICommand<Guid>;
+public sealed record CreateProjectCommand : ICommand<Guid>
+{
+	[Required]
+	public required string Name { get; init; }
+	public string? Details { get; init; }
+	public int? HourlyRate { get; init; }
+	public string? Currency { get; init; }
+	public string? HexColor { get; init; }
+}
 
 public sealed class CreateProjectCommandValidator : AbstractValidator<CreateProjectCommand>
 {

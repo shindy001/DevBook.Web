@@ -3,9 +3,19 @@ using DevBook.Web.Shared.Contracts;
 using FluentValidation;
 using OneOf;
 using OneOf.Types;
-using System.Drawing;
+using System.ComponentModel.DataAnnotations;
 
 namespace DevBook.Web.ApiService.Features.TimeTracking;
+
+public record UpdateProjectCommandDto
+{
+	[Required]
+	public required string Name { get; init; }
+	public string? Details { get; init; }
+	public int? HourlyRate { get; init; }
+	public string? Currency { get; init; }
+	public string? HexColor { get; init; }
+}
 
 public record UpdateProjectCommand(
 	Guid Id,

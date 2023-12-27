@@ -6,6 +6,13 @@ using OneOf.Types;
 
 namespace DevBook.Web.ApiService.Features.TimeTracking;
 
+public record PatchProjectCommandDto(
+	string? Name,
+	string? Details,
+	int? HourlyRate,
+	string? Currency,
+	string? HexColor);
+
 public record PatchProjectCommand(
 	Guid Id,
 	string? Name,

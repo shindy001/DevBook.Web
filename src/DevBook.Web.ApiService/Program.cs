@@ -1,5 +1,5 @@
-using DevBook.Web.ApiService.Features.TimeTracking;
 using DevBook.Web.ApiService.Infrastructure;
+using DevBook.Web.Shared.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,7 +10,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddInfrastructure();
-builder.Services.RegisterTimeTrackingServices();
+builder.Services.RegisterFeatureModules();
 
 var app = builder.Build();
 
@@ -28,6 +28,6 @@ app.UseHttpsRedirection();
 // Health check + Alive
 app.MapDefaultEndpoints();
 
-app.MapTimeTrackingEndpoints();
+app.MapFeatureModulesEndpoints();
 
 app.Run();

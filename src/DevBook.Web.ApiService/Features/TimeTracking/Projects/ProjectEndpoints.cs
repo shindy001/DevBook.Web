@@ -7,29 +7,31 @@ internal static class ProjectEndpoints
 {
 	private const string GetProjectByIdAction = "GetProjectById";
 
-	public static void Map(IEndpointRouteBuilder endpointsBuilder)
+	public static RouteGroupBuilder MapProjectEndpoints(this RouteGroupBuilder groupBuilder)
 	{
-		endpointsBuilder.MapGet("/projects", GetProjects)
+		groupBuilder.MapGet("/", GetProjects)
 			.Produces<IList<Project>>();
 
-		endpointsBuilder.MapPost("/projects", CreateProject)
+		groupBuilder.MapPost("/", CreateProject)
 			.Produces(StatusCodes.Status201Created);
 
-		endpointsBuilder.MapGet("/projects/{id:guid}", GetProjectById)
+		groupBuilder.MapGet("/{id:guid}", GetProjectById)
 			.WithName(GetProjectByIdAction)
 			.Produces<Project>()
 			.Produces(StatusCodes.Status404NotFound);
 
-		endpointsBuilder.MapPut("/projects/{id:guid}", UpdateProject)
+		groupBuilder.MapPut("/{id:guid}", UpdateProject)
 			.Produces(StatusCodes.Status204NoContent)
 			.Produces(StatusCodes.Status404NotFound);
 
-		endpointsBuilder.MapPatch("/projects/{id:guid}", PatchProject)
+		groupBuilder.MapPatch("/{id:guid}", PatchProject)
 			.Produces(StatusCodes.Status204NoContent)
 			.Produces(StatusCodes.Status404NotFound);
 
-		endpointsBuilder.MapDelete("/projects/{id:guid}", DeleteProject)
+		groupBuilder.MapDelete("/{id:guid}", DeleteProject)
 			.Produces(StatusCodes.Status204NoContent);
+
+		return groupBuilder;
 	}
 
 	private static async Task<IResult> GetProjects(IExecutor executor, CancellationToken cancellationToken)

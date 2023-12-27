@@ -12,7 +12,10 @@ internal sealed class TimeTrackingModule : IFeatureModule
 
 	public IEndpointRouteBuilder MapEndpoints(IEndpointRouteBuilder endpointsBuilder)
 	{
-		ProjectEndpoints.Map(endpointsBuilder);
+		endpointsBuilder
+			.MapGroup("/projects")
+			.MapProjectEndpoints()
+			.WithTags($"{nameof(TimeTrackingModule)}_{nameof(ProjectEndpoints)}");
 
 		return endpointsBuilder;
 	}

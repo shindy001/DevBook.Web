@@ -8,6 +8,11 @@ public static class FeatureModuleExtensions
 {
 	static readonly List<IFeatureModule> registeredModules = [];
 
+	/// <summary>
+	/// Registeres modules that implement <see cref="IFeatureModule"/> contract
+	/// </summary>
+	/// <param name="services"></param>
+	/// <returns></returns>
 	public static IServiceCollection RegisterFeatureModules(this IServiceCollection services)
 	{
 		var modules = DiscoverModules();
@@ -20,6 +25,11 @@ public static class FeatureModuleExtensions
 		return services;
 	}
 
+	/// <summary>
+	/// Maps <see cref="IFeatureModule"/> enpoints
+	/// </summary>
+	/// <param name="app"></param>
+	/// <returns></returns>
 	public static WebApplication MapFeatureModulesEndpoints(this WebApplication app)
 	{
 		foreach (var module in registeredModules)

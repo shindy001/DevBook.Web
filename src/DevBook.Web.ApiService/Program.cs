@@ -6,7 +6,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.AddServiceDefaults();
 
 // Add services to the container.
-builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddEndpointsApiExplorer()
+	.ConfigureHttpJsonOptions(opt 
+		=> opt.SerializerOptions.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull);
+
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddInfrastructure();

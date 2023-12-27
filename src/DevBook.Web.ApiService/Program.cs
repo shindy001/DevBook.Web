@@ -23,10 +23,14 @@ app.InitializeDb(applyMigrations: true);
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+	app.UseSwaggerUI(opt =>
+	{
+		opt.InjectStylesheet("/swagger-ui/SwaggerDark.css");
+	});
 }
 
 app.UseHttpsRedirection();
+app.UseStaticFiles();
 
 // Health check + Alive
 app.MapDefaultEndpoints();

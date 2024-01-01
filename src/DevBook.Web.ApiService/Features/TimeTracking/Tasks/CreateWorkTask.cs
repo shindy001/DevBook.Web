@@ -1,9 +1,10 @@
 ﻿using DevBook.Web.ApiService.Infrastructure;
 using DevBook.Web.Shared.Contracts;
+using FluentValidation;
 
 namespace DevBook.Web.ApiService.Features.TimeTracking.Tasks;
 
-internal sealed record CreateWorkTaskCommand : ICommand<Guid>
+public sealed record CreateWorkTaskCommand : ICommand<Guid>
 {
 	public Guid? ProjectId { get; init; }
 	public string? Description { get; init; }
@@ -11,6 +12,14 @@ internal sealed record CreateWorkTaskCommand : ICommand<Guid>
 	public DateOnly? Date { get; init; }
 	public TimeOnly? Start { get; init; }
 	public TimeOnly? End { get; init; }
+}
+
+public sealed class CreateWorkTaskCommandValidator : AbstractValidator<CreateWorkTaskCommand>
+{
+	public CreateWorkTaskCommandValidator()
+	{
+		When(x => x.ProjectId is not null, () => RuleFor(x => x.ProjectId).NotEqual(Guid.Empty));
+	}
 }
 
 internal sealed class CreateTaskCommandHandler(DevBookDbContext dbContext, TimeProvider timeProvider) : ICommandHandler<CreateWorkTaskCommand, Guid>

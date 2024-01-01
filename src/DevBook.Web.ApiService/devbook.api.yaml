@@ -155,6 +155,28 @@ paths:
                 $ref: '#/components/schemas/WorkTask'
         '404':
           description: Not Found
+    put:
+      tags:
+        - TimeTrackingModule_WorkTaskEndpoints
+      parameters:
+        - name: id
+          in: path
+          required: true
+          style: simple
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateWorkTaskCommandDto'
+        required: true
+      responses:
+        '204':
+          description: No Content
+        '404':
+          description: Not Found
     delete:
       tags:
         - TimeTrackingModule_WorkTaskEndpoints
@@ -282,6 +304,33 @@ components:
           nullable: true
         hexColor:
           type: string
+          nullable: true
+      additionalProperties: false
+    UpdateWorkTaskCommandDto:
+      required:
+        - start
+      type: object
+      properties:
+        projectId:
+          type: string
+          format: uuid
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        details:
+          type: string
+          nullable: true
+        date:
+          type: string
+          format: date
+          nullable: true
+        start:
+          type: string
+          format: time
+        end:
+          type: string
+          format: time
           nullable: true
       additionalProperties: false
     WorkTask:

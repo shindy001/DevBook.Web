@@ -1,8 +1,7 @@
-﻿using DevBook.Web.ApiService.Features.TimeTracking.Tasks;
-using DevBook.Web.Shared.Contracts;
+﻿using DevBook.Web.Shared.Contracts;
 using Microsoft.AspNetCore.Mvc;
 
-namespace DevBook.Web.ApiService.Features.TimeTracking.Projects;
+namespace DevBook.Web.ApiService.Features.TimeTracking.Tasks;
 
 internal static class WorkTaskEndpoints
 {
@@ -19,6 +18,10 @@ internal static class WorkTaskEndpoints
 		groupBuilder.MapGet("/{id:guid}", GetWorkTaskById)
 			.WithName(GetWorkTaskByIdAction)
 			.Produces<WorkTask>()
+			.Produces(StatusCodes.Status404NotFound);
+
+		groupBuilder.MapPut("/{id:guid}", UpdateWorkTask)
+			.Produces(StatusCodes.Status204NoContent)
 			.Produces(StatusCodes.Status404NotFound);
 
 		groupBuilder.MapDelete("/{id:guid}", DeleteWorkTask)
@@ -43,7 +46,25 @@ internal static class WorkTaskEndpoints
 	{
 		var result = await executor.ExecuteQuery(new GetWorkTaskQuery(id), cancellationToken);
 		return result.Match<IResult>(
-			project => TypedResults.Ok(project),
+			workTask => TypedResults.Ok(workTask),
+			notFound => TypedResults.NotFound(id));
+	}
+
+	private static async Task<IResult> UpdateWorkTask([FromRoute] Guid id, UpdateWorkTaskCommandDto command, IExecutor executor, CancellationToken cancellationToken)
+	{
+		var result = await executor.ExecuteCommand(
+			new UpdateWorkTaskCommand(
+				Id: id,
+				ProjectId: command.ProjectId,
+				Description: command.Description,
+				Details: command.Details,
+				Date: command.Date,
+				Start: command.Start,
+				End: command.End),
+			cancellationToken);
+
+		return result.Match<IResult>(
+			success => TypedResults.NoContent(),
 			notFound => TypedResults.NotFound(id));
 	}
 

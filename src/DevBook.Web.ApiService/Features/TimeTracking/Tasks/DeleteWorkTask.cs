@@ -1,7 +1,7 @@
 ﻿using DevBook.Web.ApiService.Infrastructure;
 using DevBook.Web.Shared.Contracts;
 
-namespace DevBook.Web.ApiService.Features.TimeTracking.Projects;
+namespace DevBook.Web.ApiService.Features.TimeTracking.Tasks;
 
 internal record DeleteWorkTaskCommand(Guid Id) : ICommand;
 

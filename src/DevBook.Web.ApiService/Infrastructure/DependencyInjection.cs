@@ -10,6 +10,8 @@ internal static class DependencyInjection
 	{
 		var assembly = typeof(Program).Assembly;
 
+		services.AddSingleton(TimeProvider.System);
+
 		services.AddDbContextPool<DevBookDbContext>(
 			opt => opt.UseSqlite(
 				GetSqliteConnectionString(),

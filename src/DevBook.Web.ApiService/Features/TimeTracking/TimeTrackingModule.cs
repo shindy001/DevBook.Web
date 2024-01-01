@@ -17,6 +17,11 @@ internal sealed class TimeTrackingModule : IFeatureModule
 			.MapProjectEndpoints()
 			.WithTags($"{nameof(TimeTrackingModule)}_{nameof(ProjectEndpoints)}");
 
+		endpointsBuilder
+			.MapGroup("/tasks")
+			.MapWorkTaskEndpoints()
+			.WithTags($"{nameof(TimeTrackingModule)}_{nameof(WorkTaskEndpoints)}");
+
 		return endpointsBuilder;
 	}
 }

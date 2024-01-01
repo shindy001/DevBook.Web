@@ -108,6 +108,67 @@ paths:
       responses:
         '204':
           description: No Content
+  /tasks:
+    get:
+      tags:
+        - TimeTrackingModule_WorkTaskEndpoints
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/WorkTask'
+    post:
+      tags:
+        - TimeTrackingModule_WorkTaskEndpoints
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateWorkTaskCommand'
+        required: true
+      responses:
+        '201':
+          description: Created
+  '/tasks/{id}':
+    get:
+      tags:
+        - TimeTrackingModule_WorkTaskEndpoints
+      operationId: GetWorkTaskById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          style: simple
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkTask'
+        '404':
+          description: Not Found
+    delete:
+      tags:
+        - TimeTrackingModule_WorkTaskEndpoints
+      parameters:
+        - name: id
+          in: path
+          required: true
+          style: simple
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: No Content
 components:
   schemas:
     CreateProjectCommand:
@@ -130,6 +191,32 @@ components:
           nullable: true
         hexColor:
           type: string
+          nullable: true
+      additionalProperties: false
+    CreateWorkTaskCommand:
+      type: object
+      properties:
+        projectId:
+          type: string
+          format: uuid
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        details:
+          type: string
+          nullable: true
+        date:
+          type: string
+          format: date
+          nullable: true
+        start:
+          type: string
+          format: time
+          nullable: true
+        end:
+          type: string
+          format: time
           nullable: true
       additionalProperties: false
     PatchProjectCommandDto:
@@ -195,5 +282,33 @@ components:
           nullable: true
         hexColor:
           type: string
+          nullable: true
+      additionalProperties: false
+    WorkTask:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        projectId:
+          type: string
+          format: uuid
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        details:
+          type: string
+          nullable: true
+        date:
+          type: string
+          format: date
+          nullable: true
+        start:
+          type: string
+          format: time
+        end:
+          type: string
+          format: time
           nullable: true
       additionalProperties: false

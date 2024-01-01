@@ -5,7 +5,7 @@ namespace DevBook.Web.ApiService.Infrastructure;
 
 internal sealed class UnitOfWorkCommandPipelineBehavior<TCommand, TResult>
 	: ICommandPipelineBehavior<TCommand, TResult>
-	where TCommand : ICommandBase
+	where TCommand : ICommand<TResult>
 {
 	private readonly IUnitOfWork _unitOfWork;
 

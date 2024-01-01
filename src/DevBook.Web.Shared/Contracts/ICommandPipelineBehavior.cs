@@ -10,4 +10,4 @@ namespace DevBook.Web.Shared.Contracts;
 /// <typeparam name="TResult"></typeparam>
 public interface ICommandPipelineBehavior<TCommand, TResult>
 	: IPipelineBehavior<TCommand, TResult>
-	where TCommand : ICommandBase;
+	where TCommand : ICommand<TResult>;

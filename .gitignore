@@ -4,8 +4,11 @@
 ## Get latest from https://github.com/github/gitignore/blob/main/VisualStudio.gitignore
 
 
-## Project specific
+## Project specific - Client
 **/wwwroot/tailwind.css
+**/[Gg]enerated/
+
+## Project specific - ApiService
 
 ## Visual Studio extensions
 .claudiaideconfig

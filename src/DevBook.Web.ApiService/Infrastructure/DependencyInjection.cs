@@ -1,5 +1,6 @@
 ﻿using DevBook.Web.Shared.Contracts;
 using DevBook.Web.Shared.Extensions;
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 
 namespace DevBook.Web.ApiService.Infrastructure;
@@ -18,7 +19,11 @@ internal static class DependencyInjection
 				opt => opt.MigrationsAssembly(assembly.GetName().Name)));
 
 		services.AddCommandsAndQueriesExecutor(assembly);
-		
+
+		// Register FluentValidation validators
+		services.AddValidatorsFromAssembly(assembly);
+		services.AddPipelineBehavior(typeof(ValidationPipelineBehavior<,>));
+
 		services.AddScoped<IUnitOfWork, UnitOfWork>();
 		services.AddPipelineBehavior(typeof(UnitOfWorkCommandPipelineBehavior<,>));
 		services.AddPipelineBehavior(typeof(UnitOfWorkQueryPipelineBehavior<,>));

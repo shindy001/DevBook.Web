@@ -24,6 +24,10 @@ internal static class WorkTaskEndpoints
 			.Produces(StatusCodes.Status204NoContent)
 			.Produces(StatusCodes.Status404NotFound);
 
+		groupBuilder.MapPatch("/{id:guid}", PatchWorkTask)
+			.Produces(StatusCodes.Status204NoContent)
+			.Produces(StatusCodes.Status404NotFound);
+
 		groupBuilder.MapDelete("/{id:guid}", DeleteWorkTask)
 			.Produces(StatusCodes.Status204NoContent);
 
@@ -62,6 +66,24 @@ internal static class WorkTaskEndpoints
 				Start: command.Start,
 				End: command.End),
 			cancellationToken);
+
+		return result.Match<IResult>(
+			success => TypedResults.NoContent(),
+			notFound => TypedResults.NotFound(id));
+	}
+
+	private static async Task<IResult> PatchWorkTask([FromRoute] Guid id, PatchWorkTaskCommandDto command, IExecutor executor, CancellationToken cancellationToken)
+	{
+		var result = await executor.ExecuteCommand(
+			new PatchWorkTaskCommand(
+				Id: id,
+				ProjectId: command.ProjectId,
+				Description: command.Description,
+				Details: command.Details,
+				Date: command.Date,
+				Start: command.Start,
+				End: command.End),
+		cancellationToken);
 
 		return result.Match<IResult>(
 			success => TypedResults.NoContent(),

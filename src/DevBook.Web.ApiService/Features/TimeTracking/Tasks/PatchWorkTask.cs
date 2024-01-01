@@ -3,44 +3,41 @@ using DevBook.Web.Shared.Contracts;
 using FluentValidation;
 using OneOf;
 using OneOf.Types;
-using System.ComponentModel.DataAnnotations;
 
 namespace DevBook.Web.ApiService.Features.TimeTracking.Tasks;
 
-internal sealed record UpdateWorkTaskCommandDto
+internal sealed record PatchWorkTaskCommandDto
 {
 	public Guid? ProjectId { get; init; }
 	public string? Description { get; init; }
 	public string? Details { get; init; }
 	public DateOnly? Date { get; init; }
-
-	[Required]
-	public required TimeOnly Start { get; init; }
+	public TimeOnly? Start { get; init; }
 	public TimeOnly? End { get; init; }
 }
 
-public sealed record UpdateWorkTaskCommand(
+public record PatchWorkTaskCommand(
 	Guid Id,
 	Guid? ProjectId,
 	string? Description,
 	string? Details,
 	DateOnly? Date,
-	TimeOnly Start,
+	TimeOnly? Start,
 	TimeOnly? End)
 	: ICommand<OneOf<Success, NotFound>>;
 
-public sealed class UpdateWorkTaskCommandValidator : AbstractValidator<UpdateWorkTaskCommand>
+public sealed class PatchWorkTaskCommandValidator : AbstractValidator<PatchWorkTaskCommand>
 {
-	public UpdateWorkTaskCommandValidator()
+	public PatchWorkTaskCommandValidator()
 	{
 		RuleFor(x => x.Id).NotEqual(Guid.Empty);
 		When(x => x.ProjectId is not null, () => RuleFor(x => x.ProjectId).NotEqual(Guid.Empty));
 	}
 }
 
-internal sealed class UpdateUpdateWorkTaskCommandHandler(DevBookDbContext dbContext) : ICommandHandler<UpdateWorkTaskCommand, OneOf<Success, NotFound>>
+internal sealed class PatchProjectCommandHandler(DevBookDbContext dbContext) : ICommandHandler<PatchWorkTaskCommand, OneOf<Success, NotFound>>
 {
-	public async Task<OneOf<Success, NotFound>> Handle(UpdateWorkTaskCommand command, CancellationToken cancellationToken)
+	public async Task<OneOf<Success, NotFound>> Handle(PatchWorkTaskCommand command, CancellationToken cancellationToken)
 	{
 		var workTask = await dbContext.Tasks.FindAsync([command.Id], cancellationToken);
 		if (workTask is null)
@@ -51,12 +48,12 @@ internal sealed class UpdateUpdateWorkTaskCommandHandler(DevBookDbContext dbCont
 		{
 			var update = new Dictionary<string, object?>()
 			{
-				[nameof(WorkTask.ProjectId)] = command.ProjectId,
-				[nameof(WorkTask.Description)] = command.Description,
-				[nameof(WorkTask.Details)] = command.Details,
-				[nameof(WorkTask.Date)] = command.Date,
-				[nameof(WorkTask.Start)] = command.Start,
-				[nameof(WorkTask.End)] = command.End,
+				[nameof(WorkTask.ProjectId)] = command.ProjectId ?? workTask.ProjectId,
+				[nameof(WorkTask.Description)] = command.Description ?? workTask.Description,
+				[nameof(WorkTask.Details)] = command.Details ?? workTask.Details,
+				[nameof(WorkTask.Date)] = command.Date ?? workTask.Date,
+				[nameof(WorkTask.Start)] = command.Start ?? workTask.Start,
+				[nameof(WorkTask.End)] = command.End ?? workTask.End,
 			};
 
 			dbContext.Tasks.Entry(workTask).CurrentValues.SetValues(update);

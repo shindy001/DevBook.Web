@@ -1,4 +1,5 @@
-﻿using DevBook.Web.Shared.Contracts;
+﻿using DevBook.Web.ApiService.Infrastructure.Behaviors;
+using DevBook.Web.Shared.Contracts;
 using DevBook.Web.Shared.Extensions;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;

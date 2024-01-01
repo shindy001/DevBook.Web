@@ -1,7 +1,7 @@
 ﻿using DevBook.Web.Shared.Contracts;
 using MediatR;
 
-namespace DevBook.Web.ApiService.Infrastructure;
+namespace DevBook.Web.ApiService.Infrastructure.Behaviors;
 
 public class UnitOfWorkQueryPipelineBehavior<TQuery, TResult>
 	: IQueryPipelineBehavior<TQuery, TResult>

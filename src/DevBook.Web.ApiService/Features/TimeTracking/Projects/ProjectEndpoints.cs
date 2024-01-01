@@ -58,12 +58,12 @@ internal static class ProjectEndpoints
 	{
 		var result = await executor.ExecuteCommand(
 			new UpdateProjectCommand(
-				id,
-				command.Name,
-				command.Details,
-				command.HourlyRate,
-				command.Currency,
-				command.HexColor),
+				Id: id,
+				Name: command.Name,
+				Details: command.Details,
+				HourlyRate: command.HourlyRate,
+				Currency: command.Currency,
+				HexColor: command.HexColor),
 			cancellationToken);
 
 		return result.Match<IResult>(
@@ -75,12 +75,12 @@ internal static class ProjectEndpoints
 	{
 		var result = await executor.ExecuteCommand(
 			new PatchProjectCommand(
-				id,
-				command.Name,
-				command.Details,
-				command.HourlyRate,
-				command.Currency,
-				command.HexColor),
+				Id: id,
+				Name: command.Name,
+				Details: command.Details,
+				HourlyRate: command.HourlyRate,
+				Currency: command.Currency,
+				HexColor: command.HexColor),
 		cancellationToken);
 
 		return result.Match<IResult>(

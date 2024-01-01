@@ -1,4 +1,5 @@
 using DevBook.Web.ApiService.Infrastructure;
+using DevBook.Web.ApiService.Middleware;
 using DevBook.Web.Shared.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -11,7 +12,6 @@ builder.Services.AddEndpointsApiExplorer()
 		=> opt.SerializerOptions.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull);
 
 builder.Services.AddSwaggerGen();
-
 builder.Services.AddInfrastructure();
 builder.Services.RegisterFeatureModules([typeof(Program).Assembly]);
 
@@ -22,12 +22,16 @@ app.InitializeDb(applyMigrations: true);
 
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
+	app.UseDeveloperExceptionPage();
+
+	app.UseSwagger();
 	app.UseSwaggerUI(opt =>
 	{
 		opt.InjectStylesheet("/swagger-ui/SwaggerDark.css");
 	});
 }
+
+app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();

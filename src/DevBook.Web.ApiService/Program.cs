@@ -1,18 +1,26 @@
+using DevBook.Web.ApiService;
+using DevBook.Web.ApiService.Identity;
 using DevBook.Web.ApiService.Infrastructure;
 using DevBook.Web.ApiService.Middleware;
 using DevBook.Web.Shared.Extensions;
+using Microsoft.AspNetCore.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
 
-// Add services to the container.
+builder.Services.AddInfrastructure();
+builder.Services.AddSwaggerGen(SwaggerOptions.WithBearerAuthorization());
 builder.Services.AddEndpointsApiExplorer()
-	.ConfigureHttpJsonOptions(opt 
+	.ConfigureHttpJsonOptions(opt
 		=> opt.SerializerOptions.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull);
 
-builder.Services.AddSwaggerGen();
-builder.Services.AddInfrastructure();
+builder.Services.AddAuthentication().AddBearerToken(IdentityConstants.BearerScheme);
+builder.Services.AddAuthorizationBuilder();
+builder.Services.AddIdentityCore<DevBookUser>()
+	.AddEntityFrameworkStores<DevBookDbContext>()
+	.AddApiEndpoints();
+
 builder.Services.RegisterFeatureModules([typeof(Program).Assembly]);
 
 var app = builder.Build();
@@ -38,6 +46,10 @@ app.UseStaticFiles();
 
 // Health check + Alive
 app.MapDefaultEndpoints();
+
+app.MapGroup("/identity")
+	.MapIdentityApi<DevBookUser>()
+	.WithTags($"Identity");
 
 app.MapFeatureModulesEndpoints();
 

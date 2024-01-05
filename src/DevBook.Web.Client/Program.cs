@@ -1,5 +1,7 @@
+using DevBook.Web.Client.Features.Account;
 using DevBook.Web.Client.Features.Shared;
 using DevBook.Web.Shared.Extensions;
+using Microsoft.AspNetCore.Components.Authorization;
 using MudBlazor.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -11,6 +13,9 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 builder.Services.AddMudServices();
+builder.Services.AddScoped<AuthenticationStateProvider,
+	DevBookAuthenticationStateProvider>();
+builder.Services.AddCascadingAuthenticationState();
 
 var app = builder.Build();
 

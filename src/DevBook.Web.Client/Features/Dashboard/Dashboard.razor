@@ -1,4 +1,14 @@
 ﻿@page "/"
 @page "/dashboard"
+@using Microsoft.AspNetCore.Components.Authorization
 
 <PageTitle>Dashboard</PageTitle>
+
+<AuthorizeView>
+    <Authorized>
+        <p>Hello, @context.User.Identity?.Name!</p>
+    </Authorized>
+    <NotAuthorized>
+        <p>You're not authorized.</p>
+    </NotAuthorized>
+</AuthorizeView>

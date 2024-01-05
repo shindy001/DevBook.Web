@@ -1,0 +1,38 @@
+﻿@page "/Account/Login"
+
+@using System.Text.RegularExpressions
+@using System.ComponentModel.DataAnnotations
+
+<MudCard Class="m-4">
+    <MudCardHeader>
+        <MudText Typo="Typo.h5">Sign in to DevBook</MudText>
+    </MudCardHeader>
+    <MudCardContent>
+        <MudForm @ref="form" @bind-IsValid="@success" @bind-Errors="@errors">
+            <MudTextField T="string" Label="Email" Required="true" RequiredError="Email is required!"
+                          Validation="@(new EmailAddressAttribute() {ErrorMessage = "The email address is invalid"})" />
+            <MudTextField T="string" Label="Password" @ref="password"
+                          InputType="InputType.Password"
+                          Required="true"
+                          RequiredError="Password is required!" />
+        </MudForm>
+    </MudCardContent>
+    <MudCardActions>
+        <MudButton Class="ml-1" Variant="Variant.Filled" Color="Color.Primary" DisableElevation="true" OnClick="@SignIn">Sign in</MudButton>
+    </MudCardActions>
+</MudCard>
+@code {
+    bool success;
+    string[] errors = { };
+    MudTextField<string>? password;
+    MudForm form { get; set; } = null!;
+
+    private async Task SignIn()
+    {
+        await form.Validate();
+        if (form.IsValid)
+        {
+            // Sign in
+        }
+    }
+}

@@ -1,3 +1,4 @@
+using DevBook.Web.Client;
 using DevBook.Web.Client.Features.Account;
 using DevBook.Web.Client.Features.Shared;
 using DevBook.Web.Shared.Extensions;
@@ -13,8 +14,14 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 builder.Services.AddMudServices();
-builder.Services.AddScoped<AuthenticationStateProvider,
-	DevBookAuthenticationStateProvider>();
+
+// debugging - use devbook.web.apiservice service if running via Aspire AppHost, otherwise use localhost:7126
+builder.Services.AddHttpClient<IDevBookApiProvider, DevBookApiProvider>(client =>
+{
+	client.BaseAddress = new Uri("https://localhost:7126");
+});
+
+builder.Services.AddScoped<AuthenticationStateProvider, DevBookTokenAuthenticationStateProvider>();
 builder.Services.AddCascadingAuthenticationState();
 
 var app = builder.Build();

@@ -15,11 +15,18 @@ builder.Services.AddEndpointsApiExplorer()
 	.ConfigureHttpJsonOptions(opt
 		=> opt.SerializerOptions.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull);
 
-builder.Services.AddAuthentication().AddBearerToken(IdentityConstants.BearerScheme);
+builder.Services.AddAuthentication(IdentityConstants.ApplicationScheme)
+	.AddIdentityCookies();
 builder.Services.AddAuthorizationBuilder();
 builder.Services.AddIdentityCore<DevBookUser>()
 	.AddEntityFrameworkStores<DevBookDbContext>()
 	.AddApiEndpoints();
+
+// TODO - also setup cors origins for production
+builder.Services.AddCors(options =>
+{
+	options.AddPolicy("DevBookClient", p => p.WithOrigins("http://localhost:5240", "https://localhost:7136").AllowAnyMethod().AllowAnyHeader().AllowCredentials());
+});
 
 builder.Services.RegisterFeatureModules([typeof(Program).Assembly]);
 
@@ -41,6 +48,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 
+app.UseCors("DevBookClient");
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 

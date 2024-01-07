@@ -5,11 +5,11 @@
 
 <MudCard Class="m-4">
     <MudCardHeader>
-        <MudText Typo="Typo.h5">Sign in to DevBook</MudText>
+        <MudText Typo="Typo.h5">Login to DevBook</MudText>
     </MudCardHeader>
     <MudCardContent>
         <MudForm @ref="form" @bind-IsValid="@success" @bind-Errors="@errors">
-            <MudTextField T="string" Label="Email" Required="true" RequiredError="Email is required!"
+            <MudTextField T="string" Label="Email" @ref="email" Required="true" RequiredError="Email is required!"
                           Validation="@(new EmailAddressAttribute() {ErrorMessage = "The email address is invalid"})" />
             <MudTextField T="string" Label="Password" @ref="password"
                           InputType="InputType.Password"
@@ -22,8 +22,13 @@
     </MudCardActions>
 </MudCard>
 @code {
+    [Inject] IDevBookWebApiClient DevBookApiClient { get; init; } = null!;
+    [Inject] AuthenticationStateProvider AuthenticationStateProvider { get; init; } = null!;
+    [Inject] NavigationManager NavigationManager { get; init; } = null!;
+
     bool success;
     string[] errors = { };
+    MudTextField<string>? email;
     MudTextField<string>? password;
     MudForm form { get; set; } = null!;
 
@@ -32,7 +37,9 @@
         await form.Validate();
         if (form.IsValid)
         {
-            // Sign in
+            var devBookAuthTokenProvider = (CookieAuthenticationStateProvider) AuthenticationStateProvider;
+            await devBookAuthTokenProvider.Login(new LoginModel { Email = email?.Value, Password = password?.Value });
+            NavigationManager.NavigateTo("/dashboard");
         }
     }
 }

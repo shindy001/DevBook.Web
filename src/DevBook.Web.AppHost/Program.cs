@@ -1,7 +1,8 @@
 var builder = DistributedApplication.CreateBuilder(args);
 
-builder.AddProject<Projects.DevBook_Web_ApiService>("devbook.web.apiservice");
+var apiservice = builder.AddProject<Projects.DevBook_Web_ApiService>("apiservice");
 
-builder.AddProject<Projects.DevBook_Web_Client>("devbook.web.client");
+builder.AddProject<Projects.DevBook_Web_Client_WASM>("wasm_client")
+	.WithReference(apiservice);
 
 builder.Build().Run();

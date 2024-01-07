@@ -31,7 +31,7 @@ public class CookieAuthenticationStateProvider(
 		catch { return new AuthenticationState(user); }
 	}
 
-	public async Task Login(LoginModel model)
+	public async Task<bool> Login(LoginModel model)
 	{
 		try
 		{
@@ -40,13 +40,22 @@ public class CookieAuthenticationStateProvider(
 				useSessionCookies: false,
 				body: new LoginRequest { Email = model.Email, Password = model.Password });
 
+			NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
+			return true;
+		}
+		catch (ApiException ex) when (ex.StatusCode == 200)
+		{
+			// Successful login with 200 OK
+			// .net 8 Identity actually returns only 200 OK status when using cookies, but generated client IDevBookWebApiClient throws ApiException because it expects AccessTokenResponse
+			NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
+			return true;
 		}
 		catch (Exception ex)
 		{
-			logger.LogError("Error while trying to Login: {ex}", ex);
-		}
+			logger.LogTrace("Error while trying to Login: {ex}", ex);
 
-		NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
+			return false;
+		}
 	}
 }
 

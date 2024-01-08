@@ -35,9 +35,7 @@
 	<MudMainContent>
 		<ErrorBoundary @ref="_errorBoundary">
 			<ChildContent>
-				<div>
-					@Body
-				</div>
+				@Body
 			</ChildContent>
 			<ErrorContent>
 				<ErrorDialog Title="Uh oh. Something went wrong." ErrorMessage="@($"Error: {context.Message}")" />

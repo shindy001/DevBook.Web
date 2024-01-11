@@ -21,22 +21,22 @@
     <!-- Connected service - DevBook.Web.ApiService to generate IDevBookWebApiClient class -->
     <OpenApiReference Include="..\DevBook.Web.ApiService\devbook.api.yaml">
       <CodeGenerator>NSwagCSharp</CodeGenerator>
-      <Link>OpenAPIs\devbook.api.yaml</Link>
+      <Link>ApiClient\OpenAPIs\devbook.api.yaml</Link>
       <Namespace>DevBook.WebApiClient.Generated</Namespace>
       <ClassName>DevBookWebApiClient</ClassName>
-      <OutputPath>$(ProjectDir)Generated/IDevBookWebApiClient.cs</OutputPath>
+      <OutputPath>$(ProjectDir)ApiClient\Generated\IDevBookWebApiClient.cs</OutputPath>
       <Options>/OperationGenerationMode:MultipleClientsFromOperationId /GenerateNullableReferenceTypes:true /GenerateClientInterfaces:true /UseBaseUrl:false"</Options>
     </OpenApiReference>
   </ItemGroup>
   
   <ItemGroup>
     <!-- Exclude the Generated files from the compilation, but show them in the IDE -->
-    <Compile Remove="Generated/**/*.cs" />
-    <None Include="Generated/**/*.cs" />
+    <Compile Remove="ApiClient\Generated\**\*.cs" />
+    <None Include="ApiClient\Generated\**\*.cs" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Generated\" />
+    <Folder Include="ApiClient\Generated\" />
   </ItemGroup>
 
   <Target Name="RunTailwindGen" AfterTargets="BeforePublish">

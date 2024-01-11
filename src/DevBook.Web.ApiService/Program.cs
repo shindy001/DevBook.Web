@@ -4,6 +4,7 @@ using DevBook.Web.ApiService.Infrastructure;
 using DevBook.Web.ApiService.Middleware;
 using DevBook.Web.Shared.Extensions;
 using Microsoft.AspNetCore.Identity;
+using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,7 +26,12 @@ builder.Services.AddIdentityCore<DevBookUser>()
 // TODO - also setup cors origins for production
 builder.Services.AddCors(options =>
 {
-	options.AddPolicy("DevBookClient", p => p.WithOrigins("http://localhost:5240", "https://localhost:7136").AllowAnyMethod().AllowAnyHeader().AllowCredentials());
+	options.AddPolicy("DevBookClient", 
+		p => p.WithOrigins("http://localhost:5240", "https://localhost:7136")
+		.AllowAnyMethod()
+		.SetIsOriginAllowed(isAllowed => true)
+		.AllowAnyHeader()
+		.AllowCredentials());
 });
 
 builder.Services.RegisterFeatureModules([typeof(Program).Assembly]);
@@ -58,6 +64,13 @@ app.MapDefaultEndpoints();
 app.MapGroup("/identity")
 	.MapIdentityApi<DevBookUser>()
 	.WithTags($"Identity");
+
+// provide an end point to clear the cookie for logout
+app.MapPost("/identity/logout", async (ClaimsPrincipal user, SignInManager<DevBookUser> signInManager) =>
+{
+	await signInManager.SignOutAsync();
+	return TypedResults.Ok();
+}).WithTags($"Identity");
 
 app.MapFeatureModulesEndpoints();
 

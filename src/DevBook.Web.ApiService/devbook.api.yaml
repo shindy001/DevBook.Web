@@ -3,6 +3,14 @@ info:
   title: 'DevBook.Web.ApiService, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'
   version: '1.0'
 paths:
+  /identity/logout:
+    post:
+      tags:
+        - Identity
+      operationId: Logout
+      responses:
+        '200':
+          description: Success
   /identity/register:
     post:
       tags:

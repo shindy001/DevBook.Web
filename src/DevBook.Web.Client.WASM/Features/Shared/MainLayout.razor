@@ -14,17 +14,33 @@
 		<div>
 			<AuthorizeView>
 				<Authorized>
-					<MudButton Variant="Variant.Outlined" Color="Color.Primary">Logout</MudButton>
+					<MudButton
+						Variant="Variant.Outlined"
+						Color="@(_isDarkModeEnabled ? Color.Primary : Color.Inherit)"
+						Href="/account/logout">
+						Logout
+					</MudButton>
 				</Authorized>
 				<NotAuthorized>
-					<MudButton Variant="Variant.Outlined" Color="Color.Primary" Href="/account/login">Login</MudButton>
+					<MudButton
+						Variant="Variant.Outlined"
+						Color="@(_isDarkModeEnabled ? Color.Primary : Color.Inherit)"
+						Href="/account/login">
+						Login
+					</MudButton>
 				</NotAuthorized>
 			</AuthorizeView>
 			<MudTooltip Delay="_tooltipDelayInMs" Text="Toggle Dark Mode" Placement="Placement.Bottom">
-				<MudIconButton Class='@(_isDarkModeEnabled ? "d-none" : "")' OnClick="ToggleTheme" Icon="@Icons.Material.Filled.DarkMode" Color="Color.Inherit" />
+				<MudIconButton
+					Class='@(_isDarkModeEnabled ? "d-none" : "")'
+					OnClick="ToggleTheme" Icon="@Icons.Material.Filled.DarkMode"
+					Color="@(_isDarkModeEnabled ? Color.Primary : Color.Inherit)" />
 			</MudTooltip>
 			<MudTooltip Delay="_tooltipDelayInMs" Text="Toggle Light Mode" Placement="Placement.Bottom">
-				<MudIconButton Class='@(_isDarkModeEnabled ? "" : "d-none")' OnClick="ToggleTheme" Icon="@Icons.Material.Filled.LightMode" Color="Color.Inherit" />
+				<MudIconButton
+					Class='@(_isDarkModeEnabled ? "" : "d-none")'
+					OnClick="ToggleTheme" Icon="@Icons.Material.Filled.LightMode"
+					Color="@(_isDarkModeEnabled ? Color.Primary : Color.Inherit)" />
 			</MudTooltip>
 		</div>
 		

@@ -1,0 +1,12 @@
+﻿@page "/Account/Logout"
+
+@code {
+    [Inject] IAccountManagement AccountManagement { get; set; } = null!;
+    [Inject] NavigationManager NavigationManager { get; init; } = null!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await AccountManagement.LogoutAsync();
+        NavigationManager.NavigateTo("/account/login");
+    }
+}

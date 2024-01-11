@@ -32,13 +32,13 @@
 
 @code {
     [Inject] IDevBookWebApiClient DevBookApiClient { get; init; } = null!;
-    [Inject] AuthenticationStateProvider AuthenticationStateProvider { get; init; } = null!;
+    [Inject] IAccountManagement AccountManagement { get; init; } = null!;
     [Inject] NavigationManager NavigationManager { get; init; } = null!;
 
     bool formIsValid;
     string[] errors = { };
-    MudTextField<string>? email;
-    MudTextField<string>? password;
+    MudTextField<string> email = null!;
+    MudTextField<string> password = null!;
     MudForm form { get; set; } = null!;
     bool loginErrorVisible = false;
 
@@ -47,9 +47,8 @@
         await form.Validate();
         if (form.IsValid)
         {
-            var devBookAuthTokenProvider = (CookieAuthenticationStateProvider) AuthenticationStateProvider;
-            var success = await devBookAuthTokenProvider.Login(new LoginModel { Email = email?.Value, Password = password?.Value });
-            if (success)
+            var result = await AccountManagement.LoginAsync(email.Value, password.Value);
+            if (result.Succeeded)
             {
                 NavigationManager.NavigateTo("/dashboard");
             }

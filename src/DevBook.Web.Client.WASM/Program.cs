@@ -12,10 +12,11 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 
 // register the cookie handler
 builder.Services.AddScoped<CookieHandler>();
+
 // set up authorization
 builder.Services.AddAuthorizationCore();
-// register the custom state provider
 builder.Services.AddScoped<AuthenticationStateProvider, CookieAuthenticationStateProvider>();
+builder.Services.AddScoped(sp => (IAccountManagement)sp.GetRequiredService<AuthenticationStateProvider>());
 
 // register MudBlazor
 builder.Services.AddMudServices();

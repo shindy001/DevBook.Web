@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components.WebAssembly.Http;
 
-namespace DevBook.Web.Client.WASM;
+namespace DevBook.Web.Client.WASM.Identity;
 
 /// <summary>
 /// Handler to ensure cookie credentials are automatically sent over with each request.

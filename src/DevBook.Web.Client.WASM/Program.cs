@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using MudBlazor.Services;
 using DevBook.WebApiClient.Generated;
 using DevBook.Web.Client.WASM.Features.Shared;
-using DevBook.Web.Client.WASM;
+using DevBook.Web.Client.WASM.Identity;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");

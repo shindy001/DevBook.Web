@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Components.Authorization;
 using System.Security.Claims;
 
-namespace DevBook.Web.Client.WASM;
+namespace DevBook.Web.Client.WASM.Identity;
 
 public class CookieAuthenticationStateProvider(
 	IDevBookWebApiClient devBookWebClient,

@@ -6,7 +6,7 @@
             <MudText Typo="Typo.h5">Login to DevBook</MudText>
         </MudCardHeader>
         <MudCardContent>
-            <MudForm @ref="form" @bind-IsValid="@formIsValid" @bind-Errors="@errors">
+            <MudForm @ref="form" @bind-IsValid="@formIsValid" @bind-Errors="@formErrors">
                 <MudTextField T="string" Label="Email" @ref="email" Required="true" RequiredError="Email is required!"
                               Validation="@(new EmailAddressAttribute() {ErrorMessage = "The email address is invalid"})" />
                 <MudTextField T="string" Label="Password" @ref="password"
@@ -38,12 +38,14 @@
     [Inject] IAccountManagement AccountManagement { get; init; } = null!;
     [Inject] NavigationManager NavigationManager { get; init; } = null!;
 
-    bool formIsValid;
-    string[] errors = { };
+    MudForm form { get; set; } = null!;
     MudTextField<string> email = null!;
     MudTextField<string> password = null!;
-    MudForm form { get; set; } = null!;
-    bool showLoginErrors = false;
+
+    bool formIsValid;
+    string[] formErrors = [];
+    
+    bool showLoginErrors;
     string[] loginErrors = [];
 
     private async Task LoginAndRedirect()

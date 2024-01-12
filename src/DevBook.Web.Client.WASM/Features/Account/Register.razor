@@ -1,0 +1,81 @@
+﻿@page "/Account/Register"
+
+<div class="flex justify-center">
+    <div class="flex flex-col">
+        <MudCard Class="m-4 w-[40rem]">
+            <MudCardHeader>
+                <MudText Typo="Typo.h5">Register to DevBook</MudText>
+            </MudCardHeader>
+            <MudCardContent>
+                <MudForm @ref="form" @bind-IsValid="@formIsValid" @bind-Errors="@errors">
+                    <MudTextField T="string" Label="Email" @ref="email" Required="true" RequiredError="Email is required!"
+                                  Validation="@(new EmailAddressAttribute() {ErrorMessage = "The email address is invalid"})" />
+                    <MudTextField T="string" Label="Password" @ref="password"
+                                  InputType="InputType.Password"
+                                  Required="true"
+                                  RequiredError="Password is required!" />
+                </MudForm>
+                @if (showRegistrationErrors)
+                {
+                    <div class="pa-4">
+                        @foreach (var error in registrationErrors)
+                        {
+                            <MudText Color="@Color.Error">@error</MudText>
+                        }
+                    </div>
+                }
+            </MudCardContent>
+            <MudCardActions>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" OnClick="@RegisterAccount">Register</MudButton>
+            </MudCardActions>
+            <MudText Class="m-4 text-center">
+                Already have an account? <MudLink Href="account/login">Login now</MudLink>
+            </MudText>
+        </MudCard>
+
+        @if (showRegistrationSuccess)
+        {
+            <MudCard Class="m-4 w-[40rem]">
+                <MudCardContent>
+                    <MudText Class="m-4 text-center">
+                        <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Size="Size.Large" Color="Color.Success" Class="mr-1" />Registration was successful, you can now <MudLink Href="account/login">Login</MudLink>
+                    </MudText>
+                </MudCardContent>
+            </MudCard>
+        }
+    </div>
+</div>
+
+@code {
+    [Inject] IDevBookWebApiClient DevBookApiClient { get; init; } = null!;
+    [Inject] IAccountManagement AccountManagement { get; init; } = null!;
+
+    bool formIsValid;
+    string[] errors = { };
+    MudTextField<string> email = null!;
+    MudTextField<string> password = null!;
+    MudForm form { get; set; } = null!;
+    bool showRegistrationSuccess = false;
+    bool showRegistrationErrors = false;
+    string[] registrationErrors = [];
+
+    private async Task RegisterAccount()
+    {
+        await form.Validate();
+        if (form.IsValid)
+        {
+            var result = await AccountManagement.RegisterAsync(email.Value, password.Value);
+            if (result.Succeeded)
+            {
+                showRegistrationErrors = false;
+                showRegistrationSuccess = true;
+            }
+            else
+            {
+                registrationErrors = result.ErrorList;
+                showRegistrationSuccess = false;
+                showRegistrationErrors = true;
+            }
+        }
+    }
+}

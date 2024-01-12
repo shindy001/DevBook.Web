@@ -1,6 +1,7 @@
 ﻿using DevBook.WebApiClient.Generated;
 using Microsoft.AspNetCore.Components.Authorization;
 using System.Security.Claims;
+using System.Linq;
 
 namespace DevBook.Web.Client.WASM.Identity;
 
@@ -12,13 +13,12 @@ public class CookieAuthenticationStateProvider(
 	/// <summary>
 	/// Authentication state.
 	/// </summary>
-	private bool isAuthenticated = false;
+	private bool _isAuthenticated = false;
 
 	/// <summary>
 	/// Default principal for anonymous (not authenticated) users.
 	/// </summary>
-	private readonly ClaimsPrincipal Unauthenticated =
-		new(new ClaimsIdentity());
+	private readonly ClaimsPrincipal Unauthenticated = new(new ClaimsIdentity());
 
 	/// <summary>
 	/// Register a new user.
@@ -27,10 +27,34 @@ public class CookieAuthenticationStateProvider(
 	/// <param name="password">The user's password.</param>
 	/// <returns>The result serialized to a <see cref="AccountActionResult"/>.
 	/// </returns>
-	public Task<AccountActionResult> RegisterAsync(string email, string password)
+	public async Task<AccountActionResult> RegisterAsync(string email, string password)
 	{
-		throw new NotImplementedException();
-	}
+		try
+		{
+			await devBookWebClient.RegisterAsync(new RegisterRequest { Email = email, Password = password });
+
+			return new AccountActionResult { Succeeded = true };
+
+		}
+		catch (ApiException ex) when (ex is ApiException<HttpValidationProblemDetails> problemDetails)
+		{
+			return new AccountActionResult
+			{
+				Succeeded = false,
+				ErrorList = [.. problemDetails?.Result?.Errors?.Values.Select(x => string.Join(Environment.NewLine, x))]
+			};
+		}
+		catch (Exception ex)
+		{
+			logger.LogTrace("Error while trying to Register: {ex}", ex);
+
+			return new AccountActionResult
+			{
+				Succeeded = false,
+				ErrorList = ["An unknown error prevented registration from succeeding."]
+			};
+		}
+ 	}
 
 	/// <summary>
 	/// User login.
@@ -81,11 +105,12 @@ public class CookieAuthenticationStateProvider(
 	public async Task<bool> CheckAuthenticatedAsync()
 	{
 		await GetAuthenticationStateAsync();
-		return isAuthenticated;
+		return _isAuthenticated;
 	}
 
 	public async override Task<AuthenticationState> GetAuthenticationStateAsync()
 	{
+		_isAuthenticated = false;
 		var user = Unauthenticated;
 
 		try
@@ -100,6 +125,7 @@ public class CookieAuthenticationStateProvider(
 				};
 				var id = new ClaimsIdentity(claims, nameof(CookieAuthenticationStateProvider));
 				user = new ClaimsPrincipal(id);
+				_isAuthenticated = true;
 			}
 			return new AuthenticationState(user);
 		}

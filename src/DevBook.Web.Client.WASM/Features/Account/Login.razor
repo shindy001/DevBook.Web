@@ -14,18 +14,21 @@
                               Required="true"
                               RequiredError="Password is required!" />
             </MudForm>
-            @if (loginErrorVisible)
+            @if (showLoginErrors)
             {
-                <MudPaper Class="pa-4">
-                    <MudText Color="@Color.Error">Invalid email or password.</MudText>
-                </MudPaper>
+                <div class="pa-4">
+                    @foreach(var error in loginErrors)
+                    {
+                        <MudText Color="@Color.Error">@error</MudText>
+                    }
+                </div>
             }
         </MudCardContent>
         <MudCardActions>
             <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" OnClick="@LoginAndRedirect">Login</MudButton>
         </MudCardActions>
         <MudText Class="m-4 text-center">
-            Don't have an account? <MudLink>Register now</MudLink>
+            Don't have an account? <MudLink Href="account/register">Register now</MudLink>
         </MudText>
     </MudCard>
 </div>
@@ -40,10 +43,12 @@
     MudTextField<string> email = null!;
     MudTextField<string> password = null!;
     MudForm form { get; set; } = null!;
-    bool loginErrorVisible = false;
+    bool showLoginErrors = false;
+    string[] loginErrors = [];
 
     private async Task LoginAndRedirect()
     {
+        showLoginErrors = false;
         await form.Validate();
         if (form.IsValid)
         {
@@ -54,7 +59,8 @@
             }
             else
             {
-                loginErrorVisible = true;
+                loginErrors = result.ErrorList;
+                showLoginErrors = true;
             }
         }
     }

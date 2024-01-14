@@ -39,6 +39,10 @@
     <Folder Include="ApiClient\Generated\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\DevBook.Web.Shared\DevBook.Web.Shared.csproj" />
+  </ItemGroup>
+
   <Target Name="RunTailwindGen" AfterTargets="BeforePublish">
     <Message Importance="high" Text="Make sure that your machine supports included tailwindcss.exe (win-x64)..." />
     <Message Importance="high" Text="Generating tailwind.css..." />

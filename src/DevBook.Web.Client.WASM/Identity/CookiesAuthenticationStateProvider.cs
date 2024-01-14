@@ -1,11 +1,10 @@
 ﻿using DevBook.WebApiClient.Generated;
 using Microsoft.AspNetCore.Components.Authorization;
 using System.Security.Claims;
-using System.Linq;
 
 namespace DevBook.Web.Client.WASM.Identity;
 
-public class CookieAuthenticationStateProvider(
+internal sealed class CookieAuthenticationStateProvider(
 	IDevBookWebApiClient devBookWebClient,
 	ILogger<CookieAuthenticationStateProvider> logger)
 	: AuthenticationStateProvider, IAccountManagement

@@ -5,7 +5,7 @@ namespace DevBook.Web.Client.WASM.Identity;
 /// <summary>
 /// Handler to ensure cookie credentials are automatically sent over with each request.
 /// </summary>
-public class CookieHandler : DelegatingHandler
+internal sealed class CookieHandler : DelegatingHandler
 {
 	/// <summary>
 	/// Main method to override for the handler.

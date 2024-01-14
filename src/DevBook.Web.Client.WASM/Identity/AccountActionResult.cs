@@ -3,7 +3,7 @@
 /// <summary>
 /// Response for login and registration.
 /// </summary>
-public class AccountActionResult
+public sealed record AccountActionResult
 {
 	/// <summary>
 	/// Gets or sets a value indicating whether the action was successful.

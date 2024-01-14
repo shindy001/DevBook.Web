@@ -1,9 +1,8 @@
-﻿using DevBook.Web.Shared.Contracts;
-using Microsoft.AspNetCore.Builder;
+﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 
-namespace DevBook.Web.Shared.Extensions;
+namespace DevBook.Web.ServiceDefaults;
 
 public static class FeatureModuleExtensions
 {
@@ -16,7 +15,7 @@ public static class FeatureModuleExtensions
 	/// <returns></returns>
 	public static IServiceCollection RegisterFeatureModules(this IServiceCollection services, params Assembly[] commandAndQueriesAssemblies)
 	{
-		foreach(var assembly in commandAndQueriesAssemblies)
+		foreach (var assembly in commandAndQueriesAssemblies)
 		{
 			RegisterModules(services, assembly);
 		}

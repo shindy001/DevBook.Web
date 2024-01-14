@@ -1,8 +1,7 @@
 ﻿using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
-using DevBook.Web.Shared.Extensions;
 
-namespace DevBook.Web.Shared.Contracts;
+namespace DevBook.Web.ServiceDefaults;
 
 /// <summary>
 /// Marks feature module

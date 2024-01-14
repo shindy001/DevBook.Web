@@ -19,6 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\DevBook.Web.ServiceDefaults\DevBook.Web.ServiceDefaults.csproj" />
     <ProjectReference Include="..\DevBook.Web.Shared\DevBook.Web.Shared.csproj" />
   </ItemGroup>
 

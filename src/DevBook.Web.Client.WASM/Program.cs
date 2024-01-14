@@ -14,13 +14,14 @@ builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
 // set up authorization
+builder.Services.AddCascadingAuthenticationState();
+builder.Services.AddOptions();
 builder.Services.AddAuthorizationCore();
 builder.Services.AddScoped<AuthenticationStateProvider, CookieAuthenticationStateProvider>();
 builder.Services.AddScoped(sp => (IAccountManagement)sp.GetRequiredService<AuthenticationStateProvider>());
-builder.Services.AddCascadingAuthenticationState();
 
 // register command/queries support
-builder.Services.AddCommandsAndQueriesExecutor();
+builder.Services.AddCommandsAndQueriesExecutor(typeof(Program).Assembly);
 
 // register MudBlazor
 builder.Services.AddMudServices();

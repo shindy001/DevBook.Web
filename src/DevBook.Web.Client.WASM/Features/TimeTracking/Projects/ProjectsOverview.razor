@@ -1,4 +1,4 @@
-﻿@page "/projects"
+﻿@page "/Projects"
 
 <PageTitle>Projects</PageTitle>
 
@@ -14,10 +14,10 @@
 		</CardHeaderContent>
 	</MudCardHeader>
 	<MudCardContent>
-        <MudTable Items="@ProjectItems" Hover="true" Filter="((x) => FilterFunc(x, searchString))">
+        <MudTable Items="@_projects" Loading="@_loading" Hover="true" Filter="((x) => FilterFunc(x, _searchString))">
             <ToolBarContent>
                 <MudTextField 
-                    @bind-Value="searchString"
+                    @bind-Value="_searchString"
                     Immediate="true"
                     Placeholder="Search"
                     Adornment="Adornment.Start"
@@ -30,10 +30,9 @@
             <RowTemplate>
                 <MudTd Class="flex">
                     <div class="flex">
-                        <MudIcon Icon="@Icons.Material.Filled.Circle" Color="@context.Color" />
-                        <MudText Class="ml-3">@context.Name</MudText>
+                        <div style="color: @context.HexColor"><MudIcon Icon="@Icons.Material.Filled.Circle" /></div>
+                        <MudText Class="ml-3">@context.Name (@(context.HourlyRate != null ? $"{context.HourlyRate} {context.Currency}/h" : ""))</MudText>
                     </div>
-                    
                 </MudTd>
             </RowTemplate>
         </MudTable>
@@ -41,24 +40,26 @@
 </MudCard>
 
 @code {
-    private Project[] ProjectItems =
-    [
-        new("1", "Project1 - work (30 USD/h)", Color.Error),
-        new("2", "Project2 - work (600 CZK/h)", Color.Primary),
-        new("3", "Project3 - freelance (20 EUR/h)", Color.Success),
-        new("4", "Project4 - personal", Color.Warning),
-        new("5", "Project5 - intership ", Color.Info),
-    ];
-    private string searchString = "";
+    [Inject] private IProjectsService ProjectsService { get; set; } = null!;
 
-    record Project(string Id, string Name, Color Color);
+    private IEnumerable<Project> _projects = [];
+    private string _searchString = "";
+
+    private bool _loading = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _loading = true;
+        _projects = await ProjectsService.GetAll();
+        _loading = false;
+    }
 
     private bool FilterFunc(Project project, string searchString)
     {
         if (string.IsNullOrWhiteSpace(searchString))
             return true;
 
-        if (project.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+        if (project.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase) == true)
             return true;
 
         return false;

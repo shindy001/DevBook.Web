@@ -1,4 +1,8 @@
-﻿namespace DevBook.Web.Client.WASM.Identity;
+﻿using DevBook.Web.Client.WASM.ApiClient;
+using OneOf.Types;
+using OneOf;
+
+namespace DevBook.Web.Client.WASM.Identity;
 
 /// <summary>
 /// Account management services.
@@ -6,26 +10,30 @@
 public interface IAccountManagement
 {
 	/// <summary>
-	/// Login service.
-	/// </summary>
-	/// <param name="email">User's email.</param>
-	/// <param name="password">User's password.</param>
-	/// <returns>The result of the request serialized to <see cref="AccountActionResult"/>.</returns>
-	public Task<AccountActionResult> LoginAsync(string email, string password);
-
-	/// <summary>
-	/// Log out the logged in user.
-	/// </summary>
-	/// <returns>The asynchronous task.</returns>
-	public Task LogoutAsync();
-
-	/// <summary>
 	/// Registration service.
 	/// </summary>
 	/// <param name="email">User's email.</param>
 	/// <param name="password">User's password.</param>
-	/// <returns>The result of the request serialized to <see cref="AccountActionResult"/>.</returns>
-	public Task<AccountActionResult> RegisterAsync(string email, string password);
+	/// <returns>The result of the request serialized to <see cref="Success"/> or <see cref="ApiError"/>.</returns>
+	public Task<OneOf<Success, ApiError>> RegisterAsync(string email, string password);
 
+	/// <summary>
+	/// Login service.
+	/// </summary>
+	/// <param name="email">User's email.</param>
+	/// <param name="password">User's password.</param>
+	/// <returns>The result of the request serialized to <see cref="Success"/> or <see cref="ApiError"/>.</returns>
+	public Task<OneOf<Success, ApiError>> LoginAsync(string email, string password);
+
+	/// <summary>
+	/// Log out the logged in user.
+	/// </summary>
+	/// <returns>The result of the request serialized to <see cref="Success"/> or <see cref="ApiError"/>.</returns>
+	public Task<OneOf<Success, ApiError>> LogoutAsync();
+
+	/// <summary>
+	/// Checks if user is authenticated
+	/// </summary>
+	/// <returns>true if authenticated</returns>
 	public Task<bool> CheckAuthenticatedAsync();
 }

@@ -1,12 +1,15 @@
-﻿using DevBook.WebApiClient.Generated;
+﻿using DevBook.Web.Client.WASM.ApiClient;
+using DevBook.WebApiClient.Generated;
 using Microsoft.AspNetCore.Components.Authorization;
+using OneOf;
+using OneOf.Types;
+using System.Net;
 using System.Security.Claims;
 
 namespace DevBook.Web.Client.WASM.Identity;
 
 internal sealed class CookieAuthenticationStateProvider(
-	IDevBookWebApiClient devBookWebClient,
-	ILogger<CookieAuthenticationStateProvider> logger)
+	IDevBookWebApiActionExecutor devBookWebApiActionExecutor)
 	: AuthenticationStateProvider, IAccountManagement
 {
 	/// <summary>
@@ -24,35 +27,11 @@ internal sealed class CookieAuthenticationStateProvider(
 	/// </summary>
 	/// <param name="email">The user's email address.</param>
 	/// <param name="password">The user's password.</param>
-	/// <returns>The result serialized to a <see cref="AccountActionResult"/>.
-	/// </returns>
-	public async Task<AccountActionResult> RegisterAsync(string email, string password)
+	/// <returns>The result of the request serialized to <see cref="Success"/> or <see cref="ApiError"/>.</returns>
+	public async Task<OneOf<Success, ApiError>> RegisterAsync(string email, string password)
 	{
-		try
-		{
-			await devBookWebClient.RegisterAsync(new RegisterRequest { Email = email, Password = password });
-
-			return new AccountActionResult { Succeeded = true };
-
-		}
-		catch (ApiException ex) when (ex is ApiException<HttpValidationProblemDetails> problemDetails)
-		{
-			return new AccountActionResult
-			{
-				Succeeded = false,
-				ErrorList = [.. problemDetails?.Result?.Errors?.Values.Select(x => string.Join(Environment.NewLine, x))]
-			};
-		}
-		catch (Exception ex)
-		{
-			logger.LogTrace("Error while trying to Register: {ex}", ex);
-
-			return new AccountActionResult
-			{
-				Succeeded = false,
-				ErrorList = ["An unknown error prevented registration from succeeding."]
-			};
-		}
+		return await devBookWebApiActionExecutor.Execute(x => x.RegisterAsync(
+			new RegisterRequest { Email = email, Password = password }));
  	}
 
 	/// <summary>
@@ -60,47 +39,46 @@ internal sealed class CookieAuthenticationStateProvider(
 	/// </summary>
 	/// <param name="email">The user's email address.</param>
 	/// <param name="password">The user's password.</param>
-	/// <returns>The result of the login request serialized to a <see cref="AccountActionResult"/>.</returns>
-	public async Task<AccountActionResult> LoginAsync(string email, string password)
+	/// <returns>The result of the request serialized to <see cref="Success"/> or <see cref="ApiError"/>.</returns>
+	public async Task<OneOf<Success, ApiError>> LoginAsync(string email, string password)
 	{
-		try
-		{
-			await devBookWebClient.LoginAsync(
-				useCookies: true,
-				useSessionCookies: false,
-			body: new LoginRequest { Email = email, Password = password });
-
-			NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
-
-			return new AccountActionResult { Succeeded = true };
-		}
-		catch (ApiException ex) when (ex.StatusCode == 200)
-		{
-			// Successful login with 200 OK
-			// .net 8 Identity actually returns only 200 OK status when using cookies, but generated client IDevBookWebApiClient throws ApiException because it expects AccessTokenResponse
-			NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
-
-			return new AccountActionResult { Succeeded = true };
-		}
-		catch (Exception ex)
-		{
-			logger.LogTrace("Error while trying to Login: {ex}", ex);
-
-			return new AccountActionResult
-			{
-				Succeeded = false,
-				ErrorList = ["Invalid email and/or password."]
-			};
-		}
-	}
-
-	public async Task LogoutAsync()
-	{
-		await devBookWebClient.LogoutAsync();
+		var result = await devBookWebApiActionExecutor.Execute(x => x.LoginAsync(
+			useCookies: true,
+			useSessionCookies: false,
+			body: new LoginRequest { Email = email, Password = password }));
 
 		NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
+
+		// ApiError with StatusCode 200 OK => successful login
+		// .net 8 Identity returns only 200 OK status when using cookies,
+		// but generated client IDevBookWebApiClient throws ApiException because it expects AccessTokenResponse as specified in model
+		return result.Match<OneOf<Success, ApiError>>(
+			success => new Success(),
+			apiError => 
+				apiError.StatusCode is HttpStatusCode.OK
+				? new Success()
+				: apiError.StatusCode is HttpStatusCode.Unauthorized
+					? new ApiError(apiError.StatusCode, ["Invalid email and/or password."])
+					: apiError);
 	}
 
+	/// <summary>
+	/// User logout
+	/// </summary>
+	/// <returns>The result of the request serialized to <see cref="Success"/> or <see cref="ApiError"/>.</returns>
+	public async Task<OneOf<Success, ApiError>> LogoutAsync()
+	{
+		var result = await devBookWebApiActionExecutor.Execute(x => x.LogoutAsync());
+
+		NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
+
+		return result;
+	}
+
+	/// <summary>
+	/// Checks if user is authenticated
+	/// </summary>
+	/// <returns>true if authenticated</returns>
 	public async Task<bool> CheckAuthenticatedAsync()
 	{
 		await GetAuthenticationStateAsync();
@@ -112,22 +90,20 @@ internal sealed class CookieAuthenticationStateProvider(
 		_isAuthenticated = false;
 		var user = Unauthenticated;
 
-		try
+		var result = await devBookWebApiActionExecutor.Execute(x => x.ManageInfoGETAsync());
+
+		if (result.TryPickT0(out var userInfo, out _))
 		{
-			var userResponse = await devBookWebClient.ManageInfoGETAsync();
-			if (userResponse != null)
+			var claims = new List<Claim>
 			{
-				var claims = new List<Claim>
-				{
-					new (ClaimTypes.Name, userResponse?.Email ?? string.Empty),
-					new (ClaimTypes.Email, userResponse?.Email ?? string.Empty)
-				};
-				var id = new ClaimsIdentity(claims, nameof(CookieAuthenticationStateProvider));
-				user = new ClaimsPrincipal(id);
-				_isAuthenticated = true;
-			}
-			return new AuthenticationState(user);
+				new (ClaimTypes.Name, userInfo?.Email ?? string.Empty),
+				new (ClaimTypes.Email, userInfo?.Email ?? string.Empty)
+			};
+			var id = new ClaimsIdentity(claims, nameof(CookieAuthenticationStateProvider));
+			user = new ClaimsPrincipal(id);
+			_isAuthenticated = true;
 		}
-		catch { return new AuthenticationState(user); }
+
+		return new AuthenticationState(user);
 	}
 }

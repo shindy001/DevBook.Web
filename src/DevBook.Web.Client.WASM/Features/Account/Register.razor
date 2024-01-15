@@ -56,7 +56,7 @@
 
     bool formIsValid;
     string[] formErrors = [];
-    
+
     bool showRegistrationSuccess;
     bool showRegistrationErrors;
     string[] registrationErrors = [];
@@ -67,17 +67,19 @@
         if (form.IsValid)
         {
             var result = await AccountManagement.RegisterAsync(email.Value, password.Value);
-            if (result.Succeeded)
-            {
-                showRegistrationErrors = false;
-                showRegistrationSuccess = true;
-            }
-            else
-            {
-                registrationErrors = result.ErrorList;
-                showRegistrationSuccess = false;
-                showRegistrationErrors = true;
-            }
+            result.Switch(
+                success =>
+                {
+                    showRegistrationErrors = false;
+                    showRegistrationSuccess = true;
+                },
+                apiError =>
+                {
+                    registrationErrors = apiError.Errors;
+                    showRegistrationSuccess = false;
+                    showRegistrationErrors = true;
+                }
+            );
         }
     }
 }

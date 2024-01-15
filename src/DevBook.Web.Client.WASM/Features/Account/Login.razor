@@ -44,7 +44,7 @@
 
     bool formIsValid;
     string[] formErrors = [];
-    
+
     bool showLoginErrors;
     string[] loginErrors = [];
 
@@ -55,15 +55,14 @@
         if (form.IsValid)
         {
             var result = await AccountManagement.LoginAsync(email.Value, password.Value);
-            if (result.Succeeded)
-            {
-                NavigationManager.NavigateTo("/dashboard");
-            }
-            else
-            {
-                loginErrors = result.ErrorList;
-                showLoginErrors = true;
-            }
+            result.Switch(
+                success => NavigationManager.NavigateTo("/dashboard"),
+                apiError =>
+                {
+                    loginErrors = apiError.Errors;
+                    showLoginErrors = true;
+                }
+            );
         }
     }
 }

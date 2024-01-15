@@ -22,11 +22,15 @@ internal class DevBookWebApiActionExecutor(IDevBookWebApiClient devBookWebApiCli
 		}
 		catch (ApiException ex) when (ex is ApiException<HttpValidationProblemDetails> problemDetails)
 		{
-			return LogAndCreateApiError(nameof(method), ex, problemDetails);
+			return LogAndCreateApiError(nameof(method), (HttpStatusCode)ex.StatusCode, ex, problemDetails);
 		}
 		catch (ApiException ex)
 		{
-			return LogAndCreateApiError(nameof(method), ex);
+			return LogAndCreateApiError(nameof(method), (HttpStatusCode)ex.StatusCode, ex);
+		}
+		catch (HttpRequestException ex) when (ex.Message.Equals("TypeError: Failed to fetch")) // WASM js lib error
+		{
+			return LogAndCreateApiError(nameof(method), ex.StatusCode ?? HttpStatusCode.InternalServerError, ex);
 		}
 	}
 
@@ -38,18 +42,22 @@ internal class DevBookWebApiActionExecutor(IDevBookWebApiClient devBookWebApiCli
 		}
 		catch (ApiException ex) when (ex is ApiException<HttpValidationProblemDetails> problemDetails)
 		{
-			return LogAndCreateApiError(nameof(method), ex, problemDetails);
+			return LogAndCreateApiError(nameof(method), (HttpStatusCode)ex.StatusCode, ex, problemDetails);
 		}
 		catch (ApiException ex)
 		{
-			return LogAndCreateApiError(nameof(method), ex);
+			return LogAndCreateApiError(nameof(method), (HttpStatusCode)ex.StatusCode, ex);
+		}
+		catch (HttpRequestException ex) when (ex.Message.Equals("TypeError: Failed to fetch")) // WASM js lib error
+		{
+			return LogAndCreateApiError(nameof(method), ex.StatusCode ?? HttpStatusCode.InternalServerError, ex);
 		}
 	}
 
-	private ApiError LogAndCreateApiError(string methodName, ApiException ex, ApiException<HttpValidationProblemDetails>? problemDetails = null)
+	private ApiError LogAndCreateApiError(string methodName, HttpStatusCode statusCode, Exception ex, ApiException<HttpValidationProblemDetails>? problemDetails = null)
 	{
 		logger.LogTrace("DevBookWebApi error when executing action {actionName}, {message}, {error}", methodName, ex.Message, ex);
 
-		return new ApiError((HttpStatusCode)ex.StatusCode, problemDetails?.Result?.Errors?.Values.Select(x => string.Join(Environment.NewLine, x)).ToArray() ?? [ex.Message]);
+		return new ApiError(statusCode, problemDetails?.Result?.Errors?.Values.Select(x => string.Join(Environment.NewLine, x)).ToArray() ?? [ex.Message]);
 	}
 }

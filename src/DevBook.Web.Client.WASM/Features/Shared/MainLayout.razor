@@ -54,7 +54,9 @@
 				@Body
 			</ChildContent>
 			<ErrorContent>
-				<ErrorDialog Title="Uh oh. Something went wrong." ErrorMessage="@($"Error: {context.Message}")" />
+				<ErrorDialog
+					Title="Uh oh. Something went wrong."
+					ErrorMessage="@($"{(context is DevBookException ex && ex.Errors.Any() ? string.Join(Environment.NewLine, ex.Errors) : context.Message)}")" />
 			</ErrorContent>
 		</ErrorBoundary>
 	</MudMainContent>

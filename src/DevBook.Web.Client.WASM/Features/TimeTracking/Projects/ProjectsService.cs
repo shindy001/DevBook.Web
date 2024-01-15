@@ -1,27 +1,40 @@
 ﻿using DevBook.Web.Client.WASM.ApiClient;
+using DevBook.Web.Client.WASM.Exceptions;
 using DevBook.WebApiClient.Generated;
-using OneOf;
-using OneOf.Types;
 
 namespace DevBook.Web.Client.WASM.Features.TimeTracking.Projects;
 
-public interface IProjectsService;
+public interface IProjectsService
+{
+	Task<IEnumerable<Project>> GetAll();
+	Task<Project> GetById(Guid id);
+	Task Create(string name, string? details = null, string? currency = null, int? hourlyRate = null, string? hexColor = null);
+	Task Update(Guid id, string name, string? details = null, string? currency = null, int? hourlyRate = null, string? hexColor = null);
+	Task Patch(Guid id, string? name = null, string? details = null, string? currency = null, int? hourlyRate = null, string? hexColor = null);
+	Task Delete(Guid id);
+}
 
 internal sealed class ProjectsService(IDevBookWebApiActionExecutor devBookWebApiActionExecutor) : IProjectsService
 {
-	public async Task<OneOf<ICollection<Project>, ApiError>> GetAll()
+	public async Task<IEnumerable<Project>> GetAll()
 	{
-		return await devBookWebApiActionExecutor.Execute(x => x.ProjectsAllAsync());
+		var result = await devBookWebApiActionExecutor.Execute(x => x.ProjectsAllAsync());
+		return result.Match(
+			projects => projects,
+			apiError => throw new DevBookException(apiError.Errors));
 	}
 
-	public async Task<OneOf<Project, ApiError>> GetById(Guid id)
+	public async Task<Project> GetById(Guid id)
 	{
-		return await devBookWebApiActionExecutor.Execute(x => x.GetProjectByIdAsync(id));
+		var result = await devBookWebApiActionExecutor.Execute(x => x.GetProjectByIdAsync(id));
+		return result.Match(
+			project => project,
+			apiError => throw new DevBookException(apiError.Errors));
 	}
 
-	public async Task<OneOf<Success, ApiError>> Create(string name, string? details = null, string? currency = null, int? hourlyRate = null, string? hexColor = null)
+	public async Task Create(string name, string? details = null, string? currency = null, int? hourlyRate = null, string? hexColor = null)
 	{
-		return await devBookWebApiActionExecutor.Execute(x => x.ProjectsPOSTAsync(
+		var result = await devBookWebApiActionExecutor.Execute(x => x.ProjectsPOSTAsync(
 			new CreateProjectCommand
 			{
 				Name = name,
@@ -30,11 +43,15 @@ internal sealed class ProjectsService(IDevBookWebApiActionExecutor devBookWebApi
 				HourlyRate = hourlyRate,
 				HexColor = hexColor
 			}));
+
+		result.Match(
+			success => success,
+			apiError => throw new DevBookException(apiError.Errors));
 	}
 
-	public async Task<OneOf<Success, ApiError>> Update(Guid id, string name, string? details = null, string? currency = null, int? hourlyRate = null, string? hexColor = null)
+	public async Task Update(Guid id, string name, string? details = null, string? currency = null, int? hourlyRate = null, string? hexColor = null)
 	{
-		return await devBookWebApiActionExecutor.Execute(x => x.ProjectsPUTAsync(
+		var result = await devBookWebApiActionExecutor.Execute(x => x.ProjectsPUTAsync(
 			id,
 			new UpdateProjectCommandDto
 			{
@@ -44,11 +61,15 @@ internal sealed class ProjectsService(IDevBookWebApiActionExecutor devBookWebApi
 				HourlyRate = hourlyRate,
 				HexColor = hexColor
 			}));
+
+		result.Match(
+			success => success,
+			apiError => throw new DevBookException(apiError.Errors));
 	}
 
-	public async Task<OneOf<Success, ApiError>> Patch(Guid id, string? name = null, string? details = null, string? currency = null, int? hourlyRate = null, string? hexColor = null)
+	public async Task Patch(Guid id, string? name = null, string? details = null, string? currency = null, int? hourlyRate = null, string? hexColor = null)
 	{
-		return await devBookWebApiActionExecutor.Execute(x => x.ProjectsPATCHAsync(
+		var result = await devBookWebApiActionExecutor.Execute(x => x.ProjectsPATCHAsync(
 			id,
 			new PatchProjectCommandDto
 			{
@@ -58,10 +79,18 @@ internal sealed class ProjectsService(IDevBookWebApiActionExecutor devBookWebApi
 				HourlyRate = hourlyRate,
 				HexColor = hexColor
 			}));
+
+		result.Match(
+			success => success,
+			apiError => throw new DevBookException(apiError.Errors));
 	}
 
-	public async Task<OneOf<Success, ApiError>> Delete(Guid id)
+	public async Task Delete(Guid id)
 	{
-		return await devBookWebApiActionExecutor.Execute(x => x.ProjectsDELETEAsync(id));
+		var result = await devBookWebApiActionExecutor.Execute(x => x.ProjectsDELETEAsync(id));
+
+		result.Match(
+			success => success,
+			apiError => throw new DevBookException(apiError.Errors));
 	}
 }

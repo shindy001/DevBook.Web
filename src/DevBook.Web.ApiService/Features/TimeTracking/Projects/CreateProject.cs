@@ -27,7 +27,7 @@ internal sealed class CreateProjectCommandHandler(DevBookDbContext dbContext) : 
 {
 	public async Task<Guid> Handle(CreateProjectCommand request, CancellationToken cancellationToken)
 	{
-		var newItem = new Project(request.Name, request.Details, request.HourlyRate, request.Currency, request.HexColor);
+		var newItem = new Project { Name = request.Name, Details = request.Details, HourlyRate = request.HourlyRate, Currency = request.Currency, HexColor = request.HexColor };
 		await dbContext.Projects.AddAsync(newItem, cancellationToken);
 		await dbContext.SaveChangesAsync(cancellationToken);
 		return newItem.Id;

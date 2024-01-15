@@ -615,14 +615,16 @@ components:
           nullable: true
       additionalProperties: false
     Project:
+      required:
+        - name
       type: object
       properties:
         id:
           type: string
           format: uuid
         name:
+          minLength: 1
           type: string
-          nullable: true
         details:
           type: string
           nullable: true

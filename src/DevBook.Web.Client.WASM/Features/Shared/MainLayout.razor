@@ -57,7 +57,7 @@
 				<ErrorDialog @ref="_errorDialog"
 					Title="Uh oh. Something went wrong."
 					ErrorMessage="@($"{(context is DevBookException ex && ex.Errors.Any() ? string.Join(Environment.NewLine, ex.Errors) : context.Message)}")"
-					Confirm="() => _errorDialog.Hide()" />
+					Confirm="ConfirmError" />
 			</ErrorContent>
 		</ErrorBoundary>
 	</MudMainContent>
@@ -94,5 +94,11 @@
 	private void MenuDrawerToggle()
 	{
 		_menuDrawerOpen = !_menuDrawerOpen;
+	}
+
+	private void ConfirmError()
+	{
+		_errorDialog.Close();
+		_errorBoundary?.Recover();
 	}
 }

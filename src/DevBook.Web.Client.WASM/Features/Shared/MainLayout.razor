@@ -54,9 +54,10 @@
 				@Body
 			</ChildContent>
 			<ErrorContent>
-				<ErrorDialog
+				<ErrorDialog @ref="_errorDialog"
 					Title="Uh oh. Something went wrong."
-					ErrorMessage="@($"{(context is DevBookException ex && ex.Errors.Any() ? string.Join(Environment.NewLine, ex.Errors) : context.Message)}")" />
+					ErrorMessage="@($"{(context is DevBookException ex && ex.Errors.Any() ? string.Join(Environment.NewLine, ex.Errors) : context.Message)}")"
+					Confirm="() => _errorDialog.Hide()" />
 			</ErrorContent>
 		</ErrorBoundary>
 	</MudMainContent>
@@ -64,6 +65,7 @@
 
 @code {
 	ErrorBoundary? _errorBoundary;
+	ErrorDialog _errorDialog = null!;
 	private bool _menuDrawerOpen = true;
 	private bool _isDarkModeEnabled;
 	private MudThemeProvider _mudThemeProvider = default!;

@@ -14,7 +14,7 @@
 		</CardHeaderContent>
 	</MudCardHeader>
 	<MudCardContent>
-        <MudTable Items="@_projects" Loading="@_loading" Hover="true" Filter="((x) => FilterFunc(x, _searchString))">
+        <MudTable Items="@_projects" Loading="@_loading" LoadingProgressColor="Color.Primary" Hover="true" Filter="((x) => FilterFunc(x, _searchString))">
             <ToolBarContent>
                 <MudTextField 
                     @bind-Value="_searchString"

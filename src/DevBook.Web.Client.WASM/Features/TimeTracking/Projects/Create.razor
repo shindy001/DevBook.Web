@@ -1,0 +1,78 @@
+﻿@page "/Projects/Create"
+
+<PageTitle>Create Project</PageTitle>
+
+<MudCard Class="m-4 max-w-screen-sm">
+	<MudCardHeader>
+		<CardHeaderContent>
+			<MudText Typo="Typo.h5">Create new Project</MudText>
+		</CardHeaderContent>
+	</MudCardHeader>
+	<MudCardContent>
+        <EditForm Model="@_createProjectForm" OnValidSubmit="OnValidSubmit">
+            <DataAnnotationsValidator/>
+            <MudCard>
+                <MudCardContent>
+                    <MudTextField Label="Name" Text="New Project" @bind-Value="_createProjectForm.Name" For="@(() => _createProjectForm.Name)" />
+                    <MudTextField Label="Details" Class="mt-3" @bind-Value="_createProjectForm.Details" For="@(() => _createProjectForm.Details)" />
+                    <div class="flex space-x-6">
+                        <MudTextField Label="Hourly rate" Class="mt-3" @bind-Value="_createProjectForm.HourlyRate" For="@(() => _createProjectForm.HourlyRate)" />
+                        <MudTextField Label="Currency" Class="mt-3" @bind-Value="_createProjectForm.Currency" For="@(() => _createProjectForm.Currency)" />
+                    </div>
+                    <div class="flex items-end">
+                        <div class="w-6 h-6 mr-2 mb-1 rounded-full" style="background: @(_createProjectForm.HexColor ?? "#adadb1")"></div>
+                        <MudColorPicker
+                            @bind-Text="_createProjectForm.HexColor"
+                            Placeholder="Color"
+                            Adornment="Adornment.None"
+                            PickerVariant="PickerVariant.Inline"
+                            ColorPickerView="ColorPickerView.Palette">
+                        </MudColorPicker>
+                    </div>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton Disabled="@_processing" ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">
+                        @if (_processing)
+                        {
+                            <MudProgressCircular Class="mr-3" Size="Size.Small" Indeterminate="true"/>
+                        }
+                        <MudText>Create</MudText>
+                    </MudButton>
+                </MudCardActions>
+            </MudCard>
+        </EditForm>
+    </MudCardContent>
+</MudCard>
+
+@code {
+    [Inject] private IProjectsService ProjectsService { get; set; } = null!;
+    [Inject] private NavigationManager NavigationManager { get; init; } = null!;
+
+    private readonly CreateProjectForm _createProjectForm = new() { Name = "New Project" };
+    private bool _processing = false;
+
+    private async Task OnValidSubmit()
+    {
+        _processing = true;
+        await ProjectsService.Create(
+            _createProjectForm.Name,
+            _createProjectForm.Details,
+            _createProjectForm.Currency,
+            _createProjectForm.HourlyRate,
+            _createProjectForm.HexColor);
+        _processing = false;
+
+        NavigationManager.NavigateTo("/projects");
+    }
+
+    public record CreateProjectForm
+    {
+        [Required]
+        public required string Name { get; set; }
+
+        public string? Details { get; set; }
+        public string? Currency { get; set; }
+        public int? HourlyRate { get; set; }
+        public string? HexColor { get; set; }
+    }
+}

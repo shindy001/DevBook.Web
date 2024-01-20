@@ -1,68 +1,73 @@
 ﻿@page "/Account/Login"
 
 <div class="flex justify-center">
-    <MudCard Class="m-4 w-[40rem]">
-        <MudCardHeader>
-            <MudText Typo="Typo.h5">Login to DevBook</MudText>
-        </MudCardHeader>
-        <MudCardContent>
-            <MudForm @ref="form" @bind-IsValid="@formIsValid" @bind-Errors="@formErrors">
-                <MudTextField T="string" Label="Email" @ref="email" Required="true" RequiredError="Email is required!"
-                              Validation="@(new EmailAddressAttribute() {ErrorMessage = "The email address is invalid"})" />
-                <MudTextField T="string" Label="Password" @ref="password"
-                              InputType="InputType.Password"
-                              Required="true"
-                              RequiredError="Password is required!" />
-            </MudForm>
-            @if (showLoginErrors)
-            {
-                <div class="pa-4">
-                    @foreach(var error in loginErrors)
+    <EditForm Model="@_loginForm" OnValidSubmit="OnValidSubmit">
+        <DataAnnotationsValidator />
+        <MudCard Class="m-4 w-[40rem]">
+            <MudCardHeader>
+                <MudText Typo="Typo.h5">Login to DevBook</MudText>
+            </MudCardHeader>
+            <MudCardContent>
+                <MudTextField Label="Email" @bind-Value="_loginForm.Email" For="@(() => _loginForm.Email)" />
+                <MudTextField Label="Password" InputType="InputType.Password" @bind-Value="_loginForm.Password" For="@(() => _loginForm.Password)" />
+                @if (showLoginErrors)
+                {
+                    <div class="pa-4">
+                        @foreach(var error in loginErrors)
+                        {
+                            <MudText Color="@Color.Error">@error</MudText>
+                        }
+                    </div>
+                }
+            </MudCardContent>
+            <MudCardActions>
+                <MudButton Disabled="@_processing" ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" FullWidth="true">
+                    @if (_processing)
                     {
-                        <MudText Color="@Color.Error">@error</MudText>
+                        <MudProgressCircular Class="mr-3" Size="Size.Small" Indeterminate="true" />
                     }
-                </div>
-            }
-        </MudCardContent>
-        <MudCardActions>
-            <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" OnClick="@LoginAndRedirect">Login</MudButton>
-        </MudCardActions>
-        <MudText Class="m-4 text-center">
-            Don't have an account? <MudLink Href="account/register">Register now</MudLink>
-        </MudText>
-    </MudCard>
+                    <MudText>Login</MudText>
+                </MudButton>
+            </MudCardActions>
+            <MudText Class="p-4 text-center">
+                Don't have an account? <MudLink Href="account/register">Register now</MudLink>
+            </MudText>
+        </MudCard>
+    </EditForm>
 </div>
 
 @code {
-    [Inject] IDevBookWebApiClient DevBookApiClient { get; init; } = null!;
     [Inject] IAccountManagement AccountManagement { get; init; } = null!;
     [Inject] NavigationManager NavigationManager { get; init; } = null!;
 
-    MudForm form { get; set; } = null!;
-    MudTextField<string> email = null!;
-    MudTextField<string> password = null!;
-
-    bool formIsValid;
-    string[] formErrors = [];
+    private readonly LoginForm _loginForm = new();
+    private bool _processing = false;
 
     bool showLoginErrors;
     string[] loginErrors = [];
 
-    private async Task LoginAndRedirect()
+    private async Task OnValidSubmit()
     {
-        showLoginErrors = false;
-        await form.Validate();
-        if (form.IsValid)
-        {
-            var result = await AccountManagement.LoginAsync(email.Value, password.Value);
-            result.Switch(
-                success => NavigationManager.NavigateTo("/dashboard"),
-                apiError =>
-                {
-                    loginErrors = apiError.Errors;
-                    showLoginErrors = true;
-                }
-            );
-        }
+        _processing = true;
+        var result = await AccountManagement.LoginAsync(_loginForm.Email, _loginForm.Password);
+        result.Switch(
+            success => NavigationManager.NavigateTo("/dashboard"),
+            apiError =>
+            {
+                loginErrors = apiError.Errors;
+                showLoginErrors = true;
+            }
+        );
+        _processing = false;
+    }
+
+    public record LoginForm
+    {
+        [Required(AllowEmptyStrings = false)]
+        [EmailAddress]
+        public string Email { get; set; } = string.Empty;
+
+        [Required(AllowEmptyStrings = false)]
+        public string Password { get; set; } = string.Empty;
     }
 }

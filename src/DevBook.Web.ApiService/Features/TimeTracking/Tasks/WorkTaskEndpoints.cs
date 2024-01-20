@@ -6,11 +6,12 @@ namespace DevBook.Web.ApiService.Features.TimeTracking.Tasks;
 internal static class WorkTaskEndpoints
 {
 	private const string OperationIdPrefix = "WorkTasks.";
+	private const string GetByIdRoute = "GetById";
 
 	public static RouteGroupBuilder MapWorkTaskEndpoints(this RouteGroupBuilder groupBuilder)
 	{
 		groupBuilder.MapGet("/", GetWorkTasks)
-			.WithName($"{OperationIdPrefix}Get")
+			.WithName($"{OperationIdPrefix}GetAll")
 			.Produces<IList<WorkTask>>();
 
 		groupBuilder.MapPost("/", CreateWorkTask)
@@ -18,7 +19,7 @@ internal static class WorkTaskEndpoints
 			.Produces(StatusCodes.Status201Created);
 
 		groupBuilder.MapGet("/{id:guid}", GetWorkTaskById)
-			.WithName($"{OperationIdPrefix}GetById")
+			.WithName($"{OperationIdPrefix}{GetByIdRoute}")
 			.Produces<WorkTask>()
 			.Produces(StatusCodes.Status404NotFound);
 
@@ -48,7 +49,7 @@ internal static class WorkTaskEndpoints
 	private static async Task<IResult> CreateWorkTask(CreateWorkTaskCommand command, IExecutor executor, CancellationToken cancellationToken)
 	{
 		var result = await executor.ExecuteCommand(command, cancellationToken);
-		return TypedResults.CreatedAtRoute(nameof(GetWorkTaskById), new { id = result });
+		return TypedResults.CreatedAtRoute($"{OperationIdPrefix}{GetByIdRoute}", new { id = result });
 	}
 
 	private static async Task<IResult> GetWorkTaskById(Guid id, IExecutor executor, CancellationToken cancellationToken)

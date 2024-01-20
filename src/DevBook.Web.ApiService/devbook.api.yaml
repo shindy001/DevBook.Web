@@ -333,7 +333,7 @@ paths:
     get:
       tags:
         - TimeTrackingModule_WorkTaskEndpoints
-      operationId: WorkTasks.Get
+      operationId: WorkTasks.GetAll
       responses:
         '200':
           description: Success

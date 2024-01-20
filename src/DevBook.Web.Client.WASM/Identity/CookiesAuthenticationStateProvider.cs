@@ -30,7 +30,7 @@ internal sealed class CookieAuthenticationStateProvider(
 	/// <returns>The result of the request serialized to <see cref="Success"/> or <see cref="ApiError"/>.</returns>
 	public async Task<OneOf<Success, ApiError>> RegisterAsync(string email, string password)
 	{
-		return await devBookWebApiActionExecutor.Execute(x => x.RegisterAsync(
+		return await devBookWebApiActionExecutor.Execute(x => x.Identity_RegisterAsync(
 			new RegisterRequest { Email = email, Password = password }));
  	}
 
@@ -42,7 +42,7 @@ internal sealed class CookieAuthenticationStateProvider(
 	/// <returns>The result of the request serialized to <see cref="Success"/> or <see cref="ApiError"/>.</returns>
 	public async Task<OneOf<Success, ApiError>> LoginAsync(string email, string password)
 	{
-		var result = await devBookWebApiActionExecutor.Execute(x => x.LoginAsync(
+		var result = await devBookWebApiActionExecutor.Execute(x => x.Identity_LoginAsync(
 			useCookies: true,
 			useSessionCookies: false,
 			body: new LoginRequest { Email = email, Password = password }));
@@ -68,7 +68,7 @@ internal sealed class CookieAuthenticationStateProvider(
 	/// <returns>The result of the request serialized to <see cref="Success"/> or <see cref="ApiError"/>.</returns>
 	public async Task<OneOf<Success, ApiError>> LogoutAsync()
 	{
-		var result = await devBookWebApiActionExecutor.Execute(x => x.LogoutAsync());
+		var result = await devBookWebApiActionExecutor.Execute(x => x.Identity_LogoutAsync());
 
 		NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
 
@@ -90,7 +90,7 @@ internal sealed class CookieAuthenticationStateProvider(
 		_isAuthenticated = false;
 		var user = Unauthenticated;
 
-		var result = await devBookWebApiActionExecutor.Execute(x => x.ManageInfoGETAsync());
+		var result = await devBookWebApiActionExecutor.Execute(x => x.Identity_ManageInfoGETAsync());
 
 		if (result.TryPickT0(out var userInfo, out _))
 		{

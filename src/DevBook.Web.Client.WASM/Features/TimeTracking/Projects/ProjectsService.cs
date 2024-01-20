@@ -18,7 +18,7 @@ internal sealed class ProjectsService(IDevBookWebApiActionExecutor devBookWebApi
 {
 	public async Task<IEnumerable<Project>> GetAll()
 	{
-		var result = await devBookWebApiActionExecutor.Execute(x => x.ProjectsAllAsync());
+		var result = await devBookWebApiActionExecutor.Execute(x => x.Projects_GetAllAsync());
 		return result.Match(
 			projects => projects,
 			apiError => throw new DevBookException(apiError.Errors));
@@ -26,7 +26,7 @@ internal sealed class ProjectsService(IDevBookWebApiActionExecutor devBookWebApi
 
 	public async Task<Project> GetById(Guid id)
 	{
-		var result = await devBookWebApiActionExecutor.Execute(x => x.GetProjectByIdAsync(id));
+		var result = await devBookWebApiActionExecutor.Execute(x => x.Projects_GetByIdAsync(id));
 		return result.Match(
 			project => project,
 			apiError => throw new DevBookException(apiError.Errors));
@@ -34,7 +34,7 @@ internal sealed class ProjectsService(IDevBookWebApiActionExecutor devBookWebApi
 
 	public async Task Create(string name, string? details = null, string? currency = null, int? hourlyRate = null, string? hexColor = null)
 	{
-		var result = await devBookWebApiActionExecutor.Execute(x => x.ProjectsPOSTAsync(
+		var result = await devBookWebApiActionExecutor.Execute(x => x.Projects_CreateAsync(
 			new CreateProjectCommand
 			{
 				Name = name,
@@ -51,7 +51,7 @@ internal sealed class ProjectsService(IDevBookWebApiActionExecutor devBookWebApi
 
 	public async Task Update(Guid id, string name, string? details = null, string? currency = null, int? hourlyRate = null, string? hexColor = null)
 	{
-		var result = await devBookWebApiActionExecutor.Execute(x => x.ProjectsPUTAsync(
+		var result = await devBookWebApiActionExecutor.Execute(x => x.Projects_UpdateAsync(
 			id,
 			new UpdateProjectCommandDto
 			{
@@ -69,7 +69,7 @@ internal sealed class ProjectsService(IDevBookWebApiActionExecutor devBookWebApi
 
 	public async Task Patch(Guid id, string? name = null, string? details = null, string? currency = null, int? hourlyRate = null, string? hexColor = null)
 	{
-		var result = await devBookWebApiActionExecutor.Execute(x => x.ProjectsPATCHAsync(
+		var result = await devBookWebApiActionExecutor.Execute(x => x.Projects_PatchAsync(
 			id,
 			new PatchProjectCommandDto
 			{
@@ -87,7 +87,7 @@ internal sealed class ProjectsService(IDevBookWebApiActionExecutor devBookWebApi
 
 	public async Task Delete(Guid id)
 	{
-		var result = await devBookWebApiActionExecutor.Execute(x => x.ProjectsDELETEAsync(id));
+		var result = await devBookWebApiActionExecutor.Execute(x => x.Projects_DeleteAsync(id));
 
 		result.Match(
 			success => success,

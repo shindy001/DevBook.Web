@@ -1,7 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc.Controllers;
-using Microsoft.OpenApi.Models;
+﻿using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
-using static System.Net.WebRequestMethods;
 
 namespace DevBook.Web.ApiService;
 
@@ -46,14 +44,15 @@ public static class SwaggerOptions
 	/// </summary>
 	private class SwaggerIdentityOperationIdFilter : IOperationFilter
 	{
+		private const string OperationIdPrefix = "Identity.";
+
 		public void Apply(OpenApiOperation operation, OperationFilterContext context)
 		{
 			// Check if it's a Identity action
-			if (string.IsNullOrWhiteSpace(operation.OperationId)
-				&& context.ApiDescription.RelativePath?.StartsWith("identity", StringComparison.OrdinalIgnoreCase) == true)
+			if (context.ApiDescription.RelativePath?.StartsWith("identity", StringComparison.OrdinalIgnoreCase) == true)
 			{
 				var relativePath = context.ApiDescription.RelativePath ?? string.Empty;
-				operation.OperationId = $"{GenerateOperationIdBaseString(relativePath)}";
+				operation.OperationId = $"{OperationIdPrefix}{GenerateOperationIdBaseString(relativePath)}";
 				return;
 			}
 		}

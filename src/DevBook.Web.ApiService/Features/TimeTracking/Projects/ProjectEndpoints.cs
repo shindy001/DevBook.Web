@@ -5,30 +5,35 @@ namespace DevBook.Web.ApiService.Features.TimeTracking.Projects;
 
 internal static class ProjectEndpoints
 {
-	private const string GetProjectByIdAction = "GetProjectById";
+	private const string OperationIdPrefix = "Projects.";
 
 	public static RouteGroupBuilder MapProjectEndpoints(this RouteGroupBuilder groupBuilder)
 	{
 		groupBuilder.MapGet("/", GetProjects)
+			.WithName($"{OperationIdPrefix}GetAll")
 			.Produces<IList<Project>>();
 
 		groupBuilder.MapPost("/", CreateProject)
+			.WithName($"{OperationIdPrefix}Create")
 			.Produces(StatusCodes.Status201Created);
 
 		groupBuilder.MapGet("/{id:guid}", GetProjectById)
-			.WithName(GetProjectByIdAction)
+			.WithName($"{OperationIdPrefix}GetById")
 			.Produces<Project>()
 			.Produces(StatusCodes.Status404NotFound);
 
 		groupBuilder.MapPut("/{id:guid}", UpdateProject)
+			.WithName($"{OperationIdPrefix}Update")
 			.Produces(StatusCodes.Status204NoContent)
 			.Produces(StatusCodes.Status404NotFound);
 
 		groupBuilder.MapPatch("/{id:guid}", PatchProject)
+			.WithName($"{OperationIdPrefix}Patch")
 			.Produces(StatusCodes.Status204NoContent)
 			.Produces(StatusCodes.Status404NotFound);
 
 		groupBuilder.MapDelete("/{id:guid}", DeleteProject)
+			.WithName($"{OperationIdPrefix}Delete")
 			.Produces(StatusCodes.Status204NoContent);
 
 		return groupBuilder;
@@ -43,7 +48,7 @@ internal static class ProjectEndpoints
 	private static async Task<IResult> CreateProject(CreateProjectCommand command, IExecutor executor, CancellationToken cancellationToken)
 	{
 		var result = await executor.ExecuteCommand(command, cancellationToken);
-		return TypedResults.CreatedAtRoute(GetProjectByIdAction, new { id = result });
+		return TypedResults.CreatedAtRoute(nameof(GetProjectById), new { id = result });
 	}
 
 	private static async Task<IResult> GetProjectById(Guid id, IExecutor executor, CancellationToken cancellationToken)

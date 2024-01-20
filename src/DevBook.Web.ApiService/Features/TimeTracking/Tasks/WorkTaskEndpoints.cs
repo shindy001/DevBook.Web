@@ -5,30 +5,35 @@ namespace DevBook.Web.ApiService.Features.TimeTracking.Tasks;
 
 internal static class WorkTaskEndpoints
 {
-	private const string GetWorkTaskByIdAction = "GetWorkTaskById";
+	private const string OperationIdPrefix = "WorkTasks.";
 
 	public static RouteGroupBuilder MapWorkTaskEndpoints(this RouteGroupBuilder groupBuilder)
 	{
 		groupBuilder.MapGet("/", GetWorkTasks)
+			.WithName($"{OperationIdPrefix}Get")
 			.Produces<IList<WorkTask>>();
 
 		groupBuilder.MapPost("/", CreateWorkTask)
+			.WithName($"{OperationIdPrefix}Create")
 			.Produces(StatusCodes.Status201Created);
 
 		groupBuilder.MapGet("/{id:guid}", GetWorkTaskById)
-			.WithName(GetWorkTaskByIdAction)
+			.WithName($"{OperationIdPrefix}GetById")
 			.Produces<WorkTask>()
 			.Produces(StatusCodes.Status404NotFound);
 
 		groupBuilder.MapPut("/{id:guid}", UpdateWorkTask)
+			.WithName($"{OperationIdPrefix}Update")
 			.Produces(StatusCodes.Status204NoContent)
 			.Produces(StatusCodes.Status404NotFound);
 
 		groupBuilder.MapPatch("/{id:guid}", PatchWorkTask)
+			.WithName($"{OperationIdPrefix}Patch")
 			.Produces(StatusCodes.Status204NoContent)
 			.Produces(StatusCodes.Status404NotFound);
 
 		groupBuilder.MapDelete("/{id:guid}", DeleteWorkTask)
+			.WithName($"{OperationIdPrefix}Delete")
 			.Produces(StatusCodes.Status204NoContent);
 
 		return groupBuilder;
@@ -43,7 +48,7 @@ internal static class WorkTaskEndpoints
 	private static async Task<IResult> CreateWorkTask(CreateWorkTaskCommand command, IExecutor executor, CancellationToken cancellationToken)
 	{
 		var result = await executor.ExecuteCommand(command, cancellationToken);
-		return TypedResults.CreatedAtRoute(GetWorkTaskByIdAction, new { id = result });
+		return TypedResults.CreatedAtRoute(nameof(GetWorkTaskById), new { id = result });
 	}
 
 	private static async Task<IResult> GetWorkTaskById(Guid id, IExecutor executor, CancellationToken cancellationToken)

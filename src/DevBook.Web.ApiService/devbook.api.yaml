@@ -7,7 +7,7 @@ paths:
     post:
       tags:
         - Identity
-      operationId: Logout
+      operationId: Identity.Logout
       responses:
         '200':
           description: Success
@@ -15,7 +15,7 @@ paths:
     post:
       tags:
         - Identity
-      operationId: Register
+      operationId: Identity.Register
       requestBody:
         content:
           application/json:
@@ -34,7 +34,7 @@ paths:
     post:
       tags:
         - Identity
-      operationId: Login
+      operationId: Identity.Login
       parameters:
         - name: useCookies
           in: query
@@ -62,7 +62,7 @@ paths:
     post:
       tags:
         - Identity
-      operationId: Refresh
+      operationId: Identity.Refresh
       requestBody:
         content:
           application/json:
@@ -79,7 +79,7 @@ paths:
     get:
       tags:
         - Identity
-      operationId: MapIdentityApi-/identity/confirmEmail
+      operationId: Identity.ConfirmEmail
       parameters:
         - name: userId
           in: query
@@ -103,7 +103,7 @@ paths:
     post:
       tags:
         - Identity
-      operationId: ResendConfirmationEmail
+      operationId: Identity.ResendConfirmationEmail
       requestBody:
         content:
           application/json:
@@ -116,7 +116,7 @@ paths:
     post:
       tags:
         - Identity
-      operationId: ForgotPassword
+      operationId: Identity.ForgotPassword
       requestBody:
         content:
           application/json:
@@ -135,7 +135,7 @@ paths:
     post:
       tags:
         - Identity
-      operationId: ResetPassword
+      operationId: Identity.ResetPassword
       requestBody:
         content:
           application/json:
@@ -154,7 +154,7 @@ paths:
     post:
       tags:
         - Identity
-      operationId: Manage2fa
+      operationId: Identity.Manage2fa
       requestBody:
         content:
           application/json:
@@ -179,7 +179,7 @@ paths:
     get:
       tags:
         - Identity
-      operationId: ManageInfo
+      operationId: Identity.ManageInfo
       responses:
         '200':
           description: Success
@@ -198,7 +198,7 @@ paths:
     post:
       tags:
         - Identity
-      operationId: ManageInfo
+      operationId: Identity.ManageInfo
       requestBody:
         content:
           application/json:
@@ -223,6 +223,7 @@ paths:
     get:
       tags:
         - TimeTrackingModule_ProjectEndpoints
+      operationId: Projects.GetAll
       responses:
         '200':
           description: Success
@@ -235,6 +236,7 @@ paths:
     post:
       tags:
         - TimeTrackingModule_ProjectEndpoints
+      operationId: Projects.Create
       requestBody:
         content:
           application/json:
@@ -248,7 +250,7 @@ paths:
     get:
       tags:
         - TimeTrackingModule_ProjectEndpoints
-      operationId: GetProjectById
+      operationId: Projects.GetById
       parameters:
         - name: id
           in: path
@@ -269,6 +271,7 @@ paths:
     put:
       tags:
         - TimeTrackingModule_ProjectEndpoints
+      operationId: Projects.Update
       parameters:
         - name: id
           in: path
@@ -291,6 +294,7 @@ paths:
     patch:
       tags:
         - TimeTrackingModule_ProjectEndpoints
+      operationId: Projects.Patch
       parameters:
         - name: id
           in: path
@@ -313,6 +317,7 @@ paths:
     delete:
       tags:
         - TimeTrackingModule_ProjectEndpoints
+      operationId: Projects.Delete
       parameters:
         - name: id
           in: path
@@ -328,6 +333,7 @@ paths:
     get:
       tags:
         - TimeTrackingModule_WorkTaskEndpoints
+      operationId: WorkTasks.Get
       responses:
         '200':
           description: Success
@@ -340,6 +346,7 @@ paths:
     post:
       tags:
         - TimeTrackingModule_WorkTaskEndpoints
+      operationId: WorkTasks.Create
       requestBody:
         content:
           application/json:
@@ -353,7 +360,7 @@ paths:
     get:
       tags:
         - TimeTrackingModule_WorkTaskEndpoints
-      operationId: GetWorkTaskById
+      operationId: WorkTasks.GetById
       parameters:
         - name: id
           in: path
@@ -374,6 +381,7 @@ paths:
     put:
       tags:
         - TimeTrackingModule_WorkTaskEndpoints
+      operationId: WorkTasks.Update
       parameters:
         - name: id
           in: path
@@ -396,6 +404,7 @@ paths:
     patch:
       tags:
         - TimeTrackingModule_WorkTaskEndpoints
+      operationId: WorkTasks.Patch
       parameters:
         - name: id
           in: path
@@ -418,6 +427,7 @@ paths:
     delete:
       tags:
         - TimeTrackingModule_WorkTaskEndpoints
+      operationId: WorkTasks.Delete
       parameters:
         - name: id
           in: path

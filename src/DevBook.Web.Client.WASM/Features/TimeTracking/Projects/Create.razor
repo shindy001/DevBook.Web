@@ -10,10 +10,10 @@
 	</MudCardHeader>
 	<MudCardContent>
         <EditForm Model="@_createProjectForm" OnValidSubmit="OnValidSubmit">
-            <DataAnnotationsValidator/>
+            <DataAnnotationsValidator />
             <MudCard>
                 <MudCardContent>
-                    <MudTextField Label="Name" Text="New Project" @bind-Value="_createProjectForm.Name" For="@(() => _createProjectForm.Name)" />
+                    <MudTextField Label="Name" @bind-Value="_createProjectForm.Name" For="@(() => _createProjectForm.Name)" />
                     <MudTextField Label="Details" Class="mt-3" @bind-Value="_createProjectForm.Details" For="@(() => _createProjectForm.Details)" />
                     <div class="flex space-x-6">
                         <MudTextField Label="Hourly rate" Class="mt-3" @bind-Value="_createProjectForm.HourlyRate" For="@(() => _createProjectForm.HourlyRate)" />
@@ -67,7 +67,7 @@
 
     public record CreateProjectForm
     {
-        [Required]
+        [Required(AllowEmptyStrings = false)]
         public required string Name { get; set; }
 
         public string? Details { get; set; }

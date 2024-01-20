@@ -1,0 +1,87 @@
+﻿@page "/Projects/{ProjectId:guid}"
+
+<PageTitle>Update Project</PageTitle>
+
+<MudCard Class="m-4 max-w-screen-sm">
+    <MudCardHeader>
+        <CardHeaderContent>
+            <MudText Typo="Typo.h5">
+                <MudIconButton Icon="@Icons.Material.Filled.ArrowBackIosNew" Color="Color.Inherit" Href="/projects" />
+                Update Project
+            </MudText>
+        </CardHeaderContent>
+    </MudCardHeader>
+    <MudCardContent>
+        <EditForm Model="@_updateProjectForm" OnValidSubmit="OnValidSubmit">
+            <DataAnnotationsValidator />
+            <MudCard>
+                <MudCardContent>
+                    <MudTextField Label="Name" @bind-Value="_updateProjectForm.Name" For="@(() => _updateProjectForm.Name)" />
+                    <MudTextField Label="Details" Class="mt-3" @bind-Value="_updateProjectForm.Details" For="@(() => _updateProjectForm.Details)" />
+                    <div class="flex space-x-6">
+                        <MudTextField Label="Hourly rate" Class="mt-3" @bind-Value="_updateProjectForm.HourlyRate" For="@(() => _updateProjectForm.HourlyRate)" />
+                        <MudTextField Label="Currency" Class="mt-3" @bind-Value="_updateProjectForm.Currency" For="@(() => _updateProjectForm.Currency)" />
+                    </div>
+                    <div class="flex items-end mt-2">
+                        <div class="w-6 h-6 mr-2 mb-1 rounded-full" style="background: @(_updateProjectForm.HexColor ?? "#adadb1")"></div>
+                        <MudColorPicker
+                            @bind-Text="_updateProjectForm.HexColor"
+                            Placeholder="Color"
+                            Label="Color"
+                            Adornment="Adornment.None"
+                            PickerVariant="PickerVariant.Inline"
+                            ColorPickerView="ColorPickerView.Palette">
+                        </MudColorPicker>
+                    </div>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton Disabled="@_processing" ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">
+                        <MudText>Update</MudText>
+                    </MudButton>
+                </MudCardActions>
+            </MudCard>
+        </EditForm>
+    </MudCardContent>
+</MudCard>
+
+@code {
+    [Parameter] public required Guid ProjectId { get; set; }
+
+    [Inject] private IProjectsService ProjectsService { get; set; } = null!;
+    [Inject] private NavigationManager NavigationManager { get; init; } = null!;
+
+    private readonly UpdateForm _updateProjectForm = new();
+    private bool _processing = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var project = await ProjectsService.GetById(ProjectId);
+        _updateProjectForm.Name = project.Name;
+        _updateProjectForm.Details = project.Details;
+        _updateProjectForm.Currency = project.Currency;
+        _updateProjectForm.HourlyRate = project.HourlyRate;
+        _updateProjectForm.HexColor = project.HexColor;
+    }
+
+    private async Task OnValidSubmit()
+    {
+        await ProjectsService.Update(
+            ProjectId,
+            _updateProjectForm.Name,
+            _updateProjectForm.Details,
+            _updateProjectForm.Currency,
+            _updateProjectForm.HourlyRate,
+            _updateProjectForm.HexColor);
+    }
+
+    public record UpdateForm
+    {
+        [Required(AllowEmptyStrings = false)]
+        public string Name { get; set; } = string.Empty;
+
+        public string? Details { get; set; }
+        public string? Currency { get; set; }
+        public int? HourlyRate { get; set; }
+        public string? HexColor { get; set; }
+    }
+}

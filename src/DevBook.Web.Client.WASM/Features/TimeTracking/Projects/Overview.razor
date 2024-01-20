@@ -31,7 +31,7 @@
                 <MudTd Class="flex cursor-pointer">
                     <div class="flex">
                         <div style="color: @context.HexColor"><MudIcon Icon="@Icons.Material.Filled.Circle" /></div>
-                        <MudText Class="ml-3">@context.Name (@(context.HourlyRate != null ? $"{context.HourlyRate} {context.Currency}/h" : ""))</MudText>
+                        <MudText Class="ml-3">@context.Name @(context.HourlyRate != null ? $"({context.HourlyRate} {context.Currency}/h)" : "")</MudText>
                     </div>
                 </MudTd>
             </RowTemplate>

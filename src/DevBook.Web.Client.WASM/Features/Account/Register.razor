@@ -2,36 +2,39 @@
 
 <div class="flex justify-center">
     <div class="flex flex-col">
-        <MudCard Class="m-4 w-[40rem]">
-            <MudCardHeader>
-                <MudText Typo="Typo.h5">Register to DevBook</MudText>
-            </MudCardHeader>
-            <MudCardContent>
-                <MudForm @ref="form" @bind-IsValid="@formIsValid" @bind-Errors="@formErrors">
-                    <MudTextField T="string" Label="Email" @ref="email" Required="true" RequiredError="Email is required!"
-                                  Validation="@(new EmailAddressAttribute() {ErrorMessage = "The email address is invalid"})" />
-                    <MudTextField T="string" Label="Password" @ref="password"
-                                  InputType="InputType.Password"
-                                  Required="true"
-                                  RequiredError="Password is required!" />
-                </MudForm>
-                @if (showRegistrationErrors)
-                {
-                    <div class="pa-4">
-                        @foreach (var error in registrationErrors)
+        <EditForm Model="@_registrationForm" OnValidSubmit="OnValidSubmit">
+            <DataAnnotationsValidator />
+            <MudCard Class="m-4 w-[40rem]">
+                <MudCardHeader>
+                    <MudText Typo="Typo.h5">Register to DevBook</MudText>
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudTextField Label="Email" @bind-Value="_registrationForm.Email" For="@(() => _registrationForm.Email)" />
+                    <MudTextField Label="Password" InputType="InputType.Password" @bind-Value="_registrationForm.Password" For="@(() => _registrationForm.Password)" />
+                    @if (showRegistrationErrors)
+                    {
+                        <div class="pa-4">
+                            @foreach (var error in registrationErrors)
+                            {
+                                <MudText Color="@Color.Error">@error</MudText>
+                            }
+                        </div>
+                    }
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton Disabled="@_processing" ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" FullWidth="true">
+                        @if (_processing)
                         {
-                            <MudText Color="@Color.Error">@error</MudText>
+                            <MudProgressCircular Class="mr-3" Size="Size.Small" Indeterminate="true" />
                         }
-                    </div>
-                }
-            </MudCardContent>
-            <MudCardActions>
-                <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" OnClick="@RegisterAccount">Register</MudButton>
-            </MudCardActions>
-            <MudText Class="m-4 text-center">
-                Already have an account? <MudLink Href="account/login">Login now</MudLink>
-            </MudText>
-        </MudCard>
+                        <MudText>Register</MudText>
+                    </MudButton>
+                </MudCardActions>
+                <MudText Class="p-4 text-center">
+                    Already have an account? <MudLink Href="account/login">Login now</MudLink>
+                </MudText>
+            </MudCard>
+        </EditForm>
 
         @if (showRegistrationSuccess)
         {
@@ -47,39 +50,42 @@
 </div>
 
 @code {
-    [Inject] IDevBookWebApiClient DevBookApiClient { get; init; } = null!;
     [Inject] IAccountManagement AccountManagement { get; init; } = null!;
 
-    MudForm form { get; set; } = null!;
-    MudTextField<string> email = null!;
-    MudTextField<string> password = null!;
-
-    bool formIsValid;
-    string[] formErrors = [];
+    private readonly RegistrationForm _registrationForm = new();
+    private bool _processing = false;
 
     bool showRegistrationSuccess;
     bool showRegistrationErrors;
     string[] registrationErrors = [];
 
-    private async Task RegisterAccount()
+    private async Task OnValidSubmit()
     {
-        await form.Validate();
-        if (form.IsValid)
-        {
-            var result = await AccountManagement.RegisterAsync(email.Value, password.Value);
-            result.Switch(
-                success =>
-                {
-                    showRegistrationErrors = false;
-                    showRegistrationSuccess = true;
-                },
-                apiError =>
-                {
-                    registrationErrors = apiError.Errors;
-                    showRegistrationSuccess = false;
-                    showRegistrationErrors = true;
-                }
-            );
-        }
+        _processing = true;
+        var result = await AccountManagement.RegisterAsync(_registrationForm.Email, _registrationForm.Password);
+        result.Switch(
+            success =>
+            {
+                showRegistrationErrors = false;
+                showRegistrationSuccess = true;
+            },
+            apiError =>
+            {
+                registrationErrors = apiError.Errors;
+                showRegistrationSuccess = false;
+                showRegistrationErrors = true;
+            }
+        );
+        _processing = false;
+    }
+
+    public record RegistrationForm
+    {
+        [Required(AllowEmptyStrings = false)]
+        [EmailAddress]
+        public string Email { get; set; } = string.Empty;
+
+        [Required(AllowEmptyStrings = false)]
+        public string Password { get; set; } = string.Empty;
     }
 }

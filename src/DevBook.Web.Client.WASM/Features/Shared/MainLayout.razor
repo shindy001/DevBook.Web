@@ -2,7 +2,7 @@
 
 @* MudBlazor default components *@
 <MudThemeProvider @ref="@_mudThemeProvider" @bind-IsDarkMode="@_isDarkModeEnabled" />
-<MudDialogProvider FullWidth="true" />
+<MudDialogProvider @ref="@_mudDialogProvider" FullWidth="true" />
 <MudSnackbarProvider />
 
 <MudLayout>
@@ -68,7 +68,8 @@
 	ErrorDialog _errorDialog = null!;
 	private bool _menuDrawerOpen = true;
 	private bool _isDarkModeEnabled;
-	private MudThemeProvider _mudThemeProvider = default!;
+	private MudThemeProvider _mudThemeProvider = null!;
+	private MudDialogProvider _mudDialogProvider = null!;
 	private double _tooltipDelayInMs = 600;
 
 	protected override void OnParametersSet()
@@ -98,7 +99,7 @@
 
 	private void ConfirmError()
 	{
-		_errorDialog.Close();
+		_mudDialogProvider.DismissAll();
 		_errorBoundary?.Recover();
 	}
 }

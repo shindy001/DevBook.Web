@@ -5,7 +5,10 @@
 <MudCard Class="m-4 max-w-screen-sm">
 	<MudCardHeader>
 		<CardHeaderContent>
-			<MudText Typo="Typo.h5">Create new Project</MudText>
+            <MudText Typo="Typo.h5">
+                <MudIconButton Icon="@Icons.Material.Filled.ArrowBackIosNew" Color="Color.Inherit" Href="/projects" />
+                Create new Project
+            </MudText>
 		</CardHeaderContent>
 	</MudCardHeader>
 	<MudCardContent>
@@ -19,11 +22,11 @@
                         <MudTextField Label="Hourly rate" Class="mt-3" @bind-Value="_createProjectForm.HourlyRate" For="@(() => _createProjectForm.HourlyRate)" />
                         <MudTextField Label="Currency" Class="mt-3" @bind-Value="_createProjectForm.Currency" For="@(() => _createProjectForm.Currency)" />
                     </div>
-                    <div class="flex items-end">
+                    <div class="flex items-end mt-2">
                         <div class="w-6 h-6 mr-2 mb-1 rounded-full" style="background: @(_createProjectForm.HexColor ?? "#adadb1")"></div>
                         <MudColorPicker
                             @bind-Text="_createProjectForm.HexColor"
-                            Placeholder="Color"
+                            Label="Color"
                             Adornment="Adornment.None"
                             PickerVariant="PickerVariant.Inline"
                             ColorPickerView="ColorPickerView.Palette">

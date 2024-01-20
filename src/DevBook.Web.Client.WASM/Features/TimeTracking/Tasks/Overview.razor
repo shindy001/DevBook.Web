@@ -1,0 +1,66 @@
+﻿@page "/tasks"
+
+<PageTitle>Tasks</PageTitle>
+
+<MudCard Class="m-4">
+    <MudCardHeader>
+        <CardHeaderContent>
+            <div class="flex justify-between">
+                <MudText Typo="Typo.h5">Work Tasks</MudText>
+                <MudButton StartIcon="@Icons.Material.Filled.Add" Variant="Variant.Filled" Color="Color.Primary">
+                    Create New Task
+                </MudButton>
+            </div>
+        </CardHeaderContent>
+    </MudCardHeader>
+    <MudCardContent>
+        <MudTable T="WorkTask" Items="@_tasks" Loading="@_loading" LoadingProgressColor="Color.Primary" Hover="true" Filter="((x) => FilterFunc(x, _searchString))">
+            <ToolBarContent>
+                <MudTextField @bind-Value="_searchString"
+                              Immediate="true"
+                              Placeholder="Search"
+                              Adornment="Adornment.Start"
+                              AdornmentIcon="@Icons.Material.Filled.Search"
+                              IconSize="Size.Medium" />
+            </ToolBarContent>
+            <HeaderContent>
+                <MudTh></MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd Class="flex cursor-pointer">
+                    <div class="flex">
+                        <MudText Class="ml-3">@context.Description @(context.End is not null ? $"- {(context.End - context.Start)?.Humanize(2)} " : "")</MudText>
+                    </div>
+                </MudTd>
+            </RowTemplate>
+        </MudTable>
+    </MudCardContent>
+</MudCard>
+
+@code {
+    [Inject] private ITasksService TasksService { get; set; } = null!;
+    [Inject] private NavigationManager NavigationManager { get; init; } = null!;
+
+    private IEnumerable<WorkTask> _tasks = [];
+    private string _searchString = "";
+
+    private bool _loading = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _loading = true;
+        _tasks = await TasksService.GetAll();
+        _loading = false;
+    }
+
+    private bool FilterFunc(WorkTask workTask, string searchString)
+    {
+        if (string.IsNullOrWhiteSpace(searchString))
+            return true;
+
+        if (workTask.Description?.Contains(searchString, StringComparison.OrdinalIgnoreCase) == true)
+            return true;
+
+        return false;
+    }
+}

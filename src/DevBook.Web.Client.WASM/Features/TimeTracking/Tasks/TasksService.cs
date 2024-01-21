@@ -6,8 +6,8 @@ namespace DevBook.Web.Client.WASM.Features.TimeTracking.Tasks;
 
 public interface ITasksService
 {
-	Task<IEnumerable<WorkTask>> GetAll();
-	Task<WorkTask> GetById(Guid id);
+	Task<IEnumerable<WorkTaskDto>> GetAll();
+	Task<WorkTaskDto> GetById(Guid id);
 	Task Create(TimeOnly start, Guid? projectId = null, string? description = null, string? details = null, DateOnly? date = null, TimeOnly? end = null);
 	Task Update(Guid id, TimeOnly start, Guid? projectId = null, string? description = null, string? details = null, DateOnly? date = null, TimeOnly? end = null);
 	Task Patch(Guid id, TimeOnly? start, Guid? projectId = null, string? description = null, string? details = null, DateOnly? date = null, TimeOnly? end = null);
@@ -16,7 +16,7 @@ public interface ITasksService
 
 internal sealed class TasksService(IDevBookWebApiActionExecutor devBookWebApiActionExecutor) : ITasksService
 {
-	public async Task<IEnumerable<WorkTask>> GetAll()
+	public async Task<IEnumerable<WorkTaskDto>> GetAll()
 	{
 		var result = await devBookWebApiActionExecutor.Execute(x => x.WorkTasks_GetAllAsync());
 		return result.Match(
@@ -24,7 +24,7 @@ internal sealed class TasksService(IDevBookWebApiActionExecutor devBookWebApiAct
 			apiError => throw new DevBookException(apiError.Errors));
 	}
 
-	public async Task<WorkTask> GetById(Guid id)
+	public async Task<WorkTaskDto> GetById(Guid id)
 	{
 		var result = await devBookWebApiActionExecutor.Execute(x => x.WorkTasks_GetByIdAsync(id));
 		return result.Match(

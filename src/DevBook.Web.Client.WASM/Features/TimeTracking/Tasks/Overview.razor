@@ -14,7 +14,7 @@
         </CardHeaderContent>
     </MudCardHeader>
     <MudCardContent>
-        <MudTable T="WorkTask" Items="@_tasks" Loading="@_loading" LoadingProgressColor="Color.Primary" Hover="true" Filter="((x) => FilterFunc(x, _searchString))">
+        <MudTable T="WorkTaskDto" Items="@_tasks" Loading="@_loading" LoadingProgressColor="Color.Primary" Hover="true" Filter="((x) => FilterFunc(x, _searchString))">
             <ToolBarContent>
                 <MudTextField @bind-Value="_searchString"
                               Immediate="true"
@@ -41,7 +41,7 @@
     [Inject] private ITasksService TasksService { get; set; } = null!;
     [Inject] private NavigationManager NavigationManager { get; init; } = null!;
 
-    private IEnumerable<WorkTask> _tasks = [];
+    private IEnumerable<WorkTaskDto> _tasks = [];
     private string _searchString = "";
 
     private bool _loading = false;
@@ -53,7 +53,7 @@
         _loading = false;
     }
 
-    private bool FilterFunc(WorkTask workTask, string searchString)
+    private bool FilterFunc(WorkTaskDto workTask, string searchString)
     {
         if (string.IsNullOrWhiteSpace(searchString))
             return true;

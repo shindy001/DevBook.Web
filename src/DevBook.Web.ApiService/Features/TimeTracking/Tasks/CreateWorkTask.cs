@@ -1,6 +1,10 @@
-﻿using DevBook.Web.ApiService.Infrastructure;
+﻿using DevBook.Web.ApiService.Exceptions;
+using DevBook.Web.ApiService.Infrastructure;
 using DevBook.Web.Shared.Contracts;
 using FluentValidation;
+using Microsoft.EntityFrameworkCore;
+using OneOf;
+using OneOf.Types;
 
 namespace DevBook.Web.ApiService.Features.TimeTracking.Tasks;
 
@@ -26,6 +30,11 @@ internal sealed class CreateTaskCommandHandler(DevBookDbContext dbContext, TimeP
 {
 	public async Task<Guid> Handle(CreateWorkTaskCommand request, CancellationToken cancellationToken)
 	{
+		if (request.ProjectId is not null && !(await dbContext.Projects.AnyAsync(x => x.Id.Equals(request.ProjectId), cancellationToken: cancellationToken)))
+		{
+			throw new DevBookValidationException(nameof(request.ProjectId), $"Project with id '{request.ProjectId}' not found.");
+		}
+
 		var newItem = new WorkTask(
 			ProjectId: request.ProjectId,
 			Description: request.Description,

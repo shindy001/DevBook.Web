@@ -12,7 +12,7 @@ internal static class WorkTaskEndpoints
 	{
 		groupBuilder.MapGet("/", GetWorkTasks)
 			.WithName($"{OperationIdPrefix}GetAll")
-			.Produces<IList<WorkTask>>();
+			.Produces<IList<WorkTaskDto>>();
 
 		groupBuilder.MapPost("/", CreateWorkTask)
 			.WithName($"{OperationIdPrefix}Create")
@@ -20,7 +20,7 @@ internal static class WorkTaskEndpoints
 
 		groupBuilder.MapGet("/{id:guid}", GetWorkTaskById)
 			.WithName($"{OperationIdPrefix}{GetByIdRoute}")
-			.Produces<WorkTask>()
+			.Produces<WorkTaskDto>()
 			.Produces(StatusCodes.Status404NotFound);
 
 		groupBuilder.MapPut("/{id:guid}", UpdateWorkTask)

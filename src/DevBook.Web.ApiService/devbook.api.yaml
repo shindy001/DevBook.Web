@@ -342,7 +342,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/WorkTask'
+                  $ref: '#/components/schemas/WorkTaskDto'
     post:
       tags:
         - TimeTrackingModule_WorkTaskEndpoints
@@ -375,7 +375,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/WorkTask'
+                $ref: '#/components/schemas/WorkTaskDto'
         '404':
           description: Not Found
     put:
@@ -649,6 +649,16 @@ components:
           type: string
           nullable: true
       additionalProperties: false
+    ProjectIdentity:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          nullable: true
+      additionalProperties: false
     RefreshRequest:
       type: object
       properties:
@@ -770,16 +780,14 @@ components:
           format: time
           nullable: true
       additionalProperties: false
-    WorkTask:
+    WorkTaskDto:
       type: object
       properties:
         id:
           type: string
           format: uuid
-        projectId:
-          type: string
-          format: uuid
-          nullable: true
+        projectIdentity:
+          $ref: '#/components/schemas/ProjectIdentity'
         description:
           type: string
           nullable: true

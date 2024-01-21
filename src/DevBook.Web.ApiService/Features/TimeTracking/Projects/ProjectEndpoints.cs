@@ -1,4 +1,5 @@
-﻿using DevBook.Web.Shared.Contracts;
+﻿using DevBook.Web.ApiService.Features.TimeTracking.Shared;
+using DevBook.Web.Shared.Contracts;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DevBook.Web.ApiService.Features.TimeTracking.Projects;

@@ -1,4 +1,4 @@
-﻿using DevBook.Web.ApiService.Features.TimeTracking.Projects;
+﻿using DevBook.Web.ApiService.Features.TimeTracking.Shared;
 using DevBook.Web.ApiService.Features.TimeTracking.Tasks;
 using DevBook.Web.ApiService.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;

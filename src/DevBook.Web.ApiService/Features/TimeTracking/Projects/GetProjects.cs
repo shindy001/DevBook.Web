@@ -1,4 +1,5 @@
-﻿using DevBook.Web.ApiService.Infrastructure;
+﻿using DevBook.Web.ApiService.Features.TimeTracking.Shared;
+using DevBook.Web.ApiService.Infrastructure;
 using DevBook.Web.Shared.Contracts;
 using Microsoft.EntityFrameworkCore;
 

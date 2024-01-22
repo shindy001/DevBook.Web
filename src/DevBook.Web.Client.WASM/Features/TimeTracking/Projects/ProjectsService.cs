@@ -6,8 +6,8 @@ namespace DevBook.Web.Client.WASM.Features.TimeTracking.Projects;
 
 public interface IProjectsService
 {
-	Task<IEnumerable<Project>> GetAll();
-	Task<Project> GetById(Guid id);
+	Task<IEnumerable<ProjectDto>> GetAll();
+	Task<ProjectDto> GetById(Guid id);
 	Task Create(string name, string? details = null, string? currency = null, int? hourlyRate = null, string? hexColor = null);
 	Task Update(Guid id, string name, string? details = null, string? currency = null, int? hourlyRate = null, string? hexColor = null);
 	Task Patch(Guid id, string? name = null, string? details = null, string? currency = null, int? hourlyRate = null, string? hexColor = null);
@@ -16,7 +16,7 @@ public interface IProjectsService
 
 internal sealed class ProjectsService(IDevBookWebApiActionExecutor devBookWebApiActionExecutor) : IProjectsService
 {
-	public async Task<IEnumerable<Project>> GetAll()
+	public async Task<IEnumerable<ProjectDto>> GetAll()
 	{
 		var result = await devBookWebApiActionExecutor.Execute(x => x.Projects_GetAllAsync());
 		return result.Match(
@@ -24,7 +24,7 @@ internal sealed class ProjectsService(IDevBookWebApiActionExecutor devBookWebApi
 			apiError => throw new DevBookException(apiError.Errors));
 	}
 
-	public async Task<Project> GetById(Guid id)
+	public async Task<ProjectDto> GetById(Guid id)
 	{
 		var result = await devBookWebApiActionExecutor.Execute(x => x.Projects_GetByIdAsync(id));
 		return result.Match(

@@ -14,7 +14,7 @@
 		</CardHeaderContent>
 	</MudCardHeader>
 	<MudCardContent>
-        <MudTable T="Project" Items="@_projects" Loading="@_loading" LoadingProgressColor="Color.Primary" Hover="true" Filter="((x) => FilterFunc(x, _searchString))" OnRowClick="@OpenUpdateProjectPage">
+        <MudTable T="ProjectDto" Items="@_projects" Loading="@_loading" LoadingProgressColor="Color.Primary" Hover="true" Filter="((x) => FilterFunc(x, _searchString))" OnRowClick="@OpenUpdateProjectPage">
             <ToolBarContent>
                 <MudTextField 
                     @bind-Value="_searchString"
@@ -43,8 +43,8 @@
     [Inject] private IProjectsService ProjectsService { get; set; } = null!;
     [Inject] private NavigationManager NavigationManager { get; init; } = null!;
 
-    private IEnumerable<Project> _projects = [];
-    private string _searchString = "";
+    private IEnumerable<ProjectDto> _projects = [];
+    private string _searchString = string.Empty;
 
     private bool _loading = false;
 
@@ -55,7 +55,7 @@
         _loading = false;
     }
 
-    private bool FilterFunc(Project project, string searchString)
+    private bool FilterFunc(ProjectDto project, string searchString)
     {
         if (string.IsNullOrWhiteSpace(searchString))
             return true;
@@ -66,7 +66,7 @@
         return false;
     }
 
-    private void OpenUpdateProjectPage(TableRowClickEventArgs<Project> rowClickEvent)
+    private void OpenUpdateProjectPage(TableRowClickEventArgs<ProjectDto> rowClickEvent)
     {
         NavigationManager.NavigateTo($"/projects/{rowClickEvent.Item.Id}");
     }

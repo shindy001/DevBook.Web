@@ -77,7 +77,7 @@
     {
         public IEnumerable<Project> Projects { get; init; } = [];
 
-        public record Project(Guid Id, string Name, int? HourlyRate, string? Currency, string? HexColor);
+        public sealed record Project(Guid Id, string Name, int? HourlyRate, string? Currency, string? HexColor);
     }
 
     private sealed class GetPageModelQueryHandler(IDevBookWebApiActionExecutor devBookWebApiActionExecutor)
@@ -85,7 +85,7 @@
     {
         public async Task<PageModel> Handle(GetPageModelQuery request, CancellationToken cancellationToken)
         {
-            var result = await devBookWebApiActionExecutor.Execute(x => x.Projects_GetAllAsync());
+            var result = await devBookWebApiActionExecutor.Execute(x => x.Projects_GetAllAsync(cancellationToken));
             return result.Match(
                 projects => new PageModel { Projects = projects.Select(x => new PageModel.Project(x.Id, x.Name, x.HourlyRate, x.Currency, x.HexColor)) },
                 apiError => throw new DevBookException(apiError.Errors));

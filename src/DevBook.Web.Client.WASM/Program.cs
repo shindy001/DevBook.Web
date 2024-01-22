@@ -7,7 +7,6 @@ using DevBook.Web.Client.WASM.Features.Shared;
 using DevBook.Web.Client.WASM.Identity;
 using DevBook.Web.Shared.Extensions;
 using DevBook.Web.Client.WASM.ApiClient;
-using DevBook.Web.Client.WASM.Features.TimeTracking.Projects;
 using DevBook.Web.Client.WASM.Features.TimeTracking.Tasks;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
@@ -35,7 +34,6 @@ builder.Services.AddHttpClient<IDevBookWebApiClient, DevBookWebApiClient>(
 builder.Services.AddScoped<IDevBookWebApiActionExecutor, DevBookWebApiActionExecutor>();
 
 // TimeTracking feature
-builder.Services.AddScoped<IProjectsService, ProjectsService>();
 builder.Services.AddScoped<ITasksService, TasksService>();
 
 await builder.Build().RunAsync();

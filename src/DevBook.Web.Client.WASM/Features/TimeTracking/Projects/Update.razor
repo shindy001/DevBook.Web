@@ -12,20 +12,20 @@
         </CardHeaderContent>
     </MudCardHeader>
     <MudCardContent>
-        <EditForm Model="@_updateProjectForm" OnValidSubmit="OnValidSubmit">
+        <EditForm Model="@_pageModel.UpdateForm" OnValidSubmit="OnValidSubmit">
             <DataAnnotationsValidator />
             <MudCard>
                 <MudCardContent>
-                    <MudTextField Label="Name" @bind-Value="_updateProjectForm.Name" For="@(() => _updateProjectForm.Name)" />
-                    <MudTextField Label="Details" Class="mt-3" @bind-Value="_updateProjectForm.Details" For="@(() => _updateProjectForm.Details)" />
+                    <MudTextField Label="Name" @bind-Value="_pageModel.UpdateForm.Name" For="@(() => _pageModel.UpdateForm.Name)" />
+                    <MudTextField Label="Details" Class="mt-3" @bind-Value="_pageModel.UpdateForm.Details" For="@(() => _pageModel.UpdateForm.Details)" />
                     <div class="flex space-x-6">
-                        <MudTextField Label="Hourly rate" Class="mt-3" @bind-Value="_updateProjectForm.HourlyRate" For="@(() => _updateProjectForm.HourlyRate)" />
-                        <MudTextField Label="Currency" Class="mt-3" @bind-Value="_updateProjectForm.Currency" For="@(() => _updateProjectForm.Currency)" />
+                        <MudTextField Label="Hourly rate" Class="mt-3" @bind-Value="_pageModel.UpdateForm.HourlyRate" For="@(() => _pageModel.UpdateForm.HourlyRate)" />
+                        <MudTextField Label="Currency" Class="mt-3" @bind-Value="_pageModel.UpdateForm.Currency" For="@(() => _pageModel.UpdateForm.Currency)" />
                     </div>
                     <div class="flex items-end mt-2">
-                        <div class="w-6 h-6 mr-2 mb-1 rounded-full" style="background: @(_updateProjectForm.HexColor ?? "#adadb1")"></div>
+                        <div class="w-6 h-6 mr-2 mb-1 rounded-full" style="background: @(_pageModel.UpdateForm.HexColor ?? "#adadb1")"></div>
                         <MudColorPicker
-                            @bind-Text="_updateProjectForm.HexColor"
+                            @bind-Text="_pageModel.UpdateForm.HexColor"
                             Placeholder="Color"
                             Label="Color"
                             Adornment="Adornment.None"
@@ -47,41 +47,100 @@
 @code {
     [Parameter] public required Guid ProjectId { get; set; }
 
-    [Inject] private IProjectsService ProjectsService { get; set; } = null!;
+    [Inject] private IExecutor Executor { get; set; } = null!;
     [Inject] private NavigationManager NavigationManager { get; init; } = null!;
 
-    private readonly UpdateForm _updateProjectForm = new();
+    private PageModel _pageModel = new();
     private bool _processing = false;
 
     protected override async Task OnInitializedAsync()
     {
-        var project = await ProjectsService.GetById(ProjectId);
-        _updateProjectForm.Name = project.Name;
-        _updateProjectForm.Details = project.Details;
-        _updateProjectForm.Currency = project.Currency;
-        _updateProjectForm.HourlyRate = project.HourlyRate;
-        _updateProjectForm.HexColor = project.HexColor;
+        var updateForm = await Executor.ExecuteQuery(new GetUpdateProjectFormQuery(ProjectId));
+        _pageModel.UpdateForm.Name = updateForm.Name;
+        _pageModel.UpdateForm.Details = updateForm.Details;
+        _pageModel.UpdateForm.Currency = updateForm.Currency;
+        _pageModel.UpdateForm.HourlyRate = updateForm.HourlyRate;
+        _pageModel.UpdateForm.HexColor = updateForm.HexColor;
     }
 
     private async Task OnValidSubmit()
     {
-        await ProjectsService.Update(
-            ProjectId,
-            _updateProjectForm.Name,
-            _updateProjectForm.Details,
-            _updateProjectForm.Currency,
-            _updateProjectForm.HourlyRate,
-            _updateProjectForm.HexColor);
+        await Executor.ExecuteCommand(new UpdateProjectCommand(
+            Id: ProjectId,
+            Name: _pageModel.UpdateForm.Name,
+            Details: _pageModel.UpdateForm.Details,
+            Currency: _pageModel.UpdateForm.Currency,
+            HourlyRate: _pageModel.UpdateForm.HourlyRate,
+            HexColor: _pageModel.UpdateForm.HexColor));
     }
 
-    public record UpdateForm
+    private sealed record PageModel
     {
-        [Required(AllowEmptyStrings = false)]
-        public string Name { get; set; } = string.Empty;
+        public UpdateProjectForm UpdateForm { get; init; } = new();
 
-        public string? Details { get; set; }
-        public string? Currency { get; set; }
-        public int? HourlyRate { get; set; }
-        public string? HexColor { get; set; }
+        public sealed record UpdateProjectForm
+        {
+            [Required(AllowEmptyStrings = false)]
+            public string Name { get; set; } = string.Empty;
+
+            public string? Details { get; set; }
+            public string? Currency { get; set; }
+            public int? HourlyRate { get; set; }
+            public string? HexColor { get; set; }
+        }
+    }
+
+    private sealed record GetUpdateProjectFormQuery(Guid Id) : IQuery<PageModel.UpdateProjectForm>;
+
+    private sealed class GetUpdateProjectFormQueryHandler(IDevBookWebApiActionExecutor devBookWebApiActionExecutor)
+        : IQueryHandler<GetUpdateProjectFormQuery, PageModel.UpdateProjectForm>
+    {
+        public async Task<PageModel.UpdateProjectForm> Handle(GetUpdateProjectFormQuery request, CancellationToken cancellationToken)
+        {
+            var result = await devBookWebApiActionExecutor.Execute(x => x.Projects_GetByIdAsync(request.Id, cancellationToken));
+            return result.Match(
+                project => new PageModel.UpdateProjectForm
+                    {
+                        Name = project.Name,
+                        Details = project.Details,
+                        HourlyRate = project.HourlyRate,
+                        Currency = project.Currency,
+                        HexColor = project.HexColor
+                    },
+                apiError => throw new DevBookException(apiError.Errors));
+        }
+    }
+
+    private sealed record UpdateProjectCommand(
+        Guid Id,
+        string Name,
+        string? Details,
+        string? Currency,
+        int? HourlyRate,
+        string? HexColor)
+        : ICommand;
+
+    private sealed class UpdateProjectCommandHandler(IDevBookWebApiActionExecutor devBookWebApiActionExecutor)
+        : ICommandHandler<UpdateProjectCommand>
+    {
+        public async Task Handle(UpdateProjectCommand request, CancellationToken cancellationToken)
+        {
+            var result = await devBookWebApiActionExecutor.Execute(
+                x => x.Projects_UpdateAsync(
+                    id: request.Id,
+                    body: new() 
+                    {
+                        Name = request.Name,
+                        Details = request.Details,
+                        Currency = request.Currency,
+                        HourlyRate = request.HourlyRate,
+                        HexColor = request.HexColor
+                    },
+                cancellationToken));
+
+            result.Match(
+                success => success,
+                apiError => throw new DevBookException(apiError.Errors));
+        }
     }
 }

@@ -14,7 +14,7 @@
         </CardHeaderContent>
     </MudCardHeader>
     <MudCardContent>
-        <MudTable T="WorkTaskDto" Items="@_tasks" Loading="@_loading" LoadingProgressColor="Color.Primary" Hover="true" Filter="((x) => FilterFunc(x, _searchString))">
+        <MudTable T="PageModel.WorkTask" Items="@_pageModel.WorkTasks" Loading="@_loading" LoadingProgressColor="Color.Primary" Hover="true" Filter="((x) => FilterFunc(x, _searchString))">
             <ToolBarContent>
                 <MudTextField @bind-Value="_searchString"
                               Immediate="true"
@@ -38,22 +38,22 @@
 </MudCard>
 
 @code {
-    [Inject] private ITasksService TasksService { get; set; } = null!;
+    [Inject] private IExecutor Executor { get; set; } = null!;
     [Inject] private NavigationManager NavigationManager { get; init; } = null!;
 
-    private IEnumerable<WorkTaskDto> _tasks = [];
-    private string _searchString = "";
+    private PageModel _pageModel = new();
+    private string _searchString = string.Empty;
 
     private bool _loading = false;
 
     protected override async Task OnInitializedAsync()
     {
         _loading = true;
-        _tasks = await TasksService.GetAll();
+        _pageModel = await Executor.ExecuteQuery(new GetPageModelQuery());
         _loading = false;
     }
 
-    private bool FilterFunc(WorkTaskDto workTask, string searchString)
+    private bool FilterFunc(PageModel.WorkTask workTask, string searchString)
     {
         if (string.IsNullOrWhiteSpace(searchString))
             return true;
@@ -62,5 +62,26 @@
             return true;
 
         return false;
+    }
+
+    private sealed record GetPageModelQuery : IQuery<PageModel>;
+
+    private sealed record PageModel
+    {
+        public IEnumerable<WorkTask> WorkTasks { get; init; } = [];
+
+        public sealed record WorkTask(Guid Id, string? Description, TimeSpan Start, TimeSpan? End);
+    }
+
+    private sealed class GetPageModelQueryHandler(IDevBookWebApiActionExecutor devBookWebApiActionExecutor)
+        : IQueryHandler<GetPageModelQuery, PageModel>
+    {
+        public async Task<PageModel> Handle(GetPageModelQuery request, CancellationToken cancellationToken)
+        {
+            var result = await devBookWebApiActionExecutor.Execute(x => x.WorkTasks_GetAllAsync(cancellationToken));
+            return result.Match(
+                workTasks => new PageModel { WorkTasks = workTasks.Select(x => new PageModel.WorkTask(x.Id, x.Description, x.Start, x.End)) },
+                apiError => throw new DevBookException(apiError.Errors));
+        }
     }
 }

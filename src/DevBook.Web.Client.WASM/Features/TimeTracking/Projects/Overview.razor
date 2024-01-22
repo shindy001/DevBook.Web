@@ -3,18 +3,18 @@
 <PageTitle>Projects</PageTitle>
 
 <MudCard Class="m-4">
-	<MudCardHeader>
-		<CardHeaderContent>
-			<div class="flex justify-between">
-				<MudText Typo="Typo.h5">Projects</MudText>
-				<MudButton Href="projects/create" StartIcon="@Icons.Material.Filled.Add" Variant="Variant.Filled" Color="Color.Primary">
-					Create New Project
-				</MudButton>
-			</div>
-		</CardHeaderContent>
-	</MudCardHeader>
-	<MudCardContent>
-        <MudTable T="ProjectDto" Items="@_projects" Loading="@_loading" LoadingProgressColor="Color.Primary" Hover="true" Filter="((x) => FilterFunc(x, _searchString))" OnRowClick="@OpenUpdateProjectPage">
+    <MudCardHeader>
+        <CardHeaderContent>
+            <div class="flex justify-between">
+                <MudText Typo="Typo.h5">Projects</MudText>
+                <MudButton Href="projects/create" StartIcon="@Icons.Material.Filled.Add" Variant="Variant.Filled" Color="Color.Primary">
+                    Create New Project
+                </MudButton>
+            </div>
+        </CardHeaderContent>
+    </MudCardHeader>
+    <MudCardContent>
+        <MudTable T="PageModel.Project" Items="@_pageModel.Projects" Loading="@_loading" LoadingProgressColor="Color.Primary" Hover="true" Filter="((x) => FilterFunc(x, _searchString))" OnRowClick="@OpenUpdateProjectPage">
             <ToolBarContent>
                 <MudTextField 
                     @bind-Value="_searchString"
@@ -40,10 +40,10 @@
 </MudCard>
 
 @code {
-    [Inject] private IProjectsService ProjectsService { get; set; } = null!;
+    [Inject] private IExecutor Executor { get; set; } = null!;
     [Inject] private NavigationManager NavigationManager { get; init; } = null!;
 
-    private IEnumerable<ProjectDto> _projects = [];
+    private PageModel _pageModel = new();
     private string _searchString = string.Empty;
 
     private bool _loading = false;
@@ -51,11 +51,11 @@
     protected override async Task OnInitializedAsync()
     {
         _loading = true;
-        _projects = await ProjectsService.GetAll();
+        _pageModel = await Executor.ExecuteQuery(new GetPageModelQuery());
         _loading = false;
     }
 
-    private bool FilterFunc(ProjectDto project, string searchString)
+    private bool FilterFunc(PageModel.Project project, string searchString)
     {
         if (string.IsNullOrWhiteSpace(searchString))
             return true;
@@ -66,8 +66,29 @@
         return false;
     }
 
-    private void OpenUpdateProjectPage(TableRowClickEventArgs<ProjectDto> rowClickEvent)
+    private void OpenUpdateProjectPage(TableRowClickEventArgs<PageModel.Project> rowClickEvent)
     {
         NavigationManager.NavigateTo($"/projects/{rowClickEvent.Item.Id}");
+    }
+
+    private sealed record GetPageModelQuery : IQuery<PageModel>;
+
+    private sealed record PageModel
+    {
+        public IEnumerable<Project> Projects { get; init; } = [];
+
+        public record Project(Guid Id, string Name, int? HourlyRate, string? Currency, string? HexColor);
+    }
+
+    private sealed class GetPageModelQueryHandler(IDevBookWebApiActionExecutor devBookWebApiActionExecutor)
+        : IQueryHandler<GetPageModelQuery, PageModel>
+    {
+        public async Task<PageModel> Handle(GetPageModelQuery request, CancellationToken cancellationToken)
+        {
+            var result = await devBookWebApiActionExecutor.Execute(x => x.Projects_GetAllAsync());
+            return result.Match(
+                projects => new PageModel { Projects = projects.Select(x => new PageModel.Project(x.Id, x.Name, x.HourlyRate, x.Currency, x.HexColor)) },
+                apiError => throw new DevBookException(apiError.Errors));
+        }
     }
 }

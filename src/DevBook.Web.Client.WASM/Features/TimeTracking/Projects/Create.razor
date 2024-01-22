@@ -3,15 +3,15 @@
 <PageTitle>Create Project</PageTitle>
 
 <MudCard Class="m-4 max-w-screen-sm">
-	<MudCardHeader>
-		<CardHeaderContent>
+    <MudCardHeader>
+        <CardHeaderContent>
             <MudText Typo="Typo.h5">
                 <MudIconButton Icon="@Icons.Material.Filled.ArrowBackIosNew" Color="Color.Inherit" Href="/projects" />
                 Create new Project
             </MudText>
-		</CardHeaderContent>
-	</MudCardHeader>
-	<MudCardContent>
+        </CardHeaderContent>
+    </MudCardHeader>
+    <MudCardContent>
         <EditForm Model="@_createProjectForm" OnValidSubmit="OnValidSubmit">
             <DataAnnotationsValidator />
             <MudCard>
@@ -48,7 +48,7 @@
 </MudCard>
 
 @code {
-    [Inject] private IProjectsService ProjectsService { get; set; } = null!;
+    [Inject] private IExecutor Executor { get; set; } = null!;
     [Inject] private NavigationManager NavigationManager { get; init; } = null!;
 
     private readonly CreateProjectForm _createProjectForm = new() { Name = "New Project" };
@@ -57,18 +57,19 @@
     private async Task OnValidSubmit()
     {
         _processing = true;
-        await ProjectsService.Create(
-            _createProjectForm.Name,
-            _createProjectForm.Details,
-            _createProjectForm.Currency,
-            _createProjectForm.HourlyRate,
-            _createProjectForm.HexColor);
+        await Executor.ExecuteCommand(
+            new CreateProjectCommand(
+                Name: _createProjectForm.Name,
+                Details: _createProjectForm.Details,
+                Currency: _createProjectForm.Currency,
+                HourlyRate: _createProjectForm.HourlyRate,
+                HexColor: _createProjectForm.HexColor));
         _processing = false;
 
         NavigationManager.NavigateTo("/projects");
     }
 
-    public record CreateProjectForm
+    private sealed record CreateProjectForm
     {
         [Required(AllowEmptyStrings = false)]
         public required string Name { get; set; }
@@ -77,5 +78,35 @@
         public string? Currency { get; set; }
         public int? HourlyRate { get; set; }
         public string? HexColor { get; set; }
+    }
+
+    private sealed record CreateProjectCommand(
+        string Name,
+        string? Details,
+        string? Currency,
+        int? HourlyRate,
+        string? HexColor)
+        : ICommand;
+
+    private sealed class CreateProjectCommandHandler(IDevBookWebApiActionExecutor devBookWebApiActionExecutor)
+        : ICommandHandler<CreateProjectCommand>
+    {
+        public async Task Handle(CreateProjectCommand request, CancellationToken cancellationToken)
+        {
+            var result = await devBookWebApiActionExecutor.Execute(
+                x => x.Projects_CreateAsync(
+                    new() 
+                    {
+                        Name = request.Name,
+                        Details = request.Details,
+                        Currency = request.Currency,
+                        HourlyRate = request.HourlyRate,
+                        HexColor = request.HexColor
+                    }));
+
+            result.Match(
+                success => success,
+                apiError => throw new DevBookException(apiError.Errors));
+        }
     }
 }

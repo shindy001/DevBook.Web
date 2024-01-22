@@ -4,7 +4,7 @@ namespace DevBook.Web.ApiService.Features.TimeTracking.Tasks;
 
 public sealed record WorkTaskDto(
 	Guid Id,
-	ProjectIdentity? ProjectIdentity,
+	Project? Project,
 	string? Description,
 	string? Details,
 	DateOnly? Date,

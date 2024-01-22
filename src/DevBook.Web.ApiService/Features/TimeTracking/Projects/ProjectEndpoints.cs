@@ -13,7 +13,7 @@ internal static class ProjectEndpoints
 	{
 		groupBuilder.MapGet("/", GetProjects)
 			.WithName($"{OperationIdPrefix}GetAll")
-			.Produces<IList<Project>>();
+			.Produces<IList<ProjectDto>>();
 
 		groupBuilder.MapPost("/", CreateProject)
 			.WithName($"{OperationIdPrefix}Create")
@@ -21,7 +21,7 @@ internal static class ProjectEndpoints
 
 		groupBuilder.MapGet("/{id:guid}", GetProjectById)
 			.WithName($"{OperationIdPrefix}{GetByIdRoute}")
-			.Produces<Project>()
+			.Produces<ProjectDto>()
 			.Produces(StatusCodes.Status404NotFound);
 
 		groupBuilder.MapPut("/{id:guid}", UpdateProject)

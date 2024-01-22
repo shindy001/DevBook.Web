@@ -232,7 +232,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Project'
+                  $ref: '#/components/schemas/ProjectDto'
     post:
       tags:
         - TimeTrackingModule_ProjectEndpoints
@@ -265,7 +265,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Project'
+                $ref: '#/components/schemas/ProjectDto'
         '404':
           description: Not Found
     put:
@@ -649,13 +649,28 @@ components:
           type: string
           nullable: true
       additionalProperties: false
-    ProjectIdentity:
+    ProjectDto:
+      required:
+        - name
       type: object
       properties:
         id:
           type: string
           format: uuid
         name:
+          minLength: 1
+          type: string
+        details:
+          type: string
+          nullable: true
+        hourlyRate:
+          type: integer
+          format: int32
+          nullable: true
+        currency:
+          type: string
+          nullable: true
+        hexColor:
           type: string
           nullable: true
       additionalProperties: false
@@ -786,8 +801,8 @@ components:
         id:
           type: string
           format: uuid
-        projectIdentity:
-          $ref: '#/components/schemas/ProjectIdentity'
+        project:
+          $ref: '#/components/schemas/Project'
         description:
           type: string
           nullable: true

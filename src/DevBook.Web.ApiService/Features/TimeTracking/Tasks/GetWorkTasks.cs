@@ -1,5 +1,4 @@
-﻿using DevBook.Web.ApiService.Features.TimeTracking.Shared;
-using DevBook.Web.ApiService.Infrastructure;
+﻿using DevBook.Web.ApiService.Infrastructure;
 using DevBook.Web.Shared.Contracts;
 using Microsoft.EntityFrameworkCore;
 
@@ -21,7 +20,7 @@ internal sealed class GetWorkTasksQueryHandler(DevBookDbContext dbContext) : IQu
 		return tasks.Select(
 			task => new WorkTaskDto(
 				Id: task.Id,
-				ProjectIdentity: task.ProjectId is not null && projects.TryGetValue(task.ProjectId.Value, out var project) ? project.Identity() : null,
+				Project: task.ProjectId is not null && projects.TryGetValue(task.ProjectId.Value, out var project) ? project : null,
 				Description: task.Description,
 				Details: task.Details,
 				Date: task.Date,

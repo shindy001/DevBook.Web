@@ -14,7 +14,14 @@
         </CardHeaderContent>
     </MudCardHeader>
     <MudCardContent>
-        <MudTable T="PageModel.WorkTask" Items="@_pageModel.WorkTasks" Loading="@_loading" LoadingProgressColor="Color.Primary" Hover="true" Filter="((x) => FilterFunc(x, _searchString))">
+        <MudTable
+            T="PageModel.TasksInDay"
+            Items="@_pageModel.TasksInDays"
+            Loading="@_loading"
+            LoadingProgressColor="Color.Primary"
+            Hover="true"
+            Filter="((x) => FilterFunc(x, _searchString))"
+            OnRowClick="ToggleDayDetails">
             <ToolBarContent>
                 <MudTextField @bind-Value="_searchString"
                               Immediate="true"
@@ -28,9 +35,16 @@
             </HeaderContent>
             <RowTemplate>
                 <MudTd Class="flex cursor-pointer">
-                    <div class="flex">
-                        <MudText Class="ml-3">@context.Description @(context.End is not null ? $"- {(context.End - context.Start)?.Humanize(2)} " : "")</MudText>
-                    </div>
+                    <MudStack Spacing="2">
+                        <MudButton OnClick="() => context.ToggleDetails()">@context.Day</MudButton>
+                        @foreach(var task in context.Tasks)
+                        {
+                            <MudCollapse Expanded="@context.ShowDetails">
+                                <MudText Class="ml-3">@task.Description @(task.End is not null ? $"- {(task.End - task.Start)?.Humanize(2)} " : "")</MudText>
+                            </MudCollapse>
+                        }
+                        
+                    </MudStack>
                 </MudTd>
             </RowTemplate>
         </MudTable>
@@ -50,18 +64,36 @@
     {
         _loading = true;
         _pageModel = await Executor.ExecuteQuery(new GetPageModelQuery());
+        _pageModel.TasksInDays = GroupTasksByDay(_pageModel.WorkTasks);
         _loading = false;
     }
 
-    private bool FilterFunc(PageModel.WorkTask workTask, string searchString)
+    private IEnumerable<PageModel.TasksInDay> GroupTasksByDay(IEnumerable<PageModel.WorkTask> tasks)
+    {
+        List<PageModel.TasksInDay> tasksInDays = new();
+        var dayGroups = tasks.OrderByDescending(x => x.Date).GroupBy(x => DateOnly.FromDateTime(x.Date.DateTime));
+        foreach(var group in dayGroups)
+        {
+            tasksInDays.Add(new PageModel.TasksInDay(group.Key, group.Select(x => x).ToArray()));
+        }
+
+        return tasksInDays;
+    }
+
+    private bool FilterFunc(PageModel.TasksInDay tasksInDay, string searchString)
     {
         if (string.IsNullOrWhiteSpace(searchString))
             return true;
 
-        if (workTask.Description?.Contains(searchString, StringComparison.OrdinalIgnoreCase) == true)
+        if (tasksInDay.Tasks.Any(x => x.Description?.Contains(searchString, StringComparison.OrdinalIgnoreCase) == true))
             return true;
 
         return false;
+    }
+
+    private void ToggleDayDetails(TableRowClickEventArgs<PageModel.TasksInDay> rowClickEvent)
+    {
+        rowClickEvent.Item.ToggleDetails();
     }
 
     private sealed record GetPageModelQuery : IQuery<PageModel>;
@@ -69,8 +101,24 @@
     private sealed record PageModel
     {
         public IEnumerable<WorkTask> WorkTasks { get; init; } = [];
+        public IEnumerable<TasksInDay> TasksInDays { get; set; } = [];
 
-        public sealed record WorkTask(Guid Id, string? Description, TimeSpan Start, TimeSpan? End);
+        public sealed record WorkTask(Guid Id, string? Description, DateTimeOffset Date, TimeSpan Start, TimeSpan? End);
+        public sealed record TasksInDay
+        {
+            public DateOnly Day { get; init; }
+            public WorkTask[] Tasks { get; init; }
+            public bool ShowDetails { get; private set; } = false;
+
+            public TasksInDay(DateOnly day, WorkTask[] tasks, bool showDetails = false)
+            {
+                Day = day;
+                Tasks = tasks;
+                ShowDetails = showDetails;
+            }
+
+            public void ToggleDetails() => ShowDetails = !ShowDetails;
+        }
     }
 
     private sealed class GetPageModelQueryHandler(IDevBookWebApiActionExecutor devBookWebApiActionExecutor)
@@ -80,7 +128,7 @@
         {
             var result = await devBookWebApiActionExecutor.Execute(x => x.WorkTasks_GetAllAsync(cancellationToken));
             return result.Match(
-                workTasks => new PageModel { WorkTasks = workTasks.Select(x => new PageModel.WorkTask(x.Id, x.Description, x.Start, x.End)) },
+                workTasks => new PageModel { WorkTasks = workTasks.Select(x => new PageModel.WorkTask(x.Id, x.Description, x.Date, x.Start, x.End)) },
                 apiError => throw new DevBookException(apiError.Errors));
         }
     }

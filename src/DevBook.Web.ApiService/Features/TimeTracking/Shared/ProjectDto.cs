@@ -4,14 +4,15 @@ namespace DevBook.Web.ApiService.Features.TimeTracking.Shared;
 
 public sealed record ProjectDto
 {
-	public Guid Id { get; }
+	[Required]
+	public Guid Id { get; init; }
 
 	[Required]
-	public string Name { get; }
-	public string? Details { get; }
-	public int? HourlyRate { get; }
-	public string? Currency { get; }
-	public string? HexColor { get; }
+	public string Name { get; init; }
+	public string? Details { get; init; }
+	public int? HourlyRate { get; init; }
+	public string? Currency { get; init; }
+	public string? HexColor { get; init; }
 
 	public ProjectDto(Guid id, string name, string? details, int? hourlyRate, string? currency, string? hexColor)
 	{

@@ -495,7 +495,7 @@ components:
           nullable: true
         date:
           type: string
-          format: date
+          format: date-time
           nullable: true
         start:
           type: string
@@ -613,7 +613,7 @@ components:
           nullable: true
         date:
           type: string
-          format: date
+          format: date-time
           nullable: true
         start:
           type: string
@@ -625,16 +625,14 @@ components:
           nullable: true
       additionalProperties: false
     Project:
-      required:
-        - name
       type: object
       properties:
         id:
           type: string
           format: uuid
         name:
-          minLength: 1
           type: string
+          nullable: true
         details:
           type: string
           nullable: true
@@ -651,6 +649,7 @@ components:
       additionalProperties: false
     ProjectDto:
       required:
+        - id
         - name
       type: object
       properties:
@@ -796,6 +795,10 @@ components:
           nullable: true
       additionalProperties: false
     WorkTaskDto:
+      required:
+        - date
+        - id
+        - start
       type: object
       properties:
         id:
@@ -811,8 +814,7 @@ components:
           nullable: true
         date:
           type: string
-          format: date
-          nullable: true
+          format: date-time
         start:
           type: string
           format: time

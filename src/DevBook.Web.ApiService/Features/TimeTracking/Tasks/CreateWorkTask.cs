@@ -3,8 +3,6 @@ using DevBook.Web.ApiService.Infrastructure;
 using DevBook.Web.Shared.Contracts;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
-using OneOf;
-using OneOf.Types;
 
 namespace DevBook.Web.ApiService.Features.TimeTracking.Tasks;
 
@@ -13,7 +11,7 @@ public sealed record CreateWorkTaskCommand : ICommand<Guid>
 	public Guid? ProjectId { get; init; }
 	public string? Description { get; init; }
 	public string? Details { get; init; }
-	public DateOnly? Date { get; init; }
+	public DateTimeOffset? Date { get; init; }
 	public TimeOnly? Start { get; init; }
 	public TimeOnly? End { get; init; }
 }
@@ -39,7 +37,7 @@ internal sealed class CreateTaskCommandHandler(DevBookDbContext dbContext, TimeP
 			ProjectId: request.ProjectId,
 			Description: request.Description,
 			Details: request.Details,
-			Date: request.Date,
+			Date: request.Date ?? DateTimeOffset.Now,
 			Start: request.Start ?? TimeOnly.FromDateTime(timeProvider.GetLocalNow().DateTime),
 			End: request.End);
 

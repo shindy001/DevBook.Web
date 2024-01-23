@@ -6,7 +6,7 @@ public sealed record WorkTask(
 	Guid? ProjectId,
 	string? Description,
 	string? Details,
-	DateOnly? Date,
+	DateTimeOffset Date,
 	TimeOnly Start,
 	TimeOnly? End)
 	: Entity(Guid.NewGuid());

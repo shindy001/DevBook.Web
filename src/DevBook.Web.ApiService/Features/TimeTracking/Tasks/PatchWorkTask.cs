@@ -11,7 +11,7 @@ internal sealed record PatchWorkTaskCommandDto
 	public Guid? ProjectId { get; init; }
 	public string? Description { get; init; }
 	public string? Details { get; init; }
-	public DateOnly? Date { get; init; }
+	public DateTimeOffset? Date { get; init; }
 	public TimeOnly? Start { get; init; }
 	public TimeOnly? End { get; init; }
 }
@@ -21,7 +21,7 @@ public record PatchWorkTaskCommand(
 	Guid? ProjectId,
 	string? Description,
 	string? Details,
-	DateOnly? Date,
+	DateTimeOffset? Date,
 	TimeOnly? Start,
 	TimeOnly? End)
 	: ICommand<OneOf<Success, NotFound>>;

@@ -20,12 +20,12 @@ internal class GetWorkTaskQueryHandler(DevBookDbContext dbContext) : IQueryHandl
 		return workTask is null
 			? new NotFound()
 			: new WorkTaskDto(
-				Id: workTask.Id,
-				Project: project,
-				Description: workTask.Description,
-				Details: workTask.Details,
-				Date: workTask.Date,
-				Start: workTask.Start,
-				End: workTask.End);
+				id: workTask.Id,
+				project: project,
+				description: workTask.Description,
+				details: workTask.Details,
+				date: workTask.Date,
+				start: workTask.Start,
+				end: workTask.End);
 	}
 }

@@ -19,12 +19,12 @@ internal sealed class GetWorkTasksQueryHandler(DevBookDbContext dbContext) : IQu
 
 		return tasks.Select(
 			task => new WorkTaskDto(
-				Id: task.Id,
-				Project: task.ProjectId is not null && projects.TryGetValue(task.ProjectId.Value, out var project) ? project : null,
-				Description: task.Description,
-				Details: task.Details,
-				Date: task.Date,
-				Start: task.Start,
-				End: task.End));
+				id: task.Id,
+				project: task.ProjectId is not null && projects.TryGetValue(task.ProjectId.Value, out var project) ? project : null,
+				description: task.Description,
+				details: task.Details,
+				date: task.Date,
+				start: task.Start,
+				end: task.End));
 	}
 }

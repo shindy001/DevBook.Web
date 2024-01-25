@@ -14,40 +14,17 @@
         </CardHeaderContent>
     </MudCardHeader>
     <MudCardContent>
-        <MudTable
-            T="PageModel.TasksInDay"
-            Items="@_pageModel.TasksInDays"
-            Loading="@_loading"
-            LoadingProgressColor="Color.Primary"
-            Hover="true"
-            Filter="((x) => FilterFunc(x, _searchString))"
-            OnRowClick="ToggleDayDetails">
-            <ToolBarContent>
-                <MudTextField @bind-Value="_searchString"
-                              Immediate="true"
-                              Placeholder="Search"
-                              Adornment="Adornment.Start"
-                              AdornmentIcon="@Icons.Material.Filled.Search"
-                              IconSize="Size.Medium" />
-            </ToolBarContent>
-            <HeaderContent>
-                <MudTh></MudTh>
-            </HeaderContent>
-            <RowTemplate>
-                <MudTd Class="flex cursor-pointer">
-                    <MudStack Spacing="2">
-                        <MudButton OnClick="() => context.ToggleDetails()">@context.Day</MudButton>
-                        @foreach(var task in context.Tasks)
-                        {
-                            <MudCollapse Expanded="@context.ShowDetails">
-                                <MudText Class="ml-3">@task.Description @(task.End is not null ? $"- {(task.End - task.Start)?.Humanize(2)} " : "")</MudText>
-                            </MudCollapse>
-                        }
-                        
-                    </MudStack>
-                </MudTd>
-            </RowTemplate>
-        </MudTable>
+        <MudExpansionPanels Dense="true" MultiExpansion="true">
+            @foreach (var item in _pageModel.TasksInDays)
+            {
+                <MudExpansionPanel Text="@(item.Day.DayOfWeek.ToString() + $", {item.Day.ToString("dd.MM.yyyy")}")">
+                    @foreach (var task in item.Tasks)
+                    {
+                        <MudText Class="ml-3">@task.Description @(task.End is not null ? $"- {(task.End - task.Start)?.Humanize(2)} " : "")</MudText>
+                    }
+                </MudExpansionPanel>
+            }
+        </MudExpansionPanels>
     </MudCardContent>
 </MudCard>
 

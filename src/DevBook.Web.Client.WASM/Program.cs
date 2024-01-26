@@ -7,6 +7,7 @@ using DevBook.Web.Client.WASM.Features.Shared;
 using DevBook.Web.Client.WASM.Identity;
 using DevBook.Web.Shared.Extensions;
 using DevBook.Web.Client.WASM.ApiClient;
+using MudBlazor;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
@@ -23,7 +24,18 @@ builder.Services.AddScoped(sp => (IAccountManagement)sp.GetRequiredService<Authe
 builder.Services.AddCommandsAndQueriesExecutor(typeof(Program).Assembly);
 
 // register MudBlazor
-builder.Services.AddMudServices();
+builder.Services.AddMudServices(config =>
+{
+	config.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.TopRight;
+
+	config.SnackbarConfiguration.PreventDuplicates = false;
+	config.SnackbarConfiguration.NewestOnTop = false;
+	config.SnackbarConfiguration.ShowCloseIcon = true;
+	config.SnackbarConfiguration.VisibleStateDuration = 5000;
+	config.SnackbarConfiguration.HideTransitionDuration = 500;
+	config.SnackbarConfiguration.ShowTransitionDuration = 500;
+	config.SnackbarConfiguration.SnackbarVariant = Variant.Filled;
+});
 
 // DevBookWebApi client
 builder.Services.AddScoped<CookieHandler>();

@@ -1,48 +1,58 @@
 ﻿@page "/tasks"
 
 <PageTitle>Tasks</PageTitle>
-
-<MudCard Class="m-4">
-    <MudCardHeader>
-        <CardHeaderContent>
-            <div class="flex justify-between">
+<div class="flex m-4 space-x-4 overflow-y-auto">
+    <MudCard Class="grow">
+        <MudCardHeader>
+            <CardHeaderContent>
                 <MudText Typo="Typo.h5">Work Tasks</MudText>
-                <MudButton StartIcon="@Icons.Material.Filled.Add" Variant="Variant.Filled" Color="Color.Primary">
-                    Create New Task
-                </MudButton>
+            </CardHeaderContent>
+        </MudCardHeader>
+        <MudCardContent>
+            <div class="flex flex-col items-start">
+                <MudButton Class="flex-none" StartIcon="@Icons.Material.Filled.Add" Color="Color.Primary" OnClick="() => ShowCreateTaskCard()">Add New Task</MudButton>
+                <MudButton Class="flex-none" StartIcon="@Icons.Material.Outlined.PlayArrow" Color="Color.Primary">Start Work</MudButton>
             </div>
-        </CardHeaderContent>
-    </MudCardHeader>
-    <MudCardContent>
-        <MudExpansionPanels Dense="true" MultiExpansion="true">
-            @foreach (var item in _pageModel.TasksInDays)
-            {
-                <MudExpansionPanel Text="@(item.Day.DayOfWeek.ToString() + $", {item.Day.ToString("dd.MM.yyyy")}")">
-                    @foreach (var task in item.Tasks)
-                    {
-                        <MudText Class="ml-3">@task.Description @(task.End is not null ? $"- {(task.End - task.Start)?.Humanize(2)} " : "")</MudText>
-                    }
-                </MudExpansionPanel>
-            }
-        </MudExpansionPanels>
-    </MudCardContent>
-</MudCard>
+            <MudExpansionPanels Dense="true" MultiExpansion="true">
+                @foreach (var item in _pageModel.TasksInDays)
+                {
+                    <MudExpansionPanel Text="@(item.Day.DayOfWeek.ToString() + $", {item.Day.ToString("dd.MM.yyyy")}")">
+                        <MudList Clickable="true" @bind-SelectedItem="_selectedItem" @bind-SelectedValue="_selectedTask" Color="Color.Primary">
+                            @foreach(var task in item.Tasks)
+                            {
+                                <MudListItem OnClick="() => ShowUpdateTaskCard(task.Id)" Value="task">
+                                    <div class="flex justify-between">
+                                        <MudText>@task.Description</MudText>
+                                        <MudText>@(task.End is not null ? $"{(task.End - task.Start)?.Humanize(2)} " : "")</MudText>
+                                    </div>
+                                    
+                                </MudListItem>
+                            }
+                        </MudList>
+                    </MudExpansionPanel>
+                }
+            </MudExpansionPanels>
+        </MudCardContent>
+    </MudCard>
+
+    <CreateOrUpdateTaskCard @ref="_updateTaskCard" Class="grow" Visible="_showEditTaskCard" OnCancel="() => HideEditTaskIdCard()" OnCreateOrUpdate="() => RefreshItems()" />
+</div>
 
 @code {
     [Inject] private IExecutor Executor { get; set; } = null!;
     [Inject] private NavigationManager NavigationManager { get; init; } = null!;
 
+    private CreateOrUpdateTaskCard _updateTaskCard = null!;
+    MudListItem? _selectedItem;
+    object? _selectedTask;
     private PageModel _pageModel = new();
-    private string _searchString = string.Empty;
+    private bool _showEditTaskCard = false;
 
     private bool _loading = false;
 
     protected override async Task OnInitializedAsync()
     {
-        _loading = true;
-        _pageModel = await Executor.ExecuteQuery(new GetPageModelQuery());
-        _pageModel.TasksInDays = GroupTasksByDay(_pageModel.WorkTasks);
-        _loading = false;
+        await RefreshItems();
     }
 
     private IEnumerable<PageModel.TasksInDay> GroupTasksByDay(IEnumerable<PageModel.WorkTask> tasks)
@@ -68,9 +78,29 @@
         return false;
     }
 
-    private void ToggleDayDetails(TableRowClickEventArgs<PageModel.TasksInDay> rowClickEvent)
+    private async Task ShowUpdateTaskCard(Guid id)
     {
-        rowClickEvent.Item.ToggleDetails();
+        await _updateTaskCard.CreateOrUpdateTask(id);
+        _showEditTaskCard = true;
+    }
+
+    private async Task ShowCreateTaskCard(Guid? id = null)
+    {
+        await _updateTaskCard.CreateOrUpdateTask(id: null);
+        _showEditTaskCard = true;
+    }
+
+    private void HideEditTaskIdCard(Guid? id = null)
+    {
+        _showEditTaskCard = false;
+    }
+
+    private async Task RefreshItems()
+    {
+        _loading = true;
+        _pageModel = await Executor.ExecuteQuery(new GetPageModelQuery());
+        _pageModel.TasksInDays = GroupTasksByDay(_pageModel.WorkTasks);
+        _loading = false;
     }
 
     private sealed record GetPageModelQuery : IQuery<PageModel>;

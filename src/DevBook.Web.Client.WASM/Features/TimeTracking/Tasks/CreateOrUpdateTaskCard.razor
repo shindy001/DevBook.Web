@@ -1,0 +1,197 @@
+﻿@if (Visible)
+{
+    <div class="@Class">
+        <EditForm Model="@_createOrUpdateTaskForm" OnValidSubmit="OnValidSubmit">
+            <DataAnnotationsValidator />
+            <MudCard>
+                <MudCardHeader>
+                    <MudIconButton Icon="@Icons.Material.Outlined.Close" Color="Color.Primary" OnClick="() => OnCancel.InvokeAsync()" />
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudTextField Label="Description" @bind-Value="_createOrUpdateTaskForm.Description" For="@(() => _createOrUpdateTaskForm.Description)" />
+                    <MudTextField Label="Details" Class="mt-3" @bind-Value="_createOrUpdateTaskForm.Details" For="@(() => _createOrUpdateTaskForm.Details)" />
+                    <MudDatePicker Label="Day" Class="mt-3" @bind-Date="_createOrUpdateTaskForm.Date" DateFormat="dd.MM.yyyy" For="@(() => _createOrUpdateTaskForm.Date)" />
+                    <MudTimePicker Label="Start" @bind-Time="_createOrUpdateTaskForm.Start" For="@(() => _createOrUpdateTaskForm.Start)" />
+                    <MudTimePicker Label="End" @bind-Time="_createOrUpdateTaskForm.End" For="@(() => _createOrUpdateTaskForm.End)" />
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton Disabled="@_processing" ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">
+                        @if (_processing)
+                        {
+                            <MudProgressCircular Class="mr-3" Size="Size.Small" Indeterminate="true" />
+                        }
+                        <MudText>@(_taskId is null ? "Create" : "Update")</MudText>
+                    </MudButton>
+                </MudCardActions>
+            </MudCard>
+        </EditForm>
+    </div>
+}
+
+@code {
+    [Parameter] public bool Visible { get; set; } = true;
+    [Parameter] public string Class { get; set; } = string.Empty;
+    [Parameter] public EventCallback OnCancel { get; set; }
+    [Parameter] public EventCallback OnCreateOrUpdate { get; set; }
+
+    [Inject] private IExecutor Executor { get; set; } = null!;
+    [Inject] ISnackbar Snackbar { get; set; } = null!;
+
+    private CreateOrUpdateTaskForm _createOrUpdateTaskForm = new();
+    private Guid? _taskId;
+    private bool _processing = false;
+
+
+    public async Task CreateOrUpdateTask(Guid? id)
+    {
+        _taskId = id;
+        if (_taskId is not null)
+        {
+            _createOrUpdateTaskForm = await Executor.ExecuteQuery(new GetUpdateTaskFormQuery(_taskId.Value));
+        }
+        else
+        {
+            _createOrUpdateTaskForm = new();
+        }
+        StateHasChanged();
+    }
+
+    private async Task OnValidSubmit()
+    {
+        _processing = true;
+        if (_taskId is null)
+        {
+            await Executor.ExecuteCommand(new CreateTaskCommand(
+                ProjectId: _createOrUpdateTaskForm.ProjectId,
+                Description: _createOrUpdateTaskForm.Description,
+                Details: _createOrUpdateTaskForm.Details,
+                Date: _createOrUpdateTaskForm.Date!.Value,
+                Start: _createOrUpdateTaskForm.Start!.Value,
+                End: _createOrUpdateTaskForm.End
+            ));
+            Snackbar.Add("Create successful", Severity.Success);
+        }
+        else
+        {
+            await Executor.ExecuteCommand(new UpdateTaskCommand(
+                Id: _taskId.Value,
+                ProjectId: _createOrUpdateTaskForm.ProjectId,
+                Description: _createOrUpdateTaskForm.Description,
+                Details: _createOrUpdateTaskForm.Details,
+                Date: _createOrUpdateTaskForm.Date!.Value,
+                Start: _createOrUpdateTaskForm.Start!.Value,
+                End: _createOrUpdateTaskForm.End
+            ));
+            Snackbar.Add("Update successful", Severity.Success);
+        }
+        _processing = false;
+        await OnCreateOrUpdate.InvokeAsync();
+    }
+
+    private sealed record CreateOrUpdateTaskForm
+    {
+        private static DateTimeOffset Now = DateTimeOffset.Now;
+
+        public Guid? ProjectId { get; set; }
+
+        [Required(AllowEmptyStrings = false)]
+        public string? Description { get; set; }
+
+        public string? Details { get; set; }
+        public DateTime? Date { get; set; } = DateTimeOffset.Now.Date;
+        public TimeSpan? Start { get; set; } = Now.TimeOfDay;
+
+        [TimeSpanGreaterThanAttribute("Start")]
+        public TimeSpan? End { get; set; } = Now.TimeOfDay.Add(TimeSpan.FromHours(1));
+    }
+
+    private sealed record GetUpdateTaskFormQuery(Guid Id) : IQuery<CreateOrUpdateTaskForm>;
+
+    private sealed class GetUpdateTaskFormQueryHandler(IDevBookWebApiActionExecutor devBookWebApiActionExecutor)
+        : IQueryHandler<GetUpdateTaskFormQuery, CreateOrUpdateTaskForm>
+    {
+        public async Task<CreateOrUpdateTaskForm> Handle(GetUpdateTaskFormQuery request, CancellationToken cancellationToken)
+        {
+            var result = await devBookWebApiActionExecutor.Execute(x => x.WorkTasks_GetByIdAsync(request.Id, cancellationToken));
+            return result.Match(
+                task => new CreateOrUpdateTaskForm
+                    {
+                        ProjectId = task.Project?.Id,
+                        Description = task.Description,
+                        Details = task.Details,
+                        Date = task.Date.Date,
+                        Start = task.Start,
+                        End = task.End
+                    },
+                apiError => throw new DevBookException(apiError.Errors));
+        }
+    }
+    
+    private sealed record CreateTaskCommand(
+        Guid? ProjectId,
+        string? Description,
+        string? Details,
+        DateTimeOffset Date,
+        TimeSpan Start,
+        TimeSpan? End)
+        : ICommand;
+
+    private sealed class CreateTaskCommandHandler(IDevBookWebApiActionExecutor devBookWebApiActionExecutor)
+        : ICommandHandler<CreateTaskCommand>
+    {
+        public async Task Handle(CreateTaskCommand request, CancellationToken cancellationToken)
+        {
+            var result = await devBookWebApiActionExecutor.Execute(
+                x => x.WorkTasks_CreateAsync(
+                    new() 
+                    {
+                        ProjectId = request.ProjectId,
+                        Description = request.Description,
+                        Details = request.Details,
+                        Date = request.Date,
+                        Start = request.Start,
+                        End = request.End
+                    },
+                cancellationToken));
+
+            result.Match(
+                success => success,
+                apiError => throw new DevBookException(apiError.Errors));
+        }
+    }
+
+    private sealed record UpdateTaskCommand(
+        Guid Id,
+        Guid? ProjectId,
+        string? Description,
+        string? Details,
+        DateTimeOffset Date,
+        TimeSpan Start,
+        TimeSpan? End)
+        : ICommand;
+
+    private sealed class UpdateTaskCommandHandler(IDevBookWebApiActionExecutor devBookWebApiActionExecutor)
+        : ICommandHandler<UpdateTaskCommand>
+    {
+        public async Task Handle(UpdateTaskCommand request, CancellationToken cancellationToken)
+        {
+            var result = await devBookWebApiActionExecutor.Execute(
+                x => x.WorkTasks_UpdateAsync(
+                    request.Id,
+                    new()
+                    {
+                        ProjectId = request.ProjectId,
+                        Description = request.Description,
+                        Details = request.Details,
+                        Date = request.Date,
+                        Start = request.Start,
+                        End = request.End
+                    },
+                cancellationToken));
+
+            result.Match(
+                success => success,
+                apiError => throw new DevBookException(apiError.Errors));
+        }
+    }
+}

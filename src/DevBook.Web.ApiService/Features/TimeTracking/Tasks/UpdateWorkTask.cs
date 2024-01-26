@@ -12,7 +12,7 @@ internal sealed record UpdateWorkTaskCommandDto
 	public Guid? ProjectId { get; init; }
 	public string? Description { get; init; }
 	public string? Details { get; init; }
-	public DateOnly? Date { get; init; }
+	public DateTimeOffset? Date { get; init; }
 
 	[Required]
 	public required TimeOnly Start { get; init; }
@@ -24,7 +24,7 @@ public sealed record UpdateWorkTaskCommand(
 	Guid? ProjectId,
 	string? Description,
 	string? Details,
-	DateOnly? Date,
+	DateTimeOffset? Date,
 	TimeOnly Start,
 	TimeOnly? End)
 	: ICommand<OneOf<Success, NotFound>>;

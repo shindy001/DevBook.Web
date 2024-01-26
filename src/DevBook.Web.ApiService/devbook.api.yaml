@@ -784,7 +784,7 @@ components:
           nullable: true
         date:
           type: string
-          format: date
+          format: date-time
           nullable: true
         start:
           type: string

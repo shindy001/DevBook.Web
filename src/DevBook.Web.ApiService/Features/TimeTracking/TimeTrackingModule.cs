@@ -16,12 +16,14 @@ internal sealed class TimeTrackingModule : IFeatureModule
 		endpointsBuilder
 			.MapGroup("/projects")
 			.MapProjectEndpoints()
-			.WithTags($"{nameof(TimeTrackingModule)}_{nameof(ProjectEndpoints)}");
+			.WithTags($"{nameof(TimeTrackingModule)}_{nameof(ProjectEndpoints)}")
+			.RequireAuthorization();
 
 		endpointsBuilder
 			.MapGroup("/tasks")
 			.MapWorkTaskEndpoints()
-			.WithTags($"{nameof(TimeTrackingModule)}_{nameof(WorkTaskEndpoints)}");
+			.WithTags($"{nameof(TimeTrackingModule)}_{nameof(WorkTaskEndpoints)}")
+			.RequireAuthorization();
 
 		return endpointsBuilder;
 	}

@@ -70,7 +70,9 @@ app.MapPost("/identity/logout", async (ClaimsPrincipal user, SignInManager<DevBo
 {
 	await signInManager.SignOutAsync();
 	return TypedResults.Ok();
-}).WithTags($"Identity");
+})
+	.WithTags($"Identity")
+	.RequireAuthorization();
 
 app.MapFeatureModulesEndpoints();
 

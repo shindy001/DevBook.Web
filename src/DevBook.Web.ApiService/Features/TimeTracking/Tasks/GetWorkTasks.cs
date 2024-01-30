@@ -11,7 +11,10 @@ internal sealed class GetWorkTasksQueryHandler(DevBookDbContext dbContext) : IQu
 	public async Task<IEnumerable<WorkTaskDto>> Handle(GetWorkTasksQuery request, CancellationToken cancellationToken)
 	{
 		// TODO - implement paging
-		var tasks = await dbContext.Tasks.ToListAsync(cancellationToken);
+		var tasks = await dbContext.Tasks
+			.OrderByDescending(x => x.Start)
+			.ToListAsync(cancellationToken);
+
 		var projectsIds = tasks.Select(x => x.ProjectId);
 		var projects = projectsIds.Any()
 			? (await dbContext.Projects.Where(proj => projectsIds.Contains(proj.Id)).ToDictionaryAsync(x => x.Id, x => x, cancellationToken))

@@ -1,7 +1,7 @@
 ﻿@if (Visible)
 {
     <div class="@Class">
-        <EditForm Model="@_createOrUpdateTaskForm" OnValidSubmit="OnValidSubmit">
+        <EditForm Model="@_createOrUpdateTaskForm" OnValidSubmit="OnValidSubmit" OnInvalidSubmit="OnInvalidSubmit">
             <DataAnnotationsValidator />
             <MudCard>
                 <MudCardHeader>
@@ -15,11 +15,7 @@
                     <MudTimePicker Label="End" @bind-Time="_createOrUpdateTaskForm.End" For="@(() => _createOrUpdateTaskForm.End)" />
                 </MudCardContent>
                 <MudCardActions>
-                    <MudButton Disabled="@_processing" ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">
-                        @if (_processing)
-                        {
-                            <MudProgressCircular Class="mr-3" Size="Size.Small" Indeterminate="true" />
-                        }
+                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">
                         <MudText>@(_taskId is null ? "Create" : "Update")</MudText>
                     </MudButton>
                 </MudCardActions>
@@ -39,8 +35,6 @@
 
     private CreateOrUpdateTaskForm _createOrUpdateTaskForm = new();
     private Guid? _taskId;
-    private bool _processing = false;
-
 
     public async Task CreateOrUpdateTask(Guid? id)
     {
@@ -56,9 +50,14 @@
         StateHasChanged();
     }
 
+    private void OnInvalidSubmit(EditContext context)
+    {
+        // Notify change of fields with custom validation attributes to show validation error
+        context.NotifyFieldChanged(context.Field(nameof(CreateOrUpdateTaskForm.End)));
+    }
+
     private async Task OnValidSubmit()
     {
-        _processing = true;
         if (_taskId is null)
         {
             await Executor.ExecuteCommand(new CreateTaskCommand(
@@ -67,7 +66,7 @@
                 Details: _createOrUpdateTaskForm.Details,
                 Date: _createOrUpdateTaskForm.Date!.Value,
                 Start: _createOrUpdateTaskForm.Start!.Value,
-                End: _createOrUpdateTaskForm.End
+                End: _createOrUpdateTaskForm.End!.Value
             ));
             Snackbar.Add("Create successful", Severity.Success);
         }
@@ -80,11 +79,10 @@
                 Details: _createOrUpdateTaskForm.Details,
                 Date: _createOrUpdateTaskForm.Date!.Value,
                 Start: _createOrUpdateTaskForm.Start!.Value,
-                End: _createOrUpdateTaskForm.End
+                End: _createOrUpdateTaskForm.End!.Value
             ));
             Snackbar.Add("Update successful", Severity.Success);
         }
-        _processing = false;
         await OnCreateOrUpdate.InvokeAsync();
     }
 
@@ -98,9 +96,14 @@
         public string? Description { get; set; }
 
         public string? Details { get; set; }
+
+        [Required]
         public DateTime? Date { get; set; } = DateTimeOffset.Now.Date;
+
+        [Required]
         public TimeSpan? Start { get; set; } = Now.TimeOfDay;
 
+        [Required]
         [TimeSpanGreaterThanAttribute("Start")]
         public TimeSpan? End { get; set; } = Now.TimeOfDay.Add(TimeSpan.FromHours(1));
     }
@@ -133,7 +136,7 @@
         string? Details,
         DateTimeOffset Date,
         TimeSpan Start,
-        TimeSpan? End)
+        TimeSpan End)
         : ICommand;
 
     private sealed class CreateTaskCommandHandler(IDevBookWebApiActionExecutor devBookWebApiActionExecutor)
@@ -167,7 +170,7 @@
         string? Details,
         DateTimeOffset Date,
         TimeSpan Start,
-        TimeSpan? End)
+        TimeSpan End)
         : ICommand;
 
     private sealed class UpdateTaskCommandHandler(IDevBookWebApiActionExecutor devBookWebApiActionExecutor)

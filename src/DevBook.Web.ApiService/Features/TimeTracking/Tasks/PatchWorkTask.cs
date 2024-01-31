@@ -51,7 +51,7 @@ internal sealed class PatchProjectCommandHandler(DevBookDbContext dbContext) : I
 				[nameof(WorkTask.ProjectId)] = command.ProjectId ?? workTask.ProjectId,
 				[nameof(WorkTask.Description)] = command.Description ?? workTask.Description,
 				[nameof(WorkTask.Details)] = command.Details ?? workTask.Details,
-				[nameof(WorkTask.Date)] = command.Date ?? workTask.Date,
+				[nameof(WorkTask.Date)] = command.Date?.UtcDateTime ?? workTask.Date.UtcDateTime,
 				[nameof(WorkTask.Start)] = command.Start ?? workTask.Start,
 				[nameof(WorkTask.End)] = command.End ?? workTask.End,
 			};

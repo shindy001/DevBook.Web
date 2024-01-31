@@ -11,9 +11,9 @@ public sealed record CreateWorkTaskCommand : ICommand<Guid>
 	public Guid? ProjectId { get; init; }
 	public string? Description { get; init; }
 	public string? Details { get; init; }
-	public DateTimeOffset? Date { get; init; }
-	public TimeOnly? Start { get; init; }
-	public TimeOnly? End { get; init; }
+	public required DateTimeOffset Date { get; init; }
+	public required TimeOnly Start { get; init; }
+	public required TimeOnly End { get; init; }
 }
 
 public sealed class CreateWorkTaskCommandValidator : AbstractValidator<CreateWorkTaskCommand>
@@ -21,10 +21,11 @@ public sealed class CreateWorkTaskCommandValidator : AbstractValidator<CreateWor
 	public CreateWorkTaskCommandValidator()
 	{
 		When(x => x.ProjectId is not null, () => RuleFor(x => x.ProjectId).NotEqual(Guid.Empty));
+		RuleFor(x => x.End).GreaterThan(x => x.Start);
 	}
 }
 
-internal sealed class CreateTaskCommandHandler(DevBookDbContext dbContext, TimeProvider timeProvider) : ICommandHandler<CreateWorkTaskCommand, Guid>
+internal sealed class CreateTaskCommandHandler(DevBookDbContext dbContext) : ICommandHandler<CreateWorkTaskCommand, Guid>
 {
 	public async Task<Guid> Handle(CreateWorkTaskCommand request, CancellationToken cancellationToken)
 	{
@@ -37,8 +38,8 @@ internal sealed class CreateTaskCommandHandler(DevBookDbContext dbContext, TimeP
 			ProjectId: request.ProjectId,
 			Description: request.Description,
 			Details: request.Details,
-			Date: request.Date ?? DateTimeOffset.Now,
-			Start: request.Start ?? TimeOnly.FromDateTime(timeProvider.GetLocalNow().DateTime),
+			Date: request.Date.UtcDateTime,
+			Start: request.Start,
 			End: request.End);
 
 		await dbContext.Tasks.AddAsync(newItem, cancellationToken);

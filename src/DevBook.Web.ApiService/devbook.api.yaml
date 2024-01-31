@@ -496,15 +496,12 @@ components:
         date:
           type: string
           format: date-time
-          nullable: true
         start:
           type: string
           format: time
-          nullable: true
         end:
           type: string
           format: time
-          nullable: true
       additionalProperties: false
     ForgotPasswordRequest:
       type: object
@@ -769,6 +766,8 @@ components:
       additionalProperties: false
     UpdateWorkTaskCommandDto:
       required:
+        - date
+        - end
         - start
       type: object
       properties:
@@ -785,14 +784,12 @@ components:
         date:
           type: string
           format: date-time
-          nullable: true
         start:
           type: string
           format: time
         end:
           type: string
           format: time
-          nullable: true
       additionalProperties: false
     WorkTaskDto:
       required:

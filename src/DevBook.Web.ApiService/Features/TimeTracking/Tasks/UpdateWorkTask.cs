@@ -12,11 +12,13 @@ internal sealed record UpdateWorkTaskCommandDto
 	public Guid? ProjectId { get; init; }
 	public string? Description { get; init; }
 	public string? Details { get; init; }
-	public DateTimeOffset? Date { get; init; }
 
 	[Required]
+	public required DateTimeOffset Date { get; init; }
+	[Required]
 	public required TimeOnly Start { get; init; }
-	public TimeOnly? End { get; init; }
+	[Required]
+	public required TimeOnly End { get; init; }
 }
 
 public sealed record UpdateWorkTaskCommand(
@@ -24,9 +26,9 @@ public sealed record UpdateWorkTaskCommand(
 	Guid? ProjectId,
 	string? Description,
 	string? Details,
-	DateTimeOffset? Date,
+	DateTimeOffset Date,
 	TimeOnly Start,
-	TimeOnly? End)
+	TimeOnly End)
 	: ICommand<OneOf<Success, NotFound>>;
 
 public sealed class UpdateWorkTaskCommandValidator : AbstractValidator<UpdateWorkTaskCommand>
@@ -34,6 +36,7 @@ public sealed class UpdateWorkTaskCommandValidator : AbstractValidator<UpdateWor
 	public UpdateWorkTaskCommandValidator()
 	{
 		RuleFor(x => x.Id).NotEqual(Guid.Empty);
+		RuleFor(x => x.End).GreaterThan(x => x.Start);
 		When(x => x.ProjectId is not null, () => RuleFor(x => x.ProjectId).NotEqual(Guid.Empty));
 	}
 }

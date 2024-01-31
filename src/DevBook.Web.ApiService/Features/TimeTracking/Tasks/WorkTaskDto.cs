@@ -1,6 +1,5 @@
 ﻿using DevBook.Web.ApiService.Features.TimeTracking.Shared;
 using System.ComponentModel.DataAnnotations;
-using System.Xml.Linq;
 
 namespace DevBook.Web.ApiService.Features.TimeTracking.Tasks;
 
@@ -19,7 +18,7 @@ public sealed record WorkTaskDto
 	public TimeOnly Start { get; init; }
 	public TimeOnly? End { get; init; }
 
-	public WorkTaskDto(Guid id, Project? project, string? description, string? details, DateTimeOffset date,	TimeOnly start,	TimeOnly? end)
+	public WorkTaskDto(Guid id, Project? project, string? description, string? details, DateTimeOffset date, TimeOnly start, TimeOnly? end)
 	{
 		Id = id;
 		Project = project;

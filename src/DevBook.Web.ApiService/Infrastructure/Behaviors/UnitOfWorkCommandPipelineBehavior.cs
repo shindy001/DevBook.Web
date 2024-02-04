@@ -1,7 +1,4 @@
-﻿using DevBook.Web.Shared.Contracts;
-using MediatR;
-
-namespace DevBook.Web.ApiService.Infrastructure.Behaviors;
+﻿namespace DevBook.Web.ApiService.Infrastructure.Behaviors;
 
 internal sealed class UnitOfWorkCommandPipelineBehavior<TCommand, TResult>
 	: ICommandPipelineBehavior<TCommand, TResult>

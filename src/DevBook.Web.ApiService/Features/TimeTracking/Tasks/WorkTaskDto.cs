@@ -1,7 +1,4 @@
-﻿using DevBook.Web.ApiService.Features.TimeTracking.Shared;
-using System.ComponentModel.DataAnnotations;
-
-namespace DevBook.Web.ApiService.Features.TimeTracking.Tasks;
+﻿namespace DevBook.Web.ApiService.Features.TimeTracking.Tasks;
 
 public sealed record WorkTaskDto
 {

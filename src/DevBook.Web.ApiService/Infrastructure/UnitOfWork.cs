@@ -1,7 +1,4 @@
-﻿using DevBook.Web.Shared.Contracts;
-using Microsoft.EntityFrameworkCore;
-
-namespace DevBook.Web.ApiService.Infrastructure;
+﻿namespace DevBook.Web.ApiService.Infrastructure;
 
 internal sealed class UnitOfWork(DevBookDbContext _devBookDbContext) : IUnitOfWork
 {

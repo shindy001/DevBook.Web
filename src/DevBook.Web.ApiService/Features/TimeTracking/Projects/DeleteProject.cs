@@ -1,7 +1,4 @@
-﻿using DevBook.Web.ApiService.Infrastructure;
-using DevBook.Web.Shared.Contracts;
-
-namespace DevBook.Web.ApiService.Features.TimeTracking.Projects;
+﻿namespace DevBook.Web.ApiService.Features.TimeTracking.Projects;
 
 internal record DeleteProjectCommand(Guid Id) : ICommand;
 

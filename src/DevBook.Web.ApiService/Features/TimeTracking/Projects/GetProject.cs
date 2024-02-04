@@ -1,10 +1,4 @@
-﻿using DevBook.Web.ApiService.Features.TimeTracking.Shared;
-using DevBook.Web.ApiService.Infrastructure;
-using DevBook.Web.Shared.Contracts;
-using OneOf;
-using OneOf.Types;
-
-namespace DevBook.Web.ApiService.Features.TimeTracking.Projects;
+﻿namespace DevBook.Web.ApiService.Features.TimeTracking.Projects;
 
 internal record GetProjectQuery(Guid Id) : IQuery<OneOf<Project, NotFound>>;
 

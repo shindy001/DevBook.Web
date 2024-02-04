@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace DevBook.Web.ApiService.Features.TimeTracking.Shared;
+﻿namespace DevBook.Web.ApiService.Features.TimeTracking.Shared;
 
 public sealed record ProjectDto
 {

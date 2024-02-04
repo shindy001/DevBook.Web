@@ -1,6 +1,4 @@
-﻿using System.Security.Claims;
-
-namespace DevBook.Web.ApiService.Identity;
+﻿namespace DevBook.Web.ApiService.Identity;
 
 public static class HttpContextAccessorExtensions
 {

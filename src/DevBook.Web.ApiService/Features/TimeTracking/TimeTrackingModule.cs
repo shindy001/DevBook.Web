@@ -1,8 +1,4 @@
-﻿using DevBook.Web.ApiService.Features.TimeTracking.Projects;
-using DevBook.Web.ApiService.Features.TimeTracking.Tasks;
-using DevBook.Web.ServiceDefaults;
-
-namespace DevBook.Web.ApiService.Features.TimeTracking;
+﻿namespace DevBook.Web.ApiService.Features.TimeTracking;
 
 internal sealed class TimeTrackingModule : IFeatureModule
 {

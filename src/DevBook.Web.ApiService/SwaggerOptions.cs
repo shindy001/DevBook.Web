@@ -1,7 +1,4 @@
-﻿using Microsoft.OpenApi.Models;
-using Swashbuckle.AspNetCore.SwaggerGen;
-
-namespace DevBook.Web.ApiService;
+﻿namespace DevBook.Web.ApiService;
 
 public static class SwaggerOptions
 {

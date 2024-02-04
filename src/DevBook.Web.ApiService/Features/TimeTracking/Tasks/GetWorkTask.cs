@@ -1,10 +1,4 @@
-﻿using DevBook.Web.ApiService.Features.TimeTracking.Shared;
-using DevBook.Web.ApiService.Infrastructure;
-using DevBook.Web.Shared.Contracts;
-using OneOf;
-using OneOf.Types;
-
-namespace DevBook.Web.ApiService.Features.TimeTracking.Tasks;
+﻿namespace DevBook.Web.ApiService.Features.TimeTracking.Tasks;
 
 internal record GetWorkTaskQuery(Guid Id) : IQuery<OneOf<WorkTaskDto, NotFound>>;
 

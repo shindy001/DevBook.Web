@@ -1,8 +1,4 @@
-﻿using DevBook.Web.ApiService.Infrastructure;
-using DevBook.Web.Shared.Contracts;
-using Microsoft.EntityFrameworkCore;
-
-namespace DevBook.Web.ApiService.Features.TimeTracking.Tasks;
+﻿namespace DevBook.Web.ApiService.Features.TimeTracking.Tasks;
 
 internal sealed record GetWorkTasksQuery : IQuery<IEnumerable<WorkTaskDto>>;
 

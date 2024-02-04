@@ -1,10 +1,4 @@
-﻿using DevBook.Web.ApiService.Exceptions;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
-using System.Net;
-using System.Text.Json;
-
-namespace DevBook.Web.ApiService.Middleware;
+﻿namespace DevBook.Web.ApiService.Middleware;
 
 /// <summary>
 /// Handles Internal server error + BadRequest(ValidationError)

@@ -1,6 +1,4 @@
-﻿using FluentValidation.Results;
-
-namespace DevBook.Web.ApiService.Exceptions;
+﻿namespace DevBook.Web.ApiService.Exceptions;
 
 internal sealed class DevBookValidationException : Exception
 {

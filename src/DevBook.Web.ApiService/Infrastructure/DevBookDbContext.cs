@@ -1,10 +1,4 @@
-﻿using DevBook.Web.ApiService.Features.TimeTracking.Shared;
-using DevBook.Web.ApiService.Features.TimeTracking.Tasks;
-using DevBook.Web.ApiService.Identity;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore;
-
-namespace DevBook.Web.ApiService.Infrastructure;
+﻿namespace DevBook.Web.ApiService.Infrastructure;
 
 /// <summary>
 /// DevBookDbContext - entities are filtered by userId(owner) when querying and saved with ownerId(user) hence HttpContextAccessor and logged in user is necessity, otherwise throws UnauthorizedAccessException.

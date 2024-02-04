@@ -1,7 +1,4 @@
-﻿using DevBook.Web.Shared.Contracts;
-using Microsoft.AspNetCore.Mvc;
-
-namespace DevBook.Web.ApiService.Features.TimeTracking.Tasks;
+﻿namespace DevBook.Web.ApiService.Features.TimeTracking.Tasks;
 
 internal static class WorkTaskEndpoints
 {

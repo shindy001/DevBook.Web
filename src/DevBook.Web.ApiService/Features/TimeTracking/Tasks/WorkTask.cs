@@ -1,6 +1,4 @@
-﻿using DevBook.Web.Shared;
-
-namespace DevBook.Web.ApiService.Features.TimeTracking.Tasks;
+﻿namespace DevBook.Web.ApiService.Features.TimeTracking.Tasks;
 
 public sealed record WorkTask(
 	Guid? ProjectId,

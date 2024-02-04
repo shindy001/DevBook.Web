@@ -1,8 +1,4 @@
-﻿using DevBook.Web.ApiService.Exceptions;
-using FluentValidation;
-using MediatR;
-
-namespace DevBook.Web.ApiService.Infrastructure.Behaviors;
+﻿namespace DevBook.Web.ApiService.Infrastructure.Behaviors;
 
 /// <summary>
 /// Handles validation for both commands and queries

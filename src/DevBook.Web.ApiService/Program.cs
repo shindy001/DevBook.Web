@@ -1,11 +1,3 @@
-using DevBook.Web.ApiService;
-using DevBook.Web.ApiService.Identity;
-using DevBook.Web.ApiService.Infrastructure;
-using DevBook.Web.ApiService.Middleware;
-using DevBook.Web.ServiceDefaults;
-using Microsoft.AspNetCore.Identity;
-using System.Security.Claims;
-
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();

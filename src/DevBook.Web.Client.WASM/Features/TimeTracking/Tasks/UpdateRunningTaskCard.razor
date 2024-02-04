@@ -1,0 +1,132 @@
+﻿@if (Visible)
+{
+    <div class="@Class">
+        <EditForm Model="@_updateRunningTaskForm" OnValidSubmit="OnValidSubmit">
+            <DataAnnotationsValidator />
+            <MudCard>
+                <MudCardHeader>
+                    <MudIconButton Icon="@Icons.Material.Outlined.Close" Color="Color.Primary" OnClick="() => OnCancel.InvokeAsync()" />
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudTextField Label="Description" @bind-Value="_updateRunningTaskForm.Description" For="@(() => _updateRunningTaskForm.Description)" />
+                    <MudTextField Label="Details" Class="mt-3" @bind-Value="_updateRunningTaskForm.Details" For="@(() => _updateRunningTaskForm.Details)" />
+                    <MudTimePicker Label="Start" @bind-Time="_updateRunningTaskForm.Start" PickerClosed="SetValidStartTime" />
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">
+                        <MudText>Update</MudText>
+                    </MudButton>
+                </MudCardActions>
+            </MudCard>
+        </EditForm>
+    </div>
+}
+
+@code {
+    [Parameter] public bool Visible { get; set; } = true;
+    [Parameter] public string Class { get; set; } = string.Empty;
+    [Parameter] public EventCallback OnCancel { get; set; }
+    [Parameter] public EventCallback OnUpdate { get; set; }
+
+    [Inject] private IExecutor Executor { get; set; } = null!;
+    [Inject] ISnackbar Snackbar { get; set; } = null!;
+
+    private MudTimePicker _timePicker = null!;
+    private UpdateRunningTaskForm _updateRunningTaskForm = new();
+    private Guid? _taskId;
+
+    public async Task PopulateUpdateRunningTaskCard(Guid? id)
+    {
+        _taskId = id;
+        if (_taskId is not null)
+        {
+            _updateRunningTaskForm = await Executor.ExecuteQuery(new GetUpdateTaskFormQuery(_taskId.Value));
+        }
+        else
+        {
+            _updateRunningTaskForm = new();
+        }
+        StateHasChanged();
+    }
+
+    private void SetValidStartTime()
+    {
+        var timeOfTheDay = DateTime.Now.TimeOfDay;
+        if (_updateRunningTaskForm.Start > timeOfTheDay)
+        {
+            _updateRunningTaskForm.Start = timeOfTheDay;
+            StateHasChanged();
+        }  
+    }
+
+    private async Task OnValidSubmit()
+    {
+        await Executor.ExecuteCommand(new UpdateTaskCommand(
+                Id: _taskId!.Value,
+                Description: _updateRunningTaskForm.Description,
+                Details: _updateRunningTaskForm.Details,
+                Start: _updateRunningTaskForm.Start!.Value
+            ));
+        Snackbar.Add("Update successful", Severity.Success);
+        await OnUpdate.InvokeAsync();
+    }
+
+    private sealed record UpdateRunningTaskForm
+    {
+        private static DateTimeOffset Now = DateTimeOffset.Now;
+
+        public string? Description { get; set; }
+        public string? Details { get; set; }
+
+        [Required]
+        public TimeSpan? Start { get; set; } = Now.TimeOfDay;
+    }
+
+    private sealed record GetUpdateTaskFormQuery(Guid Id) : IQuery<UpdateRunningTaskForm>;
+
+    private sealed class GetUpdateTaskFormQueryHandler(IDevBookWebApiActionExecutor devBookWebApiActionExecutor)
+        : IQueryHandler<GetUpdateTaskFormQuery, UpdateRunningTaskForm>
+    {
+        public async Task<UpdateRunningTaskForm> Handle(GetUpdateTaskFormQuery request, CancellationToken cancellationToken)
+        {
+            var result = await devBookWebApiActionExecutor.Execute(x => x.WorkTasks_GetByIdAsync(request.Id, cancellationToken));
+            return result.Match(
+                task => new UpdateRunningTaskForm
+                    {
+                        Description = task.Description,
+                        Details = task.Details,
+                        Start = task.Start
+                    },
+                apiError => throw new DevBookException(apiError.Errors));
+        }
+    }
+
+    private sealed record UpdateTaskCommand(
+        Guid Id,
+        string? Description,
+        string? Details,
+        TimeSpan Start)
+        : ICommand;
+
+    private sealed class UpdateTaskCommandHandler(IDevBookWebApiActionExecutor devBookWebApiActionExecutor)
+        : ICommandHandler<UpdateTaskCommand>
+    {
+        public async Task Handle(UpdateTaskCommand request, CancellationToken cancellationToken)
+        {
+            var result = await devBookWebApiActionExecutor.Execute(
+                x => x.WorkTasks_PatchAsync(
+                    request.Id,
+                    new()
+                    {
+                        Description = request.Description,
+                        Details = request.Details,
+                        Start = request.Start
+                    },
+                cancellationToken));
+
+            result.Match(
+                success => success,
+                apiError => throw new DevBookException(apiError.Errors));
+        }
+    }
+}

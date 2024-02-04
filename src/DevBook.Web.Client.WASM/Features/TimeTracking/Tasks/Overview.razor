@@ -18,15 +18,31 @@
                 {
                     <MudExpansionPanel Text="@(item.Day.DayOfWeek.ToString() + $", {item.Day.ToString("dd.MM.yyyy")}")">
                         <MudList Clickable="true" @bind-SelectedItem="_selectedItem" @bind-SelectedValue="_selectedTask" Color="Color.Primary">
+                            <div id="runnig-task">
+                                @if (_pageModel.RunningTask is not null && _pageModel.TasksInDays.First() == item)
+                                {
+                                    <MudListItem OnClick="() => ShowUpdateRunningTaskCard(_pageModel.RunningTask.Id)" Value="_pageModel.RunningTask">
+                                        <div class="flex justify-between">
+                                            <MudText>@_pageModel.RunningTask.Description</MudText>
+                                            <MudText>Running task - @_runningTaskElapsedTime</MudText>
+                                        </div>
+
+                                    </MudListItem>
+                                }
+                                
+                            </div>
                             @foreach(var task in item.Tasks)
                             {
-                                <MudListItem OnClick="() => ShowUpdateTaskCard(task.Id)" Value="task">
-                                    <div class="flex justify-between">
-                                        <MudText>@task.Description</MudText>
-                                        <MudText>@(task.End is not null ? $"{(task.End - task.Start)?.Humanize(2)} " : "")</MudText>
-                                    </div>
-                                    
-                                </MudListItem>
+                                if(task.Id != _pageModel?.RunningTask?.Id)
+                                {
+                                    <MudListItem OnClick="() => ShowUpdateTaskCard(task.Id)" Value="task">
+                                        <div class="flex justify-between">
+                                            <MudText>@task.Description</MudText>
+                                            <MudText>@GetTaskTime(task)</MudText>
+                                        </div>
+
+                                    </MudListItem>
+                                }
                             }
                         </MudList>
                     </MudExpansionPanel>
@@ -35,24 +51,47 @@
         </MudCardContent>
     </MudCard>
 
-    <CreateOrUpdateTaskCard @ref="_updateTaskCard" Class="grow" Visible="_showEditTaskCard" OnCancel="() => HideEditTaskIdCard()" OnCreateOrUpdate="() => RefreshItems()" />
+    <CreateOrUpdateTaskCard @ref="_updateTaskCard" Class="grow" Visible="_showEditTaskCard" OnCancel="() => HideEditTaskCard()" OnCreateOrUpdate="() => RefreshItems()" />
+    <UpdateRunningTaskCard @ref="_updateRuningTaskCard" Class="grow" Visible="_showRunningTaskCard" OnCancel="() => HideEditTaskCard()" OnUpdate="() => RefreshItems()" />
 </div>
 
 @code {
     [Inject] private IExecutor Executor { get; set; } = null!;
     [Inject] private NavigationManager NavigationManager { get; init; } = null!;
 
+
     private CreateOrUpdateTaskCard _updateTaskCard = null!;
+    private UpdateRunningTaskCard _updateRuningTaskCard = null!;
     MudListItem? _selectedItem;
     object? _selectedTask;
     private PageModel _pageModel = new();
     private bool _showEditTaskCard = false;
-
+    private bool _showRunningTaskCard = false;
+    private string _runningTaskElapsedTime = string.Empty;
     private bool _loading = false;
 
     protected override async Task OnInitializedAsync()
     {
         await RefreshItems();
+        StarRunningTaskElapsedTimeTimer();
+    }
+
+    private async Task StarRunningTaskElapsedTimeTimer()
+    {
+        var timer = new PeriodicTimer(TimeSpan.FromSeconds(1));
+        while (await timer.WaitForNextTickAsync())
+        {
+            if (_pageModel.RunningTask is not null)
+            {
+                _runningTaskElapsedTime = (DateTime.Now.TimeOfDay - _pageModel.RunningTask.Start).Humanize(3);
+                StateHasChanged();
+            }
+        }
+    }
+
+    private string GetTaskTime(PageModel.WorkTask? task)
+    {
+        return (task?.End - task?.Start)?.Humanize(2) ?? string.Empty;
     }
 
     private IEnumerable<PageModel.TasksInDay> GroupTasksByDay(IEnumerable<PageModel.WorkTask> tasks)
@@ -80,19 +119,29 @@
 
     private async Task ShowUpdateTaskCard(Guid id)
     {
-        await _updateTaskCard.CreateOrUpdateTask(id);
+        await _updateTaskCard.PopulateCreateOrUpdateTaskCard(id);
+        _showRunningTaskCard = false;
         _showEditTaskCard = true;
     }
 
     private async Task ShowCreateTaskCard(Guid? id = null)
     {
-        await _updateTaskCard.CreateOrUpdateTask(id: null);
+        await _updateTaskCard.PopulateCreateOrUpdateTaskCard(id: null);
+        _showRunningTaskCard = false;
         _showEditTaskCard = true;
     }
 
-    private void HideEditTaskIdCard(Guid? id = null)
+    private async Task ShowUpdateRunningTaskCard(Guid id)
+    {
+        await _updateRuningTaskCard.PopulateUpdateRunningTaskCard(id: id);
+        _showEditTaskCard = false;
+        _showRunningTaskCard = true;
+    }
+
+    private void HideEditTaskCard(Guid? id = null)
     {
         _showEditTaskCard = false;
+        _showRunningTaskCard = false;
     }
 
     private async Task RefreshItems()
@@ -100,6 +149,8 @@
         _loading = true;
         _pageModel = await Executor.ExecuteQuery(new GetPageModelQuery());
         _pageModel.TasksInDays = GroupTasksByDay(_pageModel.WorkTasks);
+        _pageModel.RunningTask = _pageModel.WorkTasks.FirstOrDefault(x => x.End is null);
+        _runningTaskElapsedTime = GetTaskTime(_pageModel.RunningTask);
         _loading = false;
     }
 
@@ -109,6 +160,7 @@
     {
         public IEnumerable<WorkTask> WorkTasks { get; init; } = [];
         public IEnumerable<TasksInDay> TasksInDays { get; set; } = [];
+        public WorkTask? RunningTask { get; set; } = null;
 
         public sealed record WorkTask(Guid Id, string? Description, DateTimeOffset Date, TimeSpan Start, TimeSpan? End);
         public sealed record TasksInDay

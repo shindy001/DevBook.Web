@@ -36,7 +36,7 @@
     private CreateOrUpdateTaskForm _createOrUpdateTaskForm = new();
     private Guid? _taskId;
 
-    public async Task CreateOrUpdateTask(Guid? id)
+    public async Task PopulateCreateOrUpdateTaskCard(Guid? id)
     {
         _taskId = id;
         if (_taskId is not null)

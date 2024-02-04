@@ -356,6 +356,20 @@ paths:
       responses:
         '201':
           description: Created
+  /tasks/start:
+    post:
+      tags:
+        - TimeTrackingModule_WorkTaskEndpoints
+      operationId: WorkTasks.Start
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StartWorkTaskCommand'
+        required: true
+      responses:
+        '201':
+          description: Created
   '/tasks/{id}':
     get:
       tags:
@@ -706,6 +720,19 @@ components:
         newPassword:
           type: string
           nullable: true
+      additionalProperties: false
+    StartWorkTaskCommand:
+      type: object
+      properties:
+        description:
+          type: string
+          nullable: true
+        date:
+          type: string
+          format: date-time
+        start:
+          type: string
+          format: time
       additionalProperties: false
     TwoFactorRequest:
       type: object

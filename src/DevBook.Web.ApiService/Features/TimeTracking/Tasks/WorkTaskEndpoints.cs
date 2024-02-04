@@ -15,6 +15,10 @@ internal static class WorkTaskEndpoints
 			.WithName($"{OperationIdPrefix}Create")
 			.Produces(StatusCodes.Status201Created);
 
+		groupBuilder.MapPost("/start", StartWorkTask)
+			.WithName($"{OperationIdPrefix}Start")
+			.Produces(StatusCodes.Status201Created);
+
 		groupBuilder.MapGet("/{id:guid}", GetWorkTaskById)
 			.WithName($"{OperationIdPrefix}{GetByIdRoute}")
 			.Produces<WorkTaskDto>()
@@ -44,6 +48,12 @@ internal static class WorkTaskEndpoints
 	}
 
 	private static async Task<IResult> CreateWorkTask(CreateWorkTaskCommand command, IExecutor executor, CancellationToken cancellationToken)
+	{
+		var result = await executor.ExecuteCommand(command, cancellationToken);
+		return TypedResults.CreatedAtRoute($"{OperationIdPrefix}{GetByIdRoute}", new { id = result });
+	}
+
+	private static async Task<IResult> StartWorkTask(StartWorkTaskCommand command, IExecutor executor, CancellationToken cancellationToken)
 	{
 		var result = await executor.ExecuteCommand(command, cancellationToken);
 		return TypedResults.CreatedAtRoute($"{OperationIdPrefix}{GetByIdRoute}", new { id = result });

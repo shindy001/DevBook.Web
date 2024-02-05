@@ -333,16 +333,14 @@ paths:
     get:
       tags:
         - TimeTrackingModule_WorkTaskEndpoints
-      operationId: WorkTasks.GetAll
+      operationId: WorkTasks.List
       responses:
         '200':
           description: Success
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/WorkTaskDto'
+                $ref: '#/components/schemas/WorkTaskListResponse'
     post:
       tags:
         - TimeTrackingModule_WorkTaskEndpoints
@@ -845,6 +843,19 @@ components:
         end:
           type: string
           format: time
+          nullable: true
+      additionalProperties: false
+    WorkTaskListResponse:
+      type: object
+      properties:
+        activeWorkTask:
+          $ref: '#/components/schemas/WorkTaskDto'
+        workTasksInDay:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              $ref: '#/components/schemas/WorkTaskDto'
           nullable: true
       additionalProperties: false
   securitySchemes:

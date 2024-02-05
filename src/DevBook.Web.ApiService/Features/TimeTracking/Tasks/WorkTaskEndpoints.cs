@@ -7,9 +7,9 @@ internal static class WorkTaskEndpoints
 
 	public static RouteGroupBuilder MapWorkTaskEndpoints(this RouteGroupBuilder groupBuilder)
 	{
-		groupBuilder.MapGet("/", GetWorkTasks)
-			.WithName($"{OperationIdPrefix}GetAll")
-			.Produces<IList<WorkTaskDto>>();
+		groupBuilder.MapGet("/", ListWorkTasks)
+			.WithName($"{OperationIdPrefix}List")
+			.Produces<WorkTaskListResponse>();
 
 		groupBuilder.MapPost("/", CreateWorkTask)
 			.WithName($"{OperationIdPrefix}Create")
@@ -41,9 +41,9 @@ internal static class WorkTaskEndpoints
 		return groupBuilder;
 	}
 
-	private static async Task<IResult> GetWorkTasks(IExecutor executor, CancellationToken cancellationToken)
+	private static async Task<IResult> ListWorkTasks(IExecutor executor, CancellationToken cancellationToken)
 	{
-		var result = await executor.ExecuteQuery(new GetWorkTasksQuery(), cancellationToken);
+		var result = await executor.ExecuteQuery(new ListWorkTasksQuery(), cancellationToken);
 		return TypedResults.Ok(result);
 	}
 

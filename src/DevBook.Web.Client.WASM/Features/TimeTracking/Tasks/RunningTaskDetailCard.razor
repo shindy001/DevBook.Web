@@ -35,7 +35,7 @@
     private UpdateRunningTaskForm _updateRunningTaskForm = new();
     private Guid? _taskId;
 
-    public async Task PopulateUpdateRunningTaskCard(Guid? id)
+    public async Task PopulateRunningTaskDetailCard(Guid? id)
     {
         _taskId = id;
         if (_taskId is not null)

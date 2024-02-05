@@ -10,7 +10,7 @@
         </MudCardHeader>
         <MudCardContent>
             <div class="flex flex-col items-start">
-                <MudButton Class="flex-none" StartIcon="@Icons.Material.Filled.Add" Color="Color.Primary" OnClick="() => ShowCreateTaskCard()">Add New Task</MudButton>
+                <MudButton Class="flex-none" StartIcon="@Icons.Material.Filled.Add" Color="Color.Primary" OnClick="() => ShowCreateTaskDetailCard()">Add New Task</MudButton>
                 @if(_pageModel.RunningTask is null)
                 {
                     <MudButton Class="flex-none" StartIcon="@Icons.Material.Outlined.PlayArrow" Color="Color.Primary" OnClick="() => StartWork()">Start Work</MudButton>
@@ -28,7 +28,7 @@
                             <div>
                             @if (_pageModel.RunningTask is not null && IsFirstDay(item.Day))
                                 {
-                                    <MudListItem OnClick="() => ShowUpdateRunningTaskCard(_pageModel.RunningTask.Id)" Value="_pageModel.RunningTask">
+                                    <MudListItem OnClick="() => ShowRunningTaskDetailCard(_pageModel.RunningTask.Id)" Value="_pageModel.RunningTask">
                                         <div class="flex justify-between items-center">
                                             <MudText>@_pageModel.RunningTask.Description</MudText>
                                             <MudText>
@@ -44,7 +44,7 @@
                             {
                                 @if (task.Id != _pageModel.RunningTask?.Id)
                                 {
-                                    <MudListItem OnClick="() => ShowUpdateTaskCard(task.Id)" Value="task">
+                                    <MudListItem OnClick="() => ShowTaskDetailCard(task.Id)" Value="task">
                                         <div class="flex justify-between items-center">
                                             <MudText>@task.Description</MudText>
                                             <MudText>@GetTaskElapsedTime(task.Start, task.End)</MudText>
@@ -59,22 +59,21 @@
         </MudCardContent>
     </MudCard>
 
-    <CreateOrUpdateTaskCard @ref="_updateTaskCard" Class="grow" Visible="_showEditTaskCard" OnCancel="() => HideEditTaskCard()" OnCreateOrUpdate="() => RefreshItems()" />
-    <UpdateRunningTaskCard @ref="_updateRuningTaskCard" Class="grow" Visible="_showRunningTaskCard" OnCancel="() => HideEditTaskCard()" OnUpdate="() => RefreshItems()" />
+    <TaskDetailCard @ref="_taskDetailCard" Class="grow" Visible="_showTaskDetailCard" OnCancel="() => HideEditTaskCard()" OnCreateOrUpdate="() => RefreshItems()" />
+    <RunningTaskDetailCard @ref="_runingTaskDetailCard" Class="grow" Visible="_showRunningTaskDetailCard" OnCancel="() => HideEditTaskCard()" OnUpdate="() => RefreshItems()" />
 </div>
 
 @code {
     [Inject] private IExecutor Executor { get; set; } = null!;
     [Inject] private NavigationManager NavigationManager { get; init; } = null!;
 
-
-    private CreateOrUpdateTaskCard _updateTaskCard = null!;
-    private UpdateRunningTaskCard _updateRuningTaskCard = null!;
+    private TaskDetailCard _taskDetailCard = null!;
+    private RunningTaskDetailCard _runingTaskDetailCard = null!;
     MudListItem? _selectedItem;
     object? _selectedTask;
     private PageModel _pageModel = new();
-    private bool _showEditTaskCard = false;
-    private bool _showRunningTaskCard = false;
+    private bool _showTaskDetailCard = false;
+    private bool _showRunningTaskDetailCard = false;
     private string _runningTaskElapsedTime = string.Empty;
     private bool _runningTaskRendered = false;
     private bool _loading = false;
@@ -134,31 +133,31 @@
         return false;
     }
 
-    private async Task ShowUpdateTaskCard(Guid id)
+    private async Task ShowTaskDetailCard(Guid id)
     {
-        await _updateTaskCard.PopulateCreateOrUpdateTaskCard(id);
-        _showRunningTaskCard = false;
-        _showEditTaskCard = true;
+        await _taskDetailCard.PopulateTaskDetailCard(id);
+        _showRunningTaskDetailCard = false;
+        _showTaskDetailCard = true;
     }
 
-    private async Task ShowCreateTaskCard(Guid? id = null)
+    private async Task ShowCreateTaskDetailCard(Guid? id = null)
     {
-        await _updateTaskCard.PopulateCreateOrUpdateTaskCard(id: null);
-        _showRunningTaskCard = false;
-        _showEditTaskCard = true;
+        await _taskDetailCard.PopulateTaskDetailCard(id: null);
+        _showRunningTaskDetailCard = false;
+        _showTaskDetailCard = true;
     }
 
-    private async Task ShowUpdateRunningTaskCard(Guid id)
+    private async Task ShowRunningTaskDetailCard(Guid id)
     {
-        await _updateRuningTaskCard.PopulateUpdateRunningTaskCard(id: id);
-        _showEditTaskCard = false;
-        _showRunningTaskCard = true;
+        await _runingTaskDetailCard.PopulateRunningTaskDetailCard(id: id);
+        _showTaskDetailCard = false;
+        _showRunningTaskDetailCard = true;
     }
 
     private void HideEditTaskCard(Guid? id = null)
     {
-        _showEditTaskCard = false;
-        _showRunningTaskCard = false;
+        _showTaskDetailCard = false;
+        _showRunningTaskDetailCard = false;
     }
 
     private async Task RefreshItems()

@@ -59,8 +59,8 @@
         </MudCardContent>
     </MudCard>
 
-    <TaskDetailCard @ref="_taskDetailCard" Class="grow" Visible="_showTaskDetailCard" OnCancel="() => HideEditTaskCard()" OnCreateOrUpdate="() => RefreshItems()" />
-    <RunningTaskDetailCard @ref="_runingTaskDetailCard" Class="grow" Visible="_showRunningTaskDetailCard" OnCancel="() => HideEditTaskCard()" OnUpdate="() => RefreshItems()" />
+    <TaskDetailCard @ref="_taskDetailCard" Class="grow" Visible="_showTaskDetailCard" OnCreateOrUpdate="() => RefreshItems()" OnCancel="() => HideTaskDetailCard()" OnDelete="() => RefreshItems(closeDetail: true)" />
+    <RunningTaskDetailCard @ref="_runingTaskDetailCard" Class="grow" Visible="_showRunningTaskDetailCard" OnUpdate="() => RefreshItems()" OnCancel="() => HideTaskDetailCard()" OnDelete="() => RefreshItems(closeDetail: true)" />
 </div>
 
 @code {
@@ -154,18 +154,22 @@
         _showRunningTaskDetailCard = true;
     }
 
-    private void HideEditTaskCard(Guid? id = null)
+    private void HideTaskDetailCard()
     {
         _showTaskDetailCard = false;
         _showRunningTaskDetailCard = false;
     }
 
-    private async Task RefreshItems()
+    private async Task RefreshItems(bool closeDetail = false)
     {
         _loading = true;
         _pageModel = await Executor.ExecuteQuery(new GetPageModelQuery());
         _runningTaskElapsedTime = GetTaskElapsedTime(_pageModel.RunningTask?.End, _pageModel.RunningTask?.Start);
         _loading = false;
+        if (closeDetail)
+        {
+            HideTaskDetailCard();
+        }
         StateHasChanged();
     }
 

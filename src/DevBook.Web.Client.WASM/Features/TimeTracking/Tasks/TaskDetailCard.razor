@@ -15,9 +15,11 @@
                     <MudTimePicker Label="End" @bind-Time="_createOrUpdateTaskForm.End" For="@(() => _createOrUpdateTaskForm.End)" />
                 </MudCardContent>
                 <MudCardActions>
-                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">
-                        <MudText>@(_taskId is null ? "Create" : "Update")</MudText>
-                    </MudButton>
+                    <MudButton Class="ml-auto mx-2" StartIcon="@Icons.Material.Outlined.Save" ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary">@(_taskId is null ? "Create" : "Update")</MudButton>
+                    @if (_taskId != null)
+                    {
+                        <DeleteTaskButton TaskId="_taskId" OnDelete="() => OnDelete.InvokeAsync()" />
+                    }
                 </MudCardActions>
             </MudCard>
         </EditForm>
@@ -27,8 +29,9 @@
 @code {
     [Parameter] public bool Visible { get; set; } = true;
     [Parameter] public string Class { get; set; } = string.Empty;
-    [Parameter] public EventCallback OnCancel { get; set; }
     [Parameter] public EventCallback OnCreateOrUpdate { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+    [Parameter] public EventCallback OnDelete { get; set; }
 
     [Inject] private IExecutor Executor { get; set; } = null!;
     [Inject] ISnackbar Snackbar { get; set; } = null!;

@@ -11,15 +11,22 @@
         <MudCardContent>
             <div class="flex flex-col items-start">
                 <MudButton Class="flex-none" StartIcon="@Icons.Material.Filled.Add" Color="Color.Primary" OnClick="() => ShowCreateTaskCard()">Add New Task</MudButton>
-                <MudButton Class="flex-none" StartIcon="@Icons.Material.Outlined.PlayArrow" Color="Color.Primary">Start Work</MudButton>
+                @if(_pageModel.RunningTask is null)
+                {
+                    <MudButton Class="flex-none" StartIcon="@Icons.Material.Outlined.PlayArrow" Color="Color.Primary" OnClick="() => StartWork()">Start Work</MudButton>
+                }
+                else
+                {
+                    <MudButton Class="flex-none" StartIcon="@Icons.Material.Outlined.Stop" Color="Color.Primary" OnClick="() => StopWork(_pageModel.RunningTask.Id)">Stop Work</MudButton>
+                }
             </div>
             <MudExpansionPanels Dense="true" MultiExpansion="true">
                 @foreach (var item in _pageModel.TasksInDays)
                 {
-                    <MudExpansionPanel Text="@(item.Day.DayOfWeek.ToString() + $", {item.Day.ToString("dd.MM.yyyy")}")" IsExpanded="IsFirstDay(item.Day)">
+                    <MudExpansionPanel Text="@(item.Day.DayOfWeek.ToString() + $", {item.Day.ToString("dd.MM.yyyy")}")" IsInitiallyExpanded="IsFirstDay(item.Day)">
                         <MudList Clickable="true" @bind-SelectedItem="_selectedItem" @bind-SelectedValue="_selectedTask" Color="Color.Primary">
                             <div>
-                                @if (_pageModel.RunningTask is not null && IsFirstDay(DateOnly.FromDateTime(_pageModel.RunningTask.Date.DateTime)))
+                            @if (_pageModel.RunningTask is not null && IsFirstDay(item.Day))
                                 {
                                     <MudListItem OnClick="() => ShowUpdateRunningTaskCard(_pageModel.RunningTask.Id)" Value="_pageModel.RunningTask">
                                         <div class="flex justify-between items-center">
@@ -35,13 +42,15 @@
                             </div>
                             @foreach(var task in item.Tasks)
                             {
-                                <MudListItem OnClick="() => ShowUpdateTaskCard(task.Id)" Value="task">
-                                    <div class="flex justify-between items-center">
-                                        <MudText>@task.Description</MudText>
-                                        <MudText>@GetTaskElapsedTime(task.Start, task.End)</MudText>
-                                    </div>
-
-                                </MudListItem>
+                                @if (task.Id != _pageModel.RunningTask?.Id)
+                                {
+                                    <MudListItem OnClick="() => ShowUpdateTaskCard(task.Id)" Value="task">
+                                        <div class="flex justify-between items-center">
+                                            <MudText>@task.Description</MudText>
+                                            <MudText>@GetTaskElapsedTime(task.Start, task.End)</MudText>
+                                        </div>
+                                    </MudListItem>
+                                }
                             }
                         </MudList>
                     </MudExpansionPanel>
@@ -158,6 +167,22 @@
         _pageModel = await Executor.ExecuteQuery(new GetPageModelQuery());
         _runningTaskElapsedTime = GetTaskElapsedTime(_pageModel.RunningTask?.End, _pageModel.RunningTask?.Start);
         _loading = false;
+        StateHasChanged();
+    }
+
+    private async Task StartWork()
+    {
+        var dateTimeOffset = DateTimeOffset.Now;
+        await Executor.ExecuteCommand(new StartWorkCommand(Description: "New Task", Date: dateTimeOffset, Start: dateTimeOffset.TimeOfDay));
+        await RefreshItems();
+    }
+
+    private async Task StopWork(Guid taskId)
+    {
+        var runningTask = _pageModel.RunningTask;
+        var dateTimeOffset = DateTimeOffset.Now;
+        await Executor.ExecuteCommand(new StopWorkCommand(TaskId: taskId, End: DateTimeOffset.Now.TimeOfDay));
+        await RefreshItems();
     }
 
     private sealed record GetPageModelQuery : IQuery<PageModel>;
@@ -201,6 +226,54 @@
                     TasksInDays = workTasksList?.WorkTasksInDay?.Select(
                         x => new PageModel.TasksInDay(DateOnly.Parse(x.Key), x.Value.Select(x => new PageModel.WorkTask(x.Id, x.Description, x.Date, x.Start, x.End)).ToArray())) ?? []
                 },
+                apiError => throw new DevBookException(apiError.Errors));
+        }
+    }
+
+    private sealed record StartWorkCommand(
+        string Description,
+        DateTimeOffset Date,
+        TimeSpan Start)
+        : ICommand;
+
+    private sealed class StartWorkCommandCommandHandler(IDevBookWebApiActionExecutor devBookWebApiActionExecutor)
+        : ICommandHandler<StartWorkCommand>
+    {
+        public async Task Handle(StartWorkCommand request, CancellationToken cancellationToken)
+        {
+            var result = await devBookWebApiActionExecutor.Execute(
+                x => x.WorkTasks_StartAsync(
+                    new()
+                        {
+                            Description = request.Description,
+                            Date = request.Date,
+                            Start = request.Start
+                        },
+                cancellationToken));
+
+            result.Match(
+                success => success,
+                apiError => throw new DevBookException(apiError.Errors));
+        }
+    }
+
+    private sealed record StopWorkCommand(
+        Guid TaskId,
+        TimeSpan End)
+        : ICommand;
+
+    private sealed class StopWorkCommandCommandHandler(IDevBookWebApiActionExecutor devBookWebApiActionExecutor)
+        : ICommandHandler<StopWorkCommand>
+    {
+        public async Task Handle(StopWorkCommand request, CancellationToken cancellationToken)
+        {
+            var result = await devBookWebApiActionExecutor.Execute(
+                x => x.WorkTasks_PatchAsync(
+                    request.TaskId,
+                    new() { End = request.End }, cancellationToken));
+
+            result.Match(
+                success => success,
                 apiError => throw new DevBookException(apiError.Errors));
         }
     }

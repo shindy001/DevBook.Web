@@ -16,33 +16,32 @@
             <MudExpansionPanels Dense="true" MultiExpansion="true">
                 @foreach (var item in _pageModel.TasksInDays)
                 {
-                    <MudExpansionPanel Text="@(item.Day.DayOfWeek.ToString() + $", {item.Day.ToString("dd.MM.yyyy")}")">
+                    <MudExpansionPanel Text="@(item.Day.DayOfWeek.ToString() + $", {item.Day.ToString("dd.MM.yyyy")}")" IsExpanded="IsFirstDay(item.Day)">
                         <MudList Clickable="true" @bind-SelectedItem="_selectedItem" @bind-SelectedValue="_selectedTask" Color="Color.Primary">
-                            <div id="runnig-task">
-                                @if (_pageModel.RunningTask is not null && _pageModel.TasksInDays.First() == item)
+                            <div>
+                                @if (_pageModel.RunningTask is not null && IsFirstDay(DateOnly.FromDateTime(_pageModel.RunningTask.Date.DateTime)))
                                 {
                                     <MudListItem OnClick="() => ShowUpdateRunningTaskCard(_pageModel.RunningTask.Id)" Value="_pageModel.RunningTask">
-                                        <div class="flex justify-between">
+                                        <div class="flex justify-between items-center">
                                             <MudText>@_pageModel.RunningTask.Description</MudText>
-                                            <MudText>Running task - @_runningTaskElapsedTime</MudText>
+                                            <MudText>
+                                                @_runningTaskElapsedTime
+                                                <MudIcon Class="animate-spin" Icon="@Icons.Material.Filled.Refresh" Size="Size.Large" />
+                                            </MudText>
                                         </div>
-
                                     </MudListItem>
                                 }
                                 
                             </div>
                             @foreach(var task in item.Tasks)
                             {
-                                if(task.Id != _pageModel?.RunningTask?.Id)
-                                {
-                                    <MudListItem OnClick="() => ShowUpdateTaskCard(task.Id)" Value="task">
-                                        <div class="flex justify-between">
-                                            <MudText>@task.Description</MudText>
-                                            <MudText>@GetTaskTime(task)</MudText>
-                                        </div>
+                                <MudListItem OnClick="() => ShowUpdateTaskCard(task.Id)" Value="task">
+                                    <div class="flex justify-between items-center">
+                                        <MudText>@task.Description</MudText>
+                                        <MudText>@GetTaskElapsedTime(task.Start, task.End)</MudText>
+                                    </div>
 
-                                    </MudListItem>
-                                }
+                                </MudListItem>
                             }
                         </MudList>
                     </MudExpansionPanel>
@@ -68,12 +67,21 @@
     private bool _showEditTaskCard = false;
     private bool _showRunningTaskCard = false;
     private string _runningTaskElapsedTime = string.Empty;
+    private bool _runningTaskRendered = false;
     private bool _loading = false;
 
     protected override async Task OnInitializedAsync()
     {
+        _runningTaskRendered = false;
         await RefreshItems();
+
+        // Timer should not be awaited, othewise will block execution because it is potentially infinity
         StarRunningTaskElapsedTimeTimer();
+    }
+
+    private bool IsFirstDay(DateOnly taskDate)
+    {
+        return _pageModel.TasksInDays.FirstOrDefault()?.Day == taskDate;
     }
 
     private async Task StarRunningTaskElapsedTimeTimer()
@@ -83,15 +91,15 @@
         {
             if (_pageModel.RunningTask is not null)
             {
-                _runningTaskElapsedTime = (DateTime.Now.TimeOfDay - _pageModel.RunningTask.Start).Humanize(3);
+                _runningTaskElapsedTime = GetTaskElapsedTime(DateTime.Now.TimeOfDay, _pageModel.RunningTask.Start);
                 StateHasChanged();
             }
         }
     }
 
-    private string GetTaskTime(PageModel.WorkTask? task)
+    private string GetTaskElapsedTime(TimeSpan? end, TimeSpan? start)
     {
-        return (task?.End - task?.Start)?.Humanize(2) ?? string.Empty;
+        return (end - start)?.Humanize(2, minUnit: TimeUnit.Second) ?? string.Empty;
     }
 
     private IEnumerable<PageModel.TasksInDay> GroupTasksByDay(IEnumerable<PageModel.WorkTask> tasks)
@@ -148,9 +156,7 @@
     {
         _loading = true;
         _pageModel = await Executor.ExecuteQuery(new GetPageModelQuery());
-        _pageModel.TasksInDays = GroupTasksByDay(_pageModel.WorkTasks);
-        _pageModel.RunningTask = _pageModel.WorkTasks.FirstOrDefault(x => x.End is null);
-        _runningTaskElapsedTime = GetTaskTime(_pageModel.RunningTask);
+        _runningTaskElapsedTime = GetTaskElapsedTime(_pageModel.RunningTask?.End, _pageModel.RunningTask?.Start);
         _loading = false;
     }
 
@@ -158,25 +164,20 @@
 
     private sealed record PageModel
     {
-        public IEnumerable<WorkTask> WorkTasks { get; init; } = [];
-        public IEnumerable<TasksInDay> TasksInDays { get; set; } = [];
         public WorkTask? RunningTask { get; set; } = null;
+        public IEnumerable<TasksInDay> TasksInDays { get; set; } = [];
 
         public sealed record WorkTask(Guid Id, string? Description, DateTimeOffset Date, TimeSpan Start, TimeSpan? End);
         public sealed record TasksInDay
         {
             public DateOnly Day { get; init; }
             public WorkTask[] Tasks { get; init; }
-            public bool ShowDetails { get; private set; } = false;
 
-            public TasksInDay(DateOnly day, WorkTask[] tasks, bool showDetails = false)
+            public TasksInDay(DateOnly day, WorkTask[] tasks)
             {
                 Day = day;
                 Tasks = tasks;
-                ShowDetails = showDetails;
             }
-
-            public void ToggleDetails() => ShowDetails = !ShowDetails;
         }
     }
 
@@ -185,9 +186,21 @@
     {
         public async Task<PageModel> Handle(GetPageModelQuery request, CancellationToken cancellationToken)
         {
-            var result = await devBookWebApiActionExecutor.Execute(x => x.WorkTasks_GetAllAsync(cancellationToken));
+            var result = await devBookWebApiActionExecutor.Execute(x => x.WorkTasks_ListAsync(cancellationToken));
             return result.Match(
-                workTasks => new PageModel { WorkTasks = workTasks.Select(x => new PageModel.WorkTask(x.Id, x.Description, x.Date, x.Start, x.End)) },
+                workTasksList => new PageModel
+                {
+                    RunningTask = workTasksList.ActiveWorkTask is null
+                        ? null
+                        : new PageModel.WorkTask(
+                            workTasksList.ActiveWorkTask.Id,
+                            workTasksList.ActiveWorkTask.Description,
+                            workTasksList.ActiveWorkTask.Date,
+                            workTasksList.ActiveWorkTask.Start,
+                            workTasksList.ActiveWorkTask.End),
+                    TasksInDays = workTasksList?.WorkTasksInDay?.Select(
+                        x => new PageModel.TasksInDay(DateOnly.Parse(x.Key), x.Value.Select(x => new PageModel.WorkTask(x.Id, x.Description, x.Date, x.Start, x.End)).ToArray())) ?? []
+                },
                 apiError => throw new DevBookException(apiError.Errors));
         }
     }

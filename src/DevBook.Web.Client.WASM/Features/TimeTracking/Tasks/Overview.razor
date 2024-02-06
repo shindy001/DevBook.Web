@@ -23,36 +23,44 @@
             <MudExpansionPanels Dense="true" MultiExpansion="true">
                 @foreach (var item in _pageModel.TasksInDays)
                 {
-                    <MudExpansionPanel Text="@(item.Day.DayOfWeek.ToString() + $", {item.Day.ToString("dd.MM.yyyy")}")" IsInitiallyExpanded="IsFirstDay(item.Day)">
-                        <MudList Clickable="true" @bind-SelectedItem="_selectedItem" @bind-SelectedValue="_selectedTask" Color="Color.Primary">
-                            <div>
-                            @if (_pageModel.RunningTask is not null && IsFirstDay(item.Day))
-                                {
-                                    <MudListItem OnClick="() => ShowRunningTaskDetailCard(_pageModel.RunningTask.Id)" Value="_pageModel.RunningTask">
-                                        <div class="flex justify-between items-center">
-                                            <MudText>@_pageModel.RunningTask.Description</MudText>
-                                            <MudText>
-                                                @_runningTaskElapsedTime
-                                                <MudIcon Class="animate-spin" Icon="@Icons.Material.Filled.Refresh" Size="Size.Large" />
-                                            </MudText>
-                                        </div>
-                                    </MudListItem>
-                                }
-                                
+                    <MudExpansionPanel IsInitiallyExpanded="IsFirstDay(item.Day)">
+                        <TitleContent>
+                            <div class="flex justify-between items-center">
+                                <MudText>@item.Day.DayOfWeek.ToString(), @item.Day.ToString("dd.MM.yyyy")</MudText>
+                                <MudText Class="mr-6">@CalculateEarningsPerDay(item)</MudText>
                             </div>
-                            @foreach(var task in item.Tasks)
-                            {
-                                @if (task.Id != _pageModel.RunningTask?.Id)
+                        </TitleContent>
+                        <ChildContent>
+                            <MudList Clickable="true" @bind-SelectedItem="_selectedItem" @bind-SelectedValue="_selectedTask" Color="Color.Primary">
+                                <div>
+                                    @if (_pageModel.RunningTask is not null && IsFirstDay(item.Day))
+                                    {
+                                        <MudListItem OnClick="() => ShowRunningTaskDetailCard(_pageModel.RunningTask.Id)" Value="_pageModel.RunningTask">
+                                            <div class="flex justify-between items-center">
+                                                <MudText>@_pageModel.RunningTask.Description</MudText>
+                                                <MudText>
+                                                    @_runningTaskElapsedTime
+                                                    <MudIcon Class="animate-spin" Icon="@Icons.Material.Filled.Refresh" Size="Size.Large" />
+                                                </MudText>
+                                            </div>
+                                        </MudListItem>
+                                    }
+
+                                </div>
+                                @foreach (var task in item.Tasks)
                                 {
-                                    <MudListItem OnClick="() => ShowTaskDetailCard(task.Id)" Value="task">
-                                        <div class="flex justify-between items-center">
-                                            <MudText>@task.Description</MudText>
-                                            <MudText>@GetTaskElapsedTime(task.Start, task.End)</MudText>
-                                        </div>
-                                    </MudListItem>
+                                    @if (task.Id != _pageModel.RunningTask?.Id)
+                                    {
+                                        <MudListItem OnClick="() => ShowTaskDetailCard(task.Id)" Value="task">
+                                            <div class="flex justify-between items-center">
+                                                <MudText>@task.Description</MudText>
+                                                <MudText>@GetTaskElapsedTime(task.Start, task.End)</MudText>
+                                            </div>
+                                        </MudListItem>
+                                    }
                                 }
-                            }
-                        </MudList>
+                            </MudList>
+                        </ChildContent>
                     </MudExpansionPanel>
                 }
             </MudExpansionPanels>
@@ -108,6 +116,22 @@
     private string GetTaskElapsedTime(TimeSpan? end, TimeSpan? start)
     {
         return (end - start)?.Humanize(2, minUnit: TimeUnit.Second) ?? string.Empty;
+    }
+
+    private string CalculateEarningsPerDay(PageModel.TasksInDay tasksInDay)
+    {
+        double earnings = 0;
+        string? currency = null;
+        foreach(var task in tasksInDay.Tasks)
+        {
+            if (task.Project?.Currency is not null && task.Project.HourlyRate is not null)
+            {
+                var totalHours = (task.End - task.Start)?.TotalHours ?? 0;
+                earnings += totalHours * (double)task.Project.HourlyRate;
+                currency = currency ?? task.Project.Currency;
+            }
+        }
+        return currency is not null && earnings > 0 ? $"{Math.Round(earnings, 5).ToString("0.00")} {currency}" : string.Empty;
     }
 
     private IEnumerable<PageModel.TasksInDay> GroupTasksByDay(IEnumerable<PageModel.WorkTask> tasks)
@@ -195,7 +219,8 @@
         public WorkTask? RunningTask { get; set; } = null;
         public IEnumerable<TasksInDay> TasksInDays { get; set; } = [];
 
-        public sealed record WorkTask(Guid Id, string? Description, DateTimeOffset Date, TimeSpan Start, TimeSpan? End);
+        public sealed record WorkTask(Guid Id, Project? Project, string? Description, DateTimeOffset Date, TimeSpan Start, TimeSpan? End);
+        public sealed record Project(Guid Id, string? Name, string? Currency, int? HourlyRate);
         public sealed record TasksInDay
         {
             public DateOnly Day { get; init; }
@@ -222,12 +247,31 @@
                         ? null
                         : new PageModel.WorkTask(
                             workTasksList.ActiveWorkTask.Id,
+                            workTasksList.ActiveWorkTask.Project is null
+                                ? null
+                                : new PageModel.Project(
+                                    workTasksList.ActiveWorkTask.Project.Id,
+                                    workTasksList.ActiveWorkTask.Project.Name,
+                                    workTasksList.ActiveWorkTask.Project.Currency,
+                                    workTasksList.ActiveWorkTask.Project.HourlyRate),
                             workTasksList.ActiveWorkTask.Description,
                             workTasksList.ActiveWorkTask.Date,
                             workTasksList.ActiveWorkTask.Start,
                             workTasksList.ActiveWorkTask.End),
                     TasksInDays = workTasksList?.WorkTasksInDay?.Select(
-                        x => new PageModel.TasksInDay(DateOnly.Parse(x.Key), x.Value.Select(x => new PageModel.WorkTask(x.Id, x.Description, x.Date, x.Start, x.End)).ToArray())) ?? []
+                        x => new PageModel.TasksInDay(DateOnly.Parse(x.Key), x.Value.Select(x => new PageModel.WorkTask(
+                            x.Id,
+                                x.Project is null
+                                    ? null
+                                    : new PageModel.Project(
+                                        x.Project.Id,
+                                        x.Project.Name,
+                                        x.Project.Currency,
+                                        x.Project.HourlyRate),
+                            x.Description,
+                            x.Date,
+                            x.Start,
+                            x.End)).ToArray())) ?? []
                 },
                 apiError => throw new DevBookException(apiError.Errors));
         }

@@ -220,7 +220,6 @@
         public IEnumerable<TasksInDay> TasksInDays { get; set; } = [];
 
         public sealed record WorkTask(Guid Id, Project? Project, string? Description, DateTimeOffset Date, TimeSpan Start, TimeSpan? End);
-        public sealed record Project(Guid Id, string? Name, string? Currency, int? HourlyRate);
         public sealed record TasksInDay
         {
             public DateOnly Day { get; init; }
@@ -247,13 +246,7 @@
                         ? null
                         : new PageModel.WorkTask(
                             workTasksList.ActiveWorkTask.Id,
-                            workTasksList.ActiveWorkTask.Project is null
-                                ? null
-                                : new PageModel.Project(
-                                    workTasksList.ActiveWorkTask.Project.Id,
-                                    workTasksList.ActiveWorkTask.Project.Name,
-                                    workTasksList.ActiveWorkTask.Project.Currency,
-                                    workTasksList.ActiveWorkTask.Project.HourlyRate),
+                            workTasksList.ActiveWorkTask.Project is null ? null : Project.FromDto(workTasksList.ActiveWorkTask.Project),
                             workTasksList.ActiveWorkTask.Description,
                             workTasksList.ActiveWorkTask.Date,
                             workTasksList.ActiveWorkTask.Start,
@@ -261,13 +254,7 @@
                     TasksInDays = workTasksList?.WorkTasksInDay?.Select(
                         x => new PageModel.TasksInDay(DateOnly.Parse(x.Key), x.Value.Select(x => new PageModel.WorkTask(
                             x.Id,
-                                x.Project is null
-                                    ? null
-                                    : new PageModel.Project(
-                                        x.Project.Id,
-                                        x.Project.Name,
-                                        x.Project.Currency,
-                                        x.Project.HourlyRate),
+                            x.Project is null ? null : Project.FromDto(x.Project),
                             x.Description,
                             x.Date,
                             x.Start,

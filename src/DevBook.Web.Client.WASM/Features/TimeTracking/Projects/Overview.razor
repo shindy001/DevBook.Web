@@ -14,7 +14,7 @@
         </CardHeaderContent>
     </MudCardHeader>
     <MudCardContent>
-        <MudTable T="PageModel.Project" Items="@_pageModel.Projects" Loading="@_loading" LoadingProgressColor="Color.Primary" Hover="true" Filter="((x) => FilterFunc(x, _searchString))" OnRowClick="@OpenUpdateProjectPage">
+        <MudTable T="Project" Items="@_pageModel.Projects" Loading="@_loading" LoadingProgressColor="Color.Primary" Hover="true" Filter="((x) => FilterFunc(x, _searchString))" OnRowClick="@OpenUpdateProjectPage">
             <ToolBarContent>
                 <MudTextField 
                     @bind-Value="_searchString"
@@ -55,7 +55,7 @@
         _loading = false;
     }
 
-    private bool FilterFunc(PageModel.Project project, string searchString)
+    private bool FilterFunc(Project project, string searchString)
     {
         if (string.IsNullOrWhiteSpace(searchString))
             return true;
@@ -66,7 +66,7 @@
         return false;
     }
 
-    private void OpenUpdateProjectPage(TableRowClickEventArgs<PageModel.Project> rowClickEvent)
+    private void OpenUpdateProjectPage(TableRowClickEventArgs<Project> rowClickEvent)
     {
         NavigationManager.NavigateTo($"/projects/{rowClickEvent.Item.Id}");
     }
@@ -76,8 +76,6 @@
     private sealed record PageModel
     {
         public IEnumerable<Project> Projects { get; init; } = [];
-
-        public sealed record Project(Guid Id, string Name, int? HourlyRate, string? Currency, string? HexColor);
     }
 
     private sealed class GetPageModelQueryHandler(IDevBookWebApiActionExecutor devBookWebApiActionExecutor)
@@ -87,7 +85,7 @@
         {
             var result = await devBookWebApiActionExecutor.Execute(x => x.Projects_GetAllAsync(cancellationToken));
             return result.Match(
-                projects => new PageModel { Projects = projects.Select(x => new PageModel.Project(x.Id, x.Name, x.HourlyRate, x.Currency, x.HexColor)) },
+                projects => new PageModel { Projects = projects.Select(x => Project.FromDto(x)) },
                 apiError => throw new DevBookException(apiError.Errors));
         }
     }

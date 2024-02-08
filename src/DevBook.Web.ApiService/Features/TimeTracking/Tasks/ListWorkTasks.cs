@@ -18,7 +18,7 @@ internal sealed class ListWorkTasksQueryHandler(DevBookDbContext dbContext) : IQ
 		var taskDtos = tasks.Select(
 			task => new WorkTaskDto(
 				id: task.Id,
-				project: task.ProjectId is not null && projects.TryGetValue(task.ProjectId.Value, out var project) ? project : null,
+				project: task.ProjectId is not null && projects.TryGetValue(task.ProjectId.Value, out var project) ? project.ToDto() : null,
 				description: task.Description,
 				details: task.Details,
 				date: task.Date,

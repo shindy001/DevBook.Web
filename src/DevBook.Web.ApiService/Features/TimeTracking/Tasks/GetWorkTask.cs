@@ -15,7 +15,7 @@ internal class GetWorkTaskQueryHandler(DevBookDbContext dbContext) : IQueryHandl
 			? new NotFound()
 			: new WorkTaskDto(
 				id: workTask.Id,
-				project: project,
+				project: project?.ToDto(),
 				description: workTask.Description,
 				details: workTask.Details,
 				date: workTask.Date,

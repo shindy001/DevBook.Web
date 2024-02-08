@@ -9,3 +9,8 @@ public sealed record Project()
 	public string? Currency { get; init; }
 	public string? HexColor { get; init; }
 }
+
+public static class ProjectExtensions
+{
+	public static ProjectDto ToDto(this Project project) => new(project.Id, project.Name, project.Details, project.HourlyRate, project.Currency, project.HexColor);
+}

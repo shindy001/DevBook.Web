@@ -633,29 +633,6 @@ components:
           format: time
           nullable: true
       additionalProperties: false
-    Project:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        name:
-          type: string
-          nullable: true
-        details:
-          type: string
-          nullable: true
-        hourlyRate:
-          type: integer
-          format: int32
-          nullable: true
-        currency:
-          type: string
-          nullable: true
-        hexColor:
-          type: string
-          nullable: true
-      additionalProperties: false
     ProjectDto:
       required:
         - id
@@ -827,7 +804,7 @@ components:
           type: string
           format: uuid
         project:
-          $ref: '#/components/schemas/Project'
+          $ref: '#/components/schemas/ProjectDto'
         description:
           type: string
           nullable: true

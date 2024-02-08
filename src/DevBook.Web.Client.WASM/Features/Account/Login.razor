@@ -37,6 +37,9 @@
 </div>
 
 @code {
+    [SupplyParameterFromQuery(Name = "returnUrl")]
+    public string? ReturnUrl { get; set; }
+
     [Inject] IAccountManagement AccountManagement { get; init; } = null!;
     [Inject] NavigationManager NavigationManager { get; init; } = null!;
 
@@ -51,7 +54,16 @@
         _processing = true;
         var result = await AccountManagement.LoginAsync(_loginForm.Email, _loginForm.Password);
         result.Switch(
-            success => NavigationManager.NavigateTo("/dashboard"),
+            success =>
+            {
+                if (string.IsNullOrWhiteSpace(ReturnUrl))
+                {
+                    NavigationManager.NavigateTo("/dashboard");
+                    return;
+                }
+
+                NavigationManager.NavigateTo(ReturnUrl);
+            },
             apiError =>
             {
                 loginErrors = apiError.Errors;

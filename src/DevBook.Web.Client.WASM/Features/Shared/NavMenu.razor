@@ -1,10 +1,27 @@
-﻿<MudNavMenu Rounded="true" Margin="Margin.Dense" Color="Color.Primary" Class="pa-2">
-	<MudNavLink Href="/" Icon="@Icons.Material.Outlined.Dashboard" Match="NavLinkMatch.All">
-		Dashboard
-	</MudNavLink>
-	<MudNavGroup Title="Time Tracking" Icon="@Icons.Material.Outlined.Timeline" Expanded="true">
-		<MudNavLink Href="/tasks" Icon="@Icons.Material.Outlined.Timer" Match="NavLinkMatch.Prefix">Timer</MudNavLink>
-		<MudNavLink Href="/projects" Icon="@Icons.Material.Outlined.Task" Match="NavLinkMatch.Prefix">Projects</MudNavLink>
-		<MudNavLink Href="/analytics" Icon="@Icons.Material.Outlined.AutoGraph" Match="NavLinkMatch.Prefix">Analytics</MudNavLink>
-	</MudNavGroup>
-</MudNavMenu>
+﻿<AuthorizeView>
+	<Authorized>
+		<MudNavMenu Rounded="true" Margin="Margin.Dense" Color="Color.Primary" Class="pa-2">
+			<MudNavLink Href="/" Icon="@Icons.Material.Outlined.Dashboard" Match="NavLinkMatch.All">
+				Dashboard
+			</MudNavLink>
+			<MudNavGroup Title="Time Tracking" Icon="@Icons.Material.Outlined.Timeline" Expanded="true">
+				<MudNavLink Href="/tasks" Icon="@Icons.Material.Outlined.Timer" Match="NavLinkMatch.Prefix">Timer</MudNavLink>
+				<MudNavLink Href="/projects" Icon="@Icons.Material.Outlined.Task" Match="NavLinkMatch.Prefix">Projects</MudNavLink>
+				<MudNavLink Href="/analytics" Icon="@Icons.Material.Outlined.AutoGraph" Match="NavLinkMatch.Prefix">Analytics</MudNavLink>
+			</MudNavGroup>
+		</MudNavMenu>
+	</Authorized>
+	<NotAuthorized>
+		<MudNavMenu Rounded="true" Margin="Margin.Dense" Color="Color.Primary" Class="pa-2">
+
+			<MudNavLink Href="/" Icon="@Icons.Material.Outlined.Dashboard" Match="NavLinkMatch.All">
+				Dashboard
+			</MudNavLink>
+			<MudNavGroup Title="Time Tracking" Icon="@Icons.Material.Outlined.Timeline" Expanded="false">
+				<MudNavLink Href="/account/login?returnUrl=/tasks" Icon="@Icons.Material.Outlined.Lock" Match="NavLinkMatch.Prefix">Timer</MudNavLink>
+				<MudNavLink Href="/account/login?returnUrl=/projects" Icon="@Icons.Material.Outlined.Lock" Match="NavLinkMatch.Prefix">Projects</MudNavLink>
+				<MudNavLink Href="/account/login?returnUrl=/analytics" Icon="@Icons.Material.Outlined.Lock" Match="NavLinkMatch.Prefix">Analytics</MudNavLink>
+			</MudNavGroup>
+		</MudNavMenu>
+	</NotAuthorized>
+</AuthorizeView>

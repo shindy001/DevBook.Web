@@ -83,16 +83,13 @@
     private bool _showTaskDetailCard = false;
     private bool _showRunningTaskDetailCard = false;
     private string _runningTaskElapsedTime = string.Empty;
-    private bool _runningTaskRendered = false;
-    private bool _loading = false;
 
     protected override async Task OnInitializedAsync()
     {
-        _runningTaskRendered = false;
         await RefreshItems();
 
         // Timer should not be awaited, othewise will block execution because it is potentially infinity
-        StarRunningTaskElapsedTimeTimer();
+        await StarRunningTaskElapsedTimeTimer().ConfigureAwait(false);
     }
 
     private bool IsFirstDay(DateOnly taskDate)
@@ -134,7 +131,7 @@
         return currency is not null && earnings > 0 ? $"{Math.Round(earnings, 5).ToString("0.00")} {currency}" : string.Empty;
     }
 
-    private IEnumerable<PageModel.TasksInDay> GroupTasksByDay(IEnumerable<PageModel.WorkTask> tasks)
+    private IEnumerable<PageModel.TasksInDay> GroupTasksByDay(IEnumerable<WorkTask> tasks)
     {
         List<PageModel.TasksInDay> tasksInDays = new();
         var dayGroups = tasks.OrderByDescending(x => x.Date).GroupBy(x => DateOnly.FromDateTime(x.Date.DateTime));
@@ -186,10 +183,8 @@
 
     private async Task RefreshItems(bool closeDetail = false)
     {
-        _loading = true;
         _pageModel = await Executor.ExecuteQuery(new GetPageModelQuery());
         _runningTaskElapsedTime = GetTaskElapsedTime(_pageModel.RunningTask?.End, _pageModel.RunningTask?.Start);
-        _loading = false;
         if (closeDetail)
         {
             HideTaskDetailCard();
@@ -219,7 +214,6 @@
         public WorkTask? RunningTask { get; set; } = null;
         public IEnumerable<TasksInDay> TasksInDays { get; set; } = [];
 
-        public sealed record WorkTask(Guid Id, Project? Project, string? Description, DateTimeOffset Date, TimeSpan Start, TimeSpan? End);
         public sealed record TasksInDay
         {
             public DateOnly Day { get; init; }
@@ -242,23 +236,8 @@
             return result.Match(
                 workTasksList => new PageModel
                 {
-                    RunningTask = workTasksList.ActiveWorkTask is null
-                        ? null
-                        : new PageModel.WorkTask(
-                            workTasksList.ActiveWorkTask.Id,
-                            workTasksList.ActiveWorkTask.Project is null ? null : Project.FromDto(workTasksList.ActiveWorkTask.Project),
-                            workTasksList.ActiveWorkTask.Description,
-                            workTasksList.ActiveWorkTask.Date,
-                            workTasksList.ActiveWorkTask.Start,
-                            workTasksList.ActiveWorkTask.End),
-                    TasksInDays = workTasksList?.WorkTasksInDay?.Select(
-                        x => new PageModel.TasksInDay(DateOnly.Parse(x.Key), x.Value.Select(x => new PageModel.WorkTask(
-                            x.Id,
-                            x.Project is null ? null : Project.FromDto(x.Project),
-                            x.Description,
-                            x.Date,
-                            x.Start,
-                            x.End)).ToArray())) ?? []
+                    RunningTask = workTasksList.ActiveWorkTask is null ? null : WorkTask.FromDto(workTasksList.ActiveWorkTask),
+                    TasksInDays = workTasksList?.WorkTasksInDay?.Select(x => new PageModel.TasksInDay(DateOnly.Parse(x.Key), x.Value.Select(x => WorkTask.FromDto(x)).ToArray())) ?? []
                 },
                 apiError => throw new DevBookException(apiError.Errors));
         }

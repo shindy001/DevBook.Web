@@ -3,7 +3,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.AddServiceDefaults();
 
 builder.Services.AddInfrastructure();
-builder.Services.AddSwaggerGen(SwaggerOptions.WithBearerAuthorization());
+builder.Services.AddSwaggerGen(SwaggerOptions.WithDevBookOptions());
 builder.Services.AddEndpointsApiExplorer()
 	.ConfigureHttpJsonOptions(opt
 		=> opt.SerializerOptions.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull);

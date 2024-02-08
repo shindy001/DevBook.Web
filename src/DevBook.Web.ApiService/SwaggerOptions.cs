@@ -2,35 +2,12 @@
 
 public static class SwaggerOptions
 {
-	public static Action<SwaggerGenOptions> WithBearerAuthorization()
+	public static Action<SwaggerGenOptions> WithDevBookOptions()
 	{
 		return opt =>
 		{
-			opt.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-			{
-				Name = "Authorization",
-				Description = "Please enter token.",
-				Scheme = "bearer",
-				In = ParameterLocation.Header,
-				Type = SecuritySchemeType.Http
-			});
-
-			opt.AddSecurityRequirement(new OpenApiSecurityRequirement
-			{
-				{
-					new OpenApiSecurityScheme
-					{
-						Reference = new OpenApiReference
-						{
-							Type = ReferenceType.SecurityScheme,
-							Id = "Bearer"
-						}
-					},
-					new List<string>()
-				}
-			});
-
 			opt.OperationFilter<SwaggerIdentityOperationIdFilter>();
+			opt.UseAllOfToExtendReferenceSchemas();
 		};
 	}
 

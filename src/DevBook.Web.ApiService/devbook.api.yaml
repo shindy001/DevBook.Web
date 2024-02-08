@@ -20,7 +20,8 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/RegisterRequest'
+              allOf:
+                - $ref: '#/components/schemas/RegisterRequest'
       responses:
         '200':
           description: Success
@@ -50,7 +51,8 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/LoginRequest'
+              allOf:
+                - $ref: '#/components/schemas/LoginRequest'
       responses:
         '200':
           description: Success
@@ -67,7 +69,8 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/RefreshRequest'
+              allOf:
+                - $ref: '#/components/schemas/RefreshRequest'
       responses:
         '200':
           description: Success
@@ -108,7 +111,8 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ResendConfirmationEmailRequest'
+              allOf:
+                - $ref: '#/components/schemas/ResendConfirmationEmailRequest'
       responses:
         '200':
           description: Success
@@ -121,7 +125,8 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ForgotPasswordRequest'
+              allOf:
+                - $ref: '#/components/schemas/ForgotPasswordRequest'
       responses:
         '200':
           description: Success
@@ -140,7 +145,8 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ResetPasswordRequest'
+              allOf:
+                - $ref: '#/components/schemas/ResetPasswordRequest'
       responses:
         '200':
           description: Success
@@ -159,7 +165,8 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/TwoFactorRequest'
+              allOf:
+                - $ref: '#/components/schemas/TwoFactorRequest'
       responses:
         '200':
           description: Success
@@ -203,7 +210,8 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/InfoRequest'
+              allOf:
+                - $ref: '#/components/schemas/InfoRequest'
       responses:
         '200':
           description: Success
@@ -241,7 +249,8 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateProjectCommand'
+              allOf:
+                - $ref: '#/components/schemas/CreateProjectCommand'
         required: true
       responses:
         '201':
@@ -284,7 +293,8 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateProjectCommandDto'
+              allOf:
+                - $ref: '#/components/schemas/UpdateProjectCommandDto'
         required: true
       responses:
         '204':
@@ -307,7 +317,8 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PatchProjectCommandDto'
+              allOf:
+                - $ref: '#/components/schemas/PatchProjectCommandDto'
         required: true
       responses:
         '204':
@@ -349,7 +360,8 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateWorkTaskCommand'
+              allOf:
+                - $ref: '#/components/schemas/CreateWorkTaskCommand'
         required: true
       responses:
         '201':
@@ -363,7 +375,8 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/StartWorkTaskCommand'
+              allOf:
+                - $ref: '#/components/schemas/StartWorkTaskCommand'
         required: true
       responses:
         '201':
@@ -406,7 +419,8 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateWorkTaskCommandDto'
+              allOf:
+                - $ref: '#/components/schemas/UpdateWorkTaskCommandDto'
         required: true
       responses:
         '204':
@@ -429,7 +443,8 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PatchWorkTaskCommandDto'
+              allOf:
+                - $ref: '#/components/schemas/PatchWorkTaskCommandDto'
         required: true
       responses:
         '204':
@@ -804,7 +819,9 @@ components:
           type: string
           format: uuid
         project:
-          $ref: '#/components/schemas/ProjectDto'
+          allOf:
+            - $ref: '#/components/schemas/ProjectDto'
+          nullable: true
         description:
           type: string
           nullable: true
@@ -826,7 +843,9 @@ components:
       type: object
       properties:
         activeWorkTask:
-          $ref: '#/components/schemas/WorkTaskDto'
+          allOf:
+            - $ref: '#/components/schemas/WorkTaskDto'
+          nullable: true
         workTasksInDay:
           type: object
           additionalProperties:
@@ -835,10 +854,3 @@ components:
               $ref: '#/components/schemas/WorkTaskDto'
           nullable: true
       additionalProperties: false
-  securitySchemes:
-    Bearer:
-      type: http
-      description: Please enter token.
-      scheme: bearer
-security:
-  - Bearer: [ ]

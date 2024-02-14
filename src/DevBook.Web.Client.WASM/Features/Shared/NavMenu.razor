@@ -9,6 +9,9 @@
 				<MudNavLink Href="/projects" Icon="@Icons.Material.Outlined.Task" Match="NavLinkMatch.Prefix">Projects</MudNavLink>
 				<MudNavLink Href="/analytics" Icon="@Icons.Material.Outlined.AutoGraph" Match="NavLinkMatch.Prefix">Analytics</MudNavLink>
 			</MudNavGroup>
+			<MudNavLink Href="/sudoku" Icon="@Icons.Material.Outlined.Games" Match="NavLinkMatch.All">
+				Sudoku
+			</MudNavLink>
 		</MudNavMenu>
 	</Authorized>
 	<NotAuthorized>
@@ -22,6 +25,9 @@
 				<MudNavLink Href="/account/login?returnUrl=/projects" Icon="@Icons.Material.Outlined.Lock" Match="NavLinkMatch.Prefix">Projects</MudNavLink>
 				<MudNavLink Href="/account/login?returnUrl=/analytics" Icon="@Icons.Material.Outlined.Lock" Match="NavLinkMatch.Prefix">Analytics</MudNavLink>
 			</MudNavGroup>
+			<MudNavLink Href="/sudoku" Icon="@Icons.Material.Outlined.Games" Match="NavLinkMatch.All">
+				Sudoku
+			</MudNavLink>
 		</MudNavMenu>
 	</NotAuthorized>
 </AuthorizeView>

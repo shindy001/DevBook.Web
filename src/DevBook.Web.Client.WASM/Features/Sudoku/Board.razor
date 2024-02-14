@@ -25,7 +25,7 @@
                             var columnIndex = c;
                             var number = _playerGrid[rowIndex][columnIndex];
                             <MudPaper
-                                Class="flex justify-center align-center border-solid border-2 border-gray-600 rounded-none cursor-pointer hover:bg-gray-800"
+                                Class="flex justify-center align-center border-solid border-2 border-gray-600 rounded-none cursor-pointer select-none hover:bg-gray-800"
                                 Style="height:64px;width:64px;"
                                 @oncontextmenu="(e) => ChangeNumber(e, rowIndex, columnIndex)"
                                 @onclick="(e) => ChangeNumber(e, rowIndex, columnIndex)">

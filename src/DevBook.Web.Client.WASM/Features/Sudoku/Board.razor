@@ -16,22 +16,21 @@
     <MudCardContent>
         <div class="flex justify-center">
             <div class="border-solid border-2 border-gray-600" oncontextmenu="return false;">
-                @for (int r = 0; r < 9; r++)
+                @foreach(var segment in _numberSegments)
                 {
-                    var rowIndex = r;
-                    <div class="flex">
-                        @for (int c = 0; c < 9; c++)
-                        {
-                            var columnIndex = c;
-                            var number = _playerGrid[rowIndex][columnIndex];
+                    <div class="flex text-lg"> 
+                    @foreach(var number in segment)
+                    {
+                        <div>
                             <MudPaper
-                                Class="flex justify-center align-center border-solid border-2 border-gray-600 rounded-none cursor-pointer select-none hover:bg-gray-800"
+                                Class="flex justify-center align-center border-solid border-2 border-gray-600 rounded-none cursor-pointer select-none hover:bg-gray-800/30"
                                 Style="height:64px;width:64px;"
-                                @oncontextmenu="(e) => ChangeNumber(e, rowIndex, columnIndex)"
-                                @onclick="(e) => ChangeNumber(e, rowIndex, columnIndex)">
-                                <MudText>@(number == 0 ? string.Empty : number)</MudText>
+                                @oncontextmenu="(e) => ChangeNumber(e, number.Id)"
+                                @onclick="(e) => ChangeNumber(e, number.Id)">
+                                <span class="@(number.IsReadOnly ? "text-green-600 font-bold" : "")">@(number.Value == 0 ? string.Empty : number.Value)</span>
                             </MudPaper>
-                        }
+                        </div>
+                    }
                     </div>
                 }
             </div>
@@ -41,26 +40,64 @@
 
 @code {
     private PageModel _pageModel = new();
-    private int[][] _playerGrid = new int[9][];
+    private Dictionary<int, SudokuNumber> _sudokuNumbers = [];
+    private IEnumerable<IGrouping<int, SudokuNumber>> _numberSegments = [];
 
     protected override async Task OnInitializedAsync()
     {
-        // Get new board
-        // Initialize it
-        Array.Copy(_pageModel.GridOrigin, _playerGrid, _pageModel.GridOrigin.Length);
+        _sudokuNumbers = GetSudokuNumbers(_pageModel.GridOrigin);
+        _numberSegments = _sudokuNumbers.Values.GroupBy(x => x.SegmentNumber);
     }
 
-    private void ChangeNumber(MouseEventArgs mouseEventArgs, int rowIndex, int columnIndex)
+    private Dictionary<int, SudokuNumber> GetSudokuNumbers(int[][] gridNumbers)
     {
-        if (mouseEventArgs.Button == 0) // Left click
+        var numbers = new Dictionary<int, SudokuNumber>();
+
+        for (int i = 0; i < gridNumbers.Length; i++)
         {
-            var currentNumber = _playerGrid[rowIndex][columnIndex];
-            _playerGrid[rowIndex][columnIndex] = currentNumber == 9 ? 0 : currentNumber+1;
+            for (int j = 0; j < gridNumbers[i].Length; j++)
+            {
+                int segmentNumber = (i / 3) * 3 + (j / 3);
+                var id = numbers.Count;
+                var number = gridNumbers[i][j];
+                numbers.Add(id, new SudokuNumber(id, segmentNumber, number, isReadOnly: number != 0));
+            }
+        }
+
+        return numbers;
+    }
+
+    private void ChangeNumber(MouseEventArgs mouseEventArgs, int numberId)
+    {
+        var currentNumber = _sudokuNumbers[numberId];
+
+        if (currentNumber.IsReadOnly)
+        {
+            return;
+        }
+        else if (mouseEventArgs.Button == 0) // Left click
+        {
+            _sudokuNumbers[numberId].Value = currentNumber.Value == 9 ? 0 : currentNumber.Value + 1;
         }
         else if (mouseEventArgs.Button == 2) // Right click
         {
-            var currentNumber = _playerGrid[rowIndex][columnIndex];
-            _playerGrid[rowIndex][columnIndex] = currentNumber == 0 ? 9 : currentNumber-1;
+            _sudokuNumbers[numberId].Value = currentNumber.Value == 0 ? 9 : currentNumber.Value - 1;
+        }
+    }
+
+    private sealed class SudokuNumber
+    {
+        public int Id { get; init; }
+        public int SegmentNumber { get; init; }
+        public int Value { get; set; }
+        public bool IsReadOnly { get; init; }
+
+        public SudokuNumber(int id, int segmentNumber, int value, bool isReadOnly)
+        {
+            this.Id = id;
+            this.SegmentNumber = segmentNumber;
+            this.Value = value;
+            this.IsReadOnly = isReadOnly;
         }
     }
 

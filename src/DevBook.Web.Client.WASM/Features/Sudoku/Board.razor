@@ -15,10 +15,10 @@
     </MudCardHeader>
     <MudCardContent>
         <div class="flex justify-center">
-            <div class="border-solid border-2 border-gray-600" oncontextmenu="return false;">
+            <div class="grid grid-cols-3 border-solid border-2 border-gray-600" oncontextmenu="return false;">
                 @foreach(var segment in _numberSegments)
                 {
-                    <div class="flex text-lg"> 
+                    <div class="grid grid-cols-3 text-lg m-1"> 
                     @foreach(var number in segment)
                     {
                         <div>

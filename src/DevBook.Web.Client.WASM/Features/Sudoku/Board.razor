@@ -5,11 +5,12 @@
 <MudCard Class="m-4">
     <MudCardHeader>
         <CardHeaderContent>
-            <div>
+            <div class="flex flex-row justify-between">
                 <MudText Typo="Typo.h5">Sudoku</MudText>
-                <MudButton StartIcon="@Icons.Material.Filled.Add" Variant="Variant.Filled" Color="Color.Primary">
-                    New Board
-                </MudButton>
+                <div class="flex gap-2">
+                    <MudButton StartIcon="@Icons.Material.Filled.Add" Variant="Variant.Filled" Color="Color.Primary">New Board</MudButton>
+                    <MudButton StartIcon="@Icons.Material.Filled.RestartAlt" Variant="Variant.Filled" Color="Color.Primary" OnClick="InitializeBoard">Reset Board</MudButton>
+                </div>
             </div>
         </CardHeaderContent>
     </MudCardHeader>
@@ -21,14 +22,14 @@
                     <div class="grid grid-cols-3 text-lg m-1"> 
                     @foreach(var number in segment)
                     {
-                        <div>
-                            <MudPaper
-                                Class="flex justify-center align-center border-solid border-2 border-gray-600 rounded-none cursor-pointer select-none hover:bg-gray-800/30"
+                        <div class="border-solid border-2 border-gray-600 rounded-none cursor-pointer select-none hover:bg-gray-800/30 @(_showInvalidSolution && number.IsInvalid ? "bg-red-900" : "")">
+                            <MudText
+                                Class="flex justify-center align-center"
                                 Style="height:64px;width:64px;"
                                 @oncontextmenu="(e) => ChangeNumber(e, number.Id)"
                                 @onclick="(e) => ChangeNumber(e, number.Id)">
                                 <span class="@(number.IsReadOnly ? "text-green-600 font-bold" : "")">@(number.Value == 0 ? string.Empty : number.Value)</span>
-                            </MudPaper>
+                            </MudText>
                         </div>
                     }
                     </div>
@@ -36,17 +37,74 @@
             </div>
         </div>
     </MudCardContent>
+    <MudCardActions Class="flex flex-col justify-center gap-8">
+        <div>
+            <MudButton StartIcon="@Icons.Material.Filled.AssignmentTurnedIn" Variant="Variant.Filled" Color="Color.Primary" OnClick="ValidateSolution">Validate</MudButton>
+        </div>
+        <div>
+        @if (_showWinMessage)
+        {
+            <MudText Class="text-green-600">Your solution is correct. Thanks for playing.</MudText>
+        }
+
+        @if (_showInvalidSolution)
+        {
+            <MudText Class="text-red-600">Your solution is invalid.</MudText>
+        }
+        </div>
+    </MudCardActions>
 </MudCard>
 
 @code {
     private PageModel _pageModel = new();
     private Dictionary<int, SudokuNumber> _sudokuNumbers = [];
+    private Dictionary<int, SudokuNumber> _solutionNumbers = [];
     private IEnumerable<IGrouping<int, SudokuNumber>> _numberSegments = [];
+    private bool _showWinMessage = false;
+    private bool _showInvalidSolution = false;
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
+        InitializeBoard();
+    }
+
+    private void InitializeBoard()
+    {
+        _showWinMessage = false;
+        _showInvalidSolution = false;
         _sudokuNumbers = GetSudokuNumbers(_pageModel.GridOrigin);
+        _solutionNumbers = GetSudokuNumbers(_pageModel.Solution);
         _numberSegments = _sudokuNumbers.Values.GroupBy(x => x.SegmentNumber);
+    }
+
+    private void ValidateSolution()
+    {
+        var isAnyNumberInvalid = false;
+
+        for (var i = 0; i < _sudokuNumbers.Count; i++)
+        {
+            var currentNumber = _sudokuNumbers[i];
+            if (currentNumber.Value == _solutionNumbers[i].Value)
+            {
+                currentNumber.IsInvalid = false;
+            }
+            else
+            {
+                currentNumber.IsInvalid = true;
+                isAnyNumberInvalid = true;
+            }
+        }
+
+        if (isAnyNumberInvalid)
+        {
+            _showWinMessage = false;
+            _showInvalidSolution = true;
+        }
+        else
+        {
+            _showInvalidSolution = false;
+            _showWinMessage = true;
+        }
     }
 
     private Dictionary<int, SudokuNumber> GetSudokuNumbers(int[][] gridNumbers)
@@ -91,6 +149,7 @@
         public int SegmentNumber { get; init; }
         public int Value { get; set; }
         public bool IsReadOnly { get; init; }
+        public bool IsInvalid { get; set; }
 
         public SudokuNumber(int id, int segmentNumber, int value, bool isReadOnly)
         {

@@ -12,6 +12,15 @@
                     <MudButton StartIcon="@Icons.Material.Filled.RestartAlt" Variant="Variant.Filled" Color="Color.Primary" OnClick="InitializeBoard">Reset Board</MudButton>
                 </div>
             </div>
+            <div>
+                How to play:
+                <ul class="list-disc ml-4">
+                    <li>Use <b>Left</b> mouse button to increase number on board.</li>
+                    <li>Use <b>Right</b> mouse button to decrease number on board.</li>
+                    <li>Validate your solution or current state by clicing on <b>Validate</b> button.</li>
+                    <li>You can also reset the board by clicking on <b>Reset</b> button.</li>
+                </ul>
+            </div>
         </CardHeaderContent>
     </MudCardHeader>
     <MudCardContent>
@@ -49,7 +58,10 @@
 
         @if (_showInvalidSolution)
         {
-            <MudText Class="text-red-600">Your solution is invalid.</MudText>
+            <div class="flex align-center gap-2">
+                <MudText Class="text-red-600">Your solution is invalid.</MudText>
+                <MudButton StartIcon="@Icons.Material.Filled.HideSource" Variant="Variant.Filled" Color="Color.Primary" OnClick="() => _showInvalidSolution = false">Hide Validation</MudButton>
+            </div>
         }
         </div>
     </MudCardActions>

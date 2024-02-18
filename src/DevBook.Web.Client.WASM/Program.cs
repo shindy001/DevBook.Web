@@ -8,6 +8,7 @@ using DevBook.Web.Client.WASM.Identity;
 using DevBook.Web.Shared.Extensions;
 using DevBook.Web.Client.WASM.ApiClient;
 using MudBlazor;
+using Blazored.LocalStorage;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
@@ -36,6 +37,9 @@ builder.Services.AddMudServices(config =>
 	config.SnackbarConfiguration.ShowTransitionDuration = 500;
 	config.SnackbarConfiguration.SnackbarVariant = Variant.Filled;
 });
+
+// blazored local storage service
+builder.Services.AddBlazoredLocalStorage();
 
 // DevBookWebApi client
 builder.Services.AddScoped<CookieHandler>();

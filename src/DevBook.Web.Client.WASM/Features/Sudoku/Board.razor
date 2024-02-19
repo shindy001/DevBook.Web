@@ -8,7 +8,7 @@
             <div class="flex flex-row justify-between">
                 <MudText Typo="Typo.h5">Sudoku</MudText>
                 <div class="flex gap-2">
-                    <MudButton StartIcon="@Icons.Material.Filled.Add" Variant="Variant.Filled" Color="Color.Primary">New Board</MudButton>
+                    <MudButton StartIcon="@Icons.Material.Filled.Add" Variant="Variant.Filled" Color="Color.Primary" OnClick="GetNewBoard">New Board</MudButton>
                     <MudButton StartIcon="@Icons.Material.Filled.RestartAlt" Variant="Variant.Filled" Color="Color.Primary" OnClick="ResetBoard">Reset Board</MudButton>
                 </div>
             </div>
@@ -17,7 +17,8 @@
                 <ul class="list-disc ml-4">
                     <li>Use <b>Left</b> mouse button to increase number on board.</li>
                     <li>Use <b>Right</b> mouse button to decrease number on board.</li>
-                    <li>Validate your solution or current state by clicing on <b>Validate</b> button.</li>
+                    <li>Validate your solution or current state by clicking on <b>Validate</b> button.</li>
+                    <li>Get a new board by clicing on <b>New Board</b> button.</li>
                     <li>You can also reset the board by clicking on <b>Reset</b> button.</li>
                 </ul>
             </div>
@@ -72,6 +73,7 @@
 @code {
     [Inject] NavigationManager NavigationManager { get; set; } = null!;
     [Inject] ILocalStorageService LocalStorage { get; set; } = null!;
+    [Inject] IExecutor Executor { get; set; } = null!;
 
     private SudokuData _sudokuData = new();
     private IEnumerable<IGrouping<int, SudokuNumber>> _currentNumbersBySegments = [];
@@ -80,32 +82,6 @@
     private bool _showInvalidSolution = false;
     private Func<object?, LocationChangedEventArgs, Task>? _saveSudokuDataFn;
 
-    private int[][] _testGridOrigin =
-    [
-        [0, 0, 0, 0, 3, 0, 0, 0, 4],
-        [3, 0, 0, 6, 2, 0, 5, 0, 0],
-        [2, 0, 8, 5, 0, 0, 0, 0, 6],
-        [0, 0, 0, 0, 1, 5, 0, 0, 8],
-        [0, 0, 5, 9, 4, 0, 0, 1, 0],
-        [0, 0, 0, 0, 6, 2, 0, 0, 0],
-        [1, 0, 6, 0, 0, 9, 0, 0, 0],
-        [8, 0, 4, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 4, 8, 0, 0, 6, 0],
-    ];
-
-    private int[][] _testGridSolution =
-    [
-        [5, 6, 9, 1, 3, 7, 8, 2, 4],
-        [3, 4, 1, 6, 2, 8, 5, 9, 7],
-        [2, 7, 8, 5, 9, 4, 1, 3, 6],
-        [6, 9, 2, 7, 1, 5, 3, 4, 8],
-        [7, 8, 5, 9, 4, 3, 6, 1, 2],
-        [4, 1, 3, 8, 6, 2, 7, 5, 9],
-        [1, 3, 6, 2, 7, 9, 4, 8, 5],
-        [8, 2, 4, 3, 5, 6, 9, 7, 1],
-        [9, 5, 7, 4, 8, 1, 2, 6, 3],
-    ];
-
     protected override async Task OnInitializedAsync()
     {
         _saveSudokuDataFn = async (object? s, LocationChangedEventArgs a) => await SaveSudokuData(s, a);
@@ -113,41 +89,58 @@
         await InitializeBoard();
     }
 
+    private async Task InitializeBoard()
+    {
+        var savedData = await GetSavedSudokuData();
+
+        _sudokuData = savedData is not null && savedData.GridSolution.Any()
+            ? _sudokuData = savedData
+            : _sudokuData = await GetSudokuData();
+
+        GroupNumbersToSegments();
+    }
+
     private async Task SaveSudokuData(object? sender, LocationChangedEventArgs e)
     {
         await LocalStorage.SetItemAsync<SudokuData>(nameof(SudokuData), _sudokuData);
     }
 
-    private async Task<SudokuData?> GetSavedData()
+    private async Task<SudokuData?> GetSavedSudokuData()
     {
         return await LocalStorage.GetItemAsync<SudokuData?>(nameof(SudokuData));
     }
 
-    private async Task InitializeBoard()
+    private async Task<SudokuData> GetSudokuData()
     {
-        // Get sudoku gridboard - async call to api
-        var savedData = await GetSavedData();
-        if (savedData is not null && savedData.GridSolution.Any())
-        {
-            _sudokuData = savedData;
-        }
-        else
-        {
-            _sudokuData.GridOrigin = _testGridOrigin;
-            _sudokuData.GridSolution = _testGridSolution;
-            _sudokuData.CurrentNumbers = GetSudokuNumbers(_testGridOrigin);
-            _sudokuData.SolutionNumbers = GetSudokuNumbers(_testGridSolution);
-        }
+        var boardData = await Executor.ExecuteQuery(new GetBoardDataQuery());
+        var gridNumbersArray = boardData.GridNumbers
+            .Select(innerCollection => innerCollection.ToArray())
+            .ToArray();
+        var solutionNumbersArray = boardData.SolutionNumbers
+            .Select(innerCollection => innerCollection.ToArray())
+            .ToArray();
 
-        _currentNumbersBySegments = _sudokuData.CurrentNumbers.Values.GroupBy(x => x.SegmentNumber);
+        return new SudokuData
+        {
+            GridOrigin = gridNumbersArray,
+            GridSolution = solutionNumbersArray,
+            CurrentNumbers = GetSudokuNumbers(gridNumbersArray),
+            SolutionNumbers = GetSudokuNumbers(solutionNumbersArray)
+        };
+    }
+
+    private async Task GetNewBoard()
+    {
+        _sudokuData = await GetSudokuData();
+        GroupNumbersToSegments();
+        HideSolutionMessages();
     }
 
     private void ResetBoard()
     {
-        _showInvalidSolution = false;
-        _showWinMessage = false;
         _sudokuData.CurrentNumbers = GetSudokuNumbers(_sudokuData.GridOrigin);
-        _currentNumbersBySegments = _sudokuData.CurrentNumbers.Values.GroupBy(x => x.SegmentNumber); 
+        _currentNumbersBySegments = _sudokuData.CurrentNumbers.Values.GroupBy(x => x.SegmentNumber);
+        HideSolutionMessages();
     }
 
     private void ValidateSolution()
@@ -170,14 +163,35 @@
 
         if (isAnyNumberInvalid)
         {
-            _showWinMessage = false;
-            _showInvalidSolution = true;
+            ShowSolutionInvalidMessage();
         }
         else
         {
-            _showInvalidSolution = false;
-            _showWinMessage = true;
+            ShowWinMessage();
         }
+    }
+
+    private void ShowWinMessage()
+    {
+        _showWinMessage = true;
+        _showInvalidSolution = false;
+    }
+
+    private void ShowSolutionInvalidMessage()
+    {
+        _showWinMessage = false;
+        _showInvalidSolution = true;
+    }
+
+    private void HideSolutionMessages()
+    {
+        _showWinMessage = false;
+        _showInvalidSolution = false;
+    }
+
+    private void GroupNumbersToSegments()
+    {
+        _currentNumbersBySegments = _sudokuData.CurrentNumbers.Values.GroupBy(x => x.SegmentNumber);
     }
 
     private Dictionary<int, SudokuNumber> GetSudokuNumbers(int[][] gridNumbers)
@@ -242,4 +256,18 @@
     }
 
     void IDisposable.Dispose() => NavigationManager.LocationChanged -= async (s, a) => await _saveSudokuDataFn!(s, a);
+
+    private sealed record GetBoardDataQuery : IQuery<BoardData>;
+
+    private sealed class GetSudokuDataQueryHandler(IDevBookWebApiActionExecutor devBookWebApiActionExecutor)
+        : IQueryHandler<GetBoardDataQuery, BoardData>
+    {
+        public async Task<BoardData> Handle(GetBoardDataQuery request, CancellationToken cancellationToken)
+        {
+            var result = await devBookWebApiActionExecutor.Execute(x => x.Sudoku_BoardAsync(cancellationToken));
+            return result.Match(
+                data => data,
+                apiError => throw new DevBookException(apiError.Errors));
+        }
+    }
 }

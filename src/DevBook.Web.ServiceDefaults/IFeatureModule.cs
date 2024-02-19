@@ -12,14 +12,14 @@ public interface IFeatureModule
 	/// <summary>
 	/// Register dependencies required by the module
 	/// </summary>
-	/// <param name="builder"></param>
+	/// <param name="services"></param>
 	/// <returns></returns>
-	IServiceCollection RegisterModule(IServiceCollection builder);
+	IServiceCollection RegisterModule(IServiceCollection services);
 
 	/// <summary>
 	/// Map endpoints required by the module
 	/// </summary>
-	/// <param name="endpoints"></param>
+	/// <param name="endpointsBuilder"></param>
 	/// <returns></returns>
-	IEndpointRouteBuilder MapEndpoints(IEndpointRouteBuilder endpoints);
+	IEndpointRouteBuilder MapEndpoints(IEndpointRouteBuilder endpointsBuilder);
 }

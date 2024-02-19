@@ -2,9 +2,9 @@
 
 internal sealed class TimeTrackingModule : IFeatureModule
 {
-	public IServiceCollection RegisterModule(IServiceCollection builder)
+	public IServiceCollection RegisterModule(IServiceCollection services)
 	{
-		return builder;
+		return services;
 	}
 
 	public IEndpointRouteBuilder MapEndpoints(IEndpointRouteBuilder endpointsBuilder)

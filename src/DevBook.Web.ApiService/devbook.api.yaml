@@ -227,6 +227,18 @@ paths:
                 $ref: '#/components/schemas/HttpValidationProblemDetails'
         '404':
           description: Not Found
+  /sudoku:
+    get:
+      tags:
+        - SudokuModule_SudokuEndpoints
+      operationId: Sudoku.Board
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BoardData'
   /projects:
     get:
       tags:
@@ -484,6 +496,27 @@ components:
         refreshToken:
           type: string
           nullable: true
+      additionalProperties: false
+    BoardData:
+      required:
+        - gridNumbers
+        - solutionNumbers
+      type: object
+      properties:
+        gridNumbers:
+          type: array
+          items:
+            type: array
+            items:
+              type: integer
+              format: int32
+        solutionNumbers:
+          type: array
+          items:
+            type: array
+            items:
+              type: integer
+              format: int32
       additionalProperties: false
     CreateProjectCommand:
       required:

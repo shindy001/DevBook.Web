@@ -10,6 +10,7 @@ builder.Services.AddEndpointsApiExplorer()
 
 builder.Services.AddAuthentication(IdentityConstants.ApplicationScheme)
 	.AddIdentityCookies();
+builder.Services.ConfigureApplicationCookie(opt => opt.Cookie.SameSite = SameSiteMode.None);
 builder.Services.AddAuthorizationBuilder();
 builder.Services.AddIdentityCore<DevBookUser>()
 	.AddEntityFrameworkStores<DevBookDbContext>()

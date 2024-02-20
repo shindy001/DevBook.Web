@@ -20,6 +20,7 @@
                     <li>Validate your solution or current state by clicking on <b>Validate</b> button.</li>
                     <li>Get a new board by clicing on <b>New Board</b> button.</li>
                     <li>You can also reset the board by clicking on <b>Reset</b> button.</li>
+                    <li>You can also use backtracking algorithm to auto solve the board. There is a 5ms delay between iterations to see it in action.</li>
                 </ul>
             </div>
         </CardHeaderContent>
@@ -36,8 +37,8 @@
                             <MudText
                                 Class="flex justify-center align-center"
                                 Style="height:64px;width:64px;"
-                                @oncontextmenu="(e) => ChangeNumber(e, number.Id)"
-                                @onclick="(e) => ChangeNumber(e, number.Id)">
+                                @oncontextmenu="(e) => ChangeNumber(e, number)"
+                                @onclick="(e) => ChangeNumber(e, number)">
                                 <span class="@(number.IsReadOnly ? "text-green-600 font-bold" : "")">@(number.Value == 0 ? string.Empty : number.Value)</span>
                             </MudText>
                         </div>
@@ -48,7 +49,11 @@
         </div>
     </MudCardContent>
     <MudCardActions Class="flex flex-col justify-center gap-8">
-        <div>
+        <div class="flex flex-col gap-2">
+            <div class="flex gap-2">
+                <MudButton StartIcon="@Icons.Material.Filled.AutoMode" Variant="Variant.Filled" Color="Color.Primary" OnClick="() => StartAutoSolver()">Auto Solve (backtracking algo with delay)</MudButton>
+                <MudButton StartIcon="@Icons.Material.Filled.Stop" Variant="Variant.Filled" Color="Color.Primary" OnClick="() => StopAutoSolver()">Stop Auto Solve</MudButton>
+            </div>
             <MudButton StartIcon="@Icons.Material.Filled.AssignmentTurnedIn" Variant="Variant.Filled" Color="Color.Primary" OnClick="ValidateSolution">Validate</MudButton>
         </div>
         <div>
@@ -60,7 +65,7 @@
         @if (_showInvalidSolution)
         {
             <div class="flex align-center gap-2">
-                <MudText Class="text-red-600">Your solution is invalid.</MudText>
+                <MudText Class="text-red-600">Your solution is invalid (according to source).</MudText>
                 <MudButton StartIcon="@Icons.Material.Filled.HideSource" Variant="Variant.Filled" Color="Color.Primary" OnClick="() => _showInvalidSolution = false">Hide Validation</MudButton>
             </div>
         }
@@ -80,6 +85,7 @@
 
     private bool _showWinMessage = false;
     private bool _showInvalidSolution = false;
+    private CancellationTokenSource _autoSolverCancellationTokenSource = new();
     private Func<object?, LocationChangedEventArgs, Task>? _saveSudokuDataFn;
 
     protected override async Task OnInitializedAsync()
@@ -131,6 +137,7 @@
 
     private async Task GetNewBoard()
     {
+        StopAutoSolver();
         _sudokuData = await GetSudokuData();
         GroupNumbersToSegments();
         HideSolutionMessages();
@@ -138,8 +145,9 @@
 
     private void ResetBoard()
     {
+        StopAutoSolver();
         _sudokuData.CurrentNumbers = GetSudokuNumbers(_sudokuData.GridOrigin);
-        _currentNumbersBySegments = _sudokuData.CurrentNumbers.Values.GroupBy(x => x.SegmentNumber);
+        _currentNumbersBySegments = _sudokuData.CurrentNumbers.SelectMany(x => x.Select(x => x)).GroupBy(x => x.SegmentNumber);
         HideSolutionMessages();
     }
 
@@ -147,17 +155,20 @@
     {
         var isAnyNumberInvalid = false;
 
-        for (var i = 0; i < _sudokuData.CurrentNumbers.Count; i++)
+        for (var i = 0; i < _sudokuData.CurrentNumbers.Length; i++)
         {
-            var currentNumber = _sudokuData.CurrentNumbers[i];
-            if (currentNumber.Value == _sudokuData.SolutionNumbers[i].Value)
+            for (var j = 0; j < _sudokuData.CurrentNumbers[i].Length; j++)
             {
-                currentNumber.IsInvalid = false;
-            }
-            else
-            {
-                currentNumber.IsInvalid = true;
-                isAnyNumberInvalid = true;
+                var currentNumber = _sudokuData.CurrentNumbers[i][j];
+                if (currentNumber.Value == _sudokuData.SolutionNumbers[i][j].Value)
+                {
+                    currentNumber.IsInvalid = false;
+                }
+                else
+                {
+                    currentNumber.IsInvalid = true;
+                    isAnyNumberInvalid = true;
+                }
             }
         }
 
@@ -191,54 +202,153 @@
 
     private void GroupNumbersToSegments()
     {
-        _currentNumbersBySegments = _sudokuData.CurrentNumbers.Values.GroupBy(x => x.SegmentNumber);
+        _currentNumbersBySegments = _sudokuData.CurrentNumbers.SelectMany(x => x.Select(x => x)).GroupBy(x => x.SegmentNumber);
     }
 
-    private Dictionary<int, SudokuNumber> GetSudokuNumbers(int[][] gridNumbers)
+    private SudokuNumber[][] GetSudokuNumbers(int[][] gridNumbers)
     {
-        var numbers = new Dictionary<int, SudokuNumber>();
+        var numbers = new List<SudokuNumber[]>();
 
         for (int i = 0; i < gridNumbers.Length; i++)
         {
+            var numberList = new List<SudokuNumber>();
             for (int j = 0; j < gridNumbers[i].Length; j++)
             {
                 int segmentNumber = (i / 3) * 3 + (j / 3);
                 var id = numbers.Count;
                 var number = gridNumbers[i][j];
-                numbers.Add(id, new SudokuNumber(id, segmentNumber, number, isReadOnly: number != 0));
+                numberList.Add(new SudokuNumber(Guid.NewGuid(), segmentNumber, number, isReadOnly: number != 0));
             }
+            numbers.Add(numberList.ToArray());
         }
 
-        return numbers;
+        return numbers.ToArray();
     }
 
-    private void ChangeNumber(MouseEventArgs mouseEventArgs, int numberId)
+    private void ChangeNumber(MouseEventArgs mouseEventArgs, SudokuNumber number)
     {
-        var currentNumber = _sudokuData.CurrentNumbers[numberId];
-
-        if (currentNumber.IsReadOnly)
+        if (number.IsReadOnly)
         {
             return;
         }
         else if (mouseEventArgs.Button == 0) // Left click
         {
-            currentNumber.Value = currentNumber.Value == 9 ? 0 : currentNumber.Value + 1;
+            number.Value = number.Value == 9 ? 0 : number.Value + 1;
         }
         else if (mouseEventArgs.Button == 2) // Right click
         {
-            currentNumber.Value = currentNumber.Value == 0 ? 9 : currentNumber.Value - 1;
+            number.Value = number.Value == 0 ? 9 : number.Value - 1;
         }
+    }
+
+    private async Task StartAutoSolver()
+    {
+        ResetBoard();
+        _autoSolverCancellationTokenSource = new CancellationTokenSource();
+        try
+        {
+            await AutoSolveSudoku(_autoSolverCancellationTokenSource.Token);
+        }
+        catch (OperationCanceledException)
+        {
+            // AutoSolver stopped
+        }
+    }
+
+    private void StopAutoSolver()
+    {
+        _autoSolverCancellationTokenSource.Cancel();
+    }
+
+    private async Task<bool> AutoSolveSudoku(CancellationToken cancellationToken, int row = 0, int column = 0)
+    {
+        if (cancellationToken.IsCancellationRequested)
+        {
+            throw new OperationCanceledException();
+        }
+
+        if (row == 9)
+        {
+            return true;
+        }
+        else if (column == 9)
+        {
+            return await AutoSolveSudoku(cancellationToken, row + 1, 0);
+        }
+        else if (_sudokuData.CurrentNumbers[row][column].Value != 0)
+        {
+            return await AutoSolveSudoku(cancellationToken, row, column + 1);
+        }
+        else
+        {
+            for(var k = 1; k < 10; k++)
+            {
+                var number = _sudokuData.CurrentNumbers[row][column];
+                if (IsNotInRow(row, column, k) && IsNotInColumn(row, column, k) && IsNotInSegment(number, k))
+                {
+                    number.Value = k;
+                    StateHasChanged();
+                    await Task.Delay(5);
+                    if (await AutoSolveSudoku(cancellationToken, row, column + 1))
+                    {
+                        return true;
+                    }
+                    number.Value = 0;
+                }
+            }
+            return false;
+        }
+    }
+
+    private bool IsNotInRow(int row, int column, int number)
+    {
+        for (var i = 0; i < _sudokuData.CurrentNumbers[row].Length; i++)
+        {
+            if (i == column)
+            {
+                continue;
+            }
+
+            if (_sudokuData.CurrentNumbers[row][i].Value == number)
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private bool IsNotInColumn(int row, int column, int number)
+    {
+        for (var i = 0; i < _sudokuData.CurrentNumbers.Length; i++)
+        {
+            if (i == row)
+            {
+                continue;
+            }
+
+            if (_sudokuData.CurrentNumbers[i][column].Value == number)
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private bool IsNotInSegment(SudokuNumber currentNumber, int nextNumber)
+    {
+        var group = _currentNumbersBySegments.FirstOrDefault(x => x.FirstOrDefault(x => x.Id == currentNumber.Id) != null);
+        return group?.Where(x => x.Id != currentNumber.Id).ToList()?.All(x => x.Value != nextNumber) ?? false;
     }
 
     private sealed class SudokuNumber
     {
-        public int Id { get; init; }
+        public Guid Id { get; init; }
         public int SegmentNumber { get; init; }
         public int Value { get; set; }
         public bool IsReadOnly { get; init; }
         public bool IsInvalid { get; set; }
 
-        public SudokuNumber(int id, int segmentNumber, int value, bool isReadOnly)
+        public SudokuNumber(Guid id, int segmentNumber, int value, bool isReadOnly)
         {
             this.Id = id;
             this.SegmentNumber = segmentNumber;
@@ -249,8 +359,8 @@
 
     private sealed record SudokuData
     {
-        public Dictionary<int, SudokuNumber> CurrentNumbers { get; set; } = [];
-        public Dictionary<int, SudokuNumber> SolutionNumbers { get; set; } = [];
+        public SudokuNumber[][] CurrentNumbers { get; set; } = [];
+        public SudokuNumber[][] SolutionNumbers { get; set; } = [];
         public int[][] GridOrigin { get; set; } = [];
         public int[][] GridSolution { get; set; } = [];
     }

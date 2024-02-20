@@ -22,10 +22,10 @@ jobs:
           dotnet-version: '8.0.x'
 
       - name: Build
-        run: dotnet build ./src/DevBook.Web.ApiService.csproj --configuration Release
+        run: dotnet build ./src/DevBook.Web.ApiService/DevBook.Web.ApiService.csproj --configuration Release
 
       - name: Publish
-        run: dotnet publish --configuration Release --no-build -output ${{env.DOTNET_ROOT}}/publish
+        run: dotnet publish ./src/DevBook.Web.ApiService/DevBook.Web.ApiService.csproj --configuration Release --no-build -output ${{env.DOTNET_ROOT}}/publish
 
       - name: Upload artifacts for deployment
         uses: actions/upload-artifact@v3

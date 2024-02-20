@@ -22,6 +22,7 @@
                     <li>You can also reset the board by clicking on <b>Reset</b> button.</li>
                     <li>You can also use backtracking algorithm to auto solve the board. There is a 5ms delay between iterations to see it in action.</li>
                 </ul>
+                <MudText Class="italic mt-2">Note: Some boards have multiple valid solutions.</MudText>
             </div>
         </CardHeaderContent>
     </MudCardHeader>
@@ -65,7 +66,7 @@
         @if (_showInvalidSolution)
         {
             <div class="flex align-center gap-2">
-                <MudText Class="text-red-600">Your solution is invalid (according to source).</MudText>
+                <MudText Class="text-red-600">Your solution is invalid.</MudText>
                 <MudButton StartIcon="@Icons.Material.Filled.HideSource" Variant="Variant.Filled" Color="Color.Primary" OnClick="() => _showInvalidSolution = false">Hide Validation</MudButton>
             </div>
         }
@@ -99,7 +100,7 @@
     {
         var savedData = await GetSavedSudokuData();
 
-        _sudokuData = savedData is not null && savedData.GridSolution.Any()
+        _sudokuData = savedData is not null && savedData.CurrentNumbers.Any()
             ? _sudokuData = savedData
             : _sudokuData = await GetSudokuData();
 
@@ -122,16 +123,11 @@
         var gridNumbersArray = boardData.GridNumbers
             .Select(innerCollection => innerCollection.ToArray())
             .ToArray();
-        var solutionNumbersArray = boardData.SolutionNumbers
-            .Select(innerCollection => innerCollection.ToArray())
-            .ToArray();
 
         return new SudokuData
         {
             GridOrigin = gridNumbersArray,
-            GridSolution = solutionNumbersArray,
             CurrentNumbers = GetSudokuNumbers(gridNumbersArray),
-            SolutionNumbers = GetSudokuNumbers(solutionNumbersArray)
         };
     }
 
@@ -160,7 +156,7 @@
             for (var j = 0; j < _sudokuData.CurrentNumbers[i].Length; j++)
             {
                 var currentNumber = _sudokuData.CurrentNumbers[i][j];
-                if (currentNumber.Value == _sudokuData.SolutionNumbers[i][j].Value)
+                if (currentNumber.Value != 0 && IsValidNumber(i, j, currentNumber, currentNumber.Value))
                 {
                     currentNumber.IsInvalid = false;
                 }
@@ -260,6 +256,7 @@
         _autoSolverCancellationTokenSource.Cancel();
     }
 
+    // TODO - simplify auto solve algo
     private async Task<bool> AutoSolveSudoku(CancellationToken cancellationToken, int row = 0, int column = 0)
     {
         if (cancellationToken.IsCancellationRequested)
@@ -284,11 +281,12 @@
             for(var k = 1; k < 10; k++)
             {
                 var number = _sudokuData.CurrentNumbers[row][column];
-                if (IsNotInRow(row, column, k) && IsNotInColumn(row, column, k) && IsNotInSegment(number, k))
+                if (IsValidNumber(row, column, number, k))
                 {
                     number.Value = k;
                     StateHasChanged();
                     await Task.Delay(5);
+
                     if (await AutoSolveSudoku(cancellationToken, row, column + 1))
                     {
                         return true;
@@ -298,6 +296,13 @@
             }
             return false;
         }
+    }
+
+    private bool IsValidNumber(int row, int column, SudokuNumber currentNumber, int nextNumber)
+    {
+        return IsNotInRow(row, column, nextNumber)
+            && IsNotInColumn(row, column, nextNumber)
+            && IsNotInSegment(currentNumber, nextNumber);
     }
 
     private bool IsNotInRow(int row, int column, int number)
@@ -360,9 +365,7 @@
     private sealed record SudokuData
     {
         public SudokuNumber[][] CurrentNumbers { get; set; } = [];
-        public SudokuNumber[][] SolutionNumbers { get; set; } = [];
         public int[][] GridOrigin { get; set; } = [];
-        public int[][] GridSolution { get; set; } = [];
     }
 
     void IDisposable.Dispose() => NavigationManager.LocationChanged -= async (s, a) => await _saveSudokuDataFn!(s, a);

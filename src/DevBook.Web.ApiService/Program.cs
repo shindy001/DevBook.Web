@@ -8,13 +8,7 @@ builder.Services.AddEndpointsApiExplorer()
 	.ConfigureHttpJsonOptions(opt
 		=> opt.SerializerOptions.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull);
 
-builder.Services.AddAuthentication(IdentityConstants.ApplicationScheme)
-	.AddIdentityCookies();
-builder.Services.ConfigureApplicationCookie(opt =>
-{
-	opt.Cookie.SameSite = SameSiteMode.None;
-	opt.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-});
+builder.Services.AddAuthentication().AddBearerToken(IdentityConstants.BearerScheme, opt => opt.BearerTokenExpiration = TimeSpan.FromMinutes(30));
 builder.Services.AddAuthorizationBuilder();
 builder.Services.AddIdentityCore<DevBookUser>()
 	.AddEntityFrameworkStores<DevBookDbContext>()
@@ -52,6 +46,9 @@ if (app.Environment.IsDevelopment())
 app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 
 app.UseCors("DevBookClient");
+app.UseAuthentication();
+app.UseAuthorization();
+
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
@@ -61,15 +58,6 @@ app.MapDefaultEndpoints();
 app.MapGroup("/identity")
 	.MapIdentityApi<DevBookUser>()
 	.WithTags($"Identity");
-
-// provide an end point to clear the cookie for logout
-app.MapPost("/identity/logout", async (ClaimsPrincipal user, SignInManager<DevBookUser> signInManager) =>
-{
-	await signInManager.SignOutAsync();
-	return TypedResults.Ok();
-})
-	.WithTags($"Identity")
-	.RequireAuthorization();
 
 app.MapFeatureModulesEndpoints();
 

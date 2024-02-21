@@ -6,6 +6,30 @@ public static class SwaggerOptions
 	{
 		return opt =>
 		{
+			// Swagger Bearer auth
+			opt.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+			{
+				Name = "Authorization",
+				Description = "Please enter token.",
+				Scheme = "bearer",
+				In = ParameterLocation.Header,
+				Type = SecuritySchemeType.Http
+			});
+			opt.AddSecurityRequirement(new OpenApiSecurityRequirement
+			{
+				{
+					new OpenApiSecurityScheme
+					{
+						Reference = new OpenApiReference
+						{
+							Type = ReferenceType.SecurityScheme,
+							Id = "Bearer"
+						}
+					},
+					new List<string>()
+				}
+			});
+
 			opt.OperationFilter<SwaggerIdentityOperationIdFilter>();
 			opt.UseAllOfToExtendReferenceSchemas();
 		};

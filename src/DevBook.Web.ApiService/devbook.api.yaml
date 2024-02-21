@@ -3,14 +3,6 @@ info:
   title: 'DevBook.Web.ApiService, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'
   version: '1.0'
 paths:
-  /identity/logout:
-    post:
-      tags:
-        - Identity
-      operationId: Identity.Logout
-      responses:
-        '200':
-          description: Success
   /identity/register:
     post:
       tags:
@@ -887,3 +879,10 @@ components:
               $ref: '#/components/schemas/WorkTaskDto'
           nullable: true
       additionalProperties: false
+  securitySchemes:
+    Bearer:
+      type: http
+      description: Please enter token.
+      scheme: bearer
+security:
+  - Bearer: [ ]

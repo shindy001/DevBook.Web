@@ -18,7 +18,7 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddOptions();
 builder.Services.AddAuthorizationCore();
-builder.Services.AddScoped<AuthenticationStateProvider, CookieAuthenticationStateProvider>();
+builder.Services.AddScoped<AuthenticationStateProvider, TokenAuthenticationStateProvider>();
 builder.Services.AddScoped(sp => (IAccountManagement)sp.GetRequiredService<AuthenticationStateProvider>());
 
 // register command/queries support
@@ -42,10 +42,10 @@ builder.Services.AddMudServices(config =>
 builder.Services.AddBlazoredLocalStorage();
 
 // DevBookWebApi client
-builder.Services.AddScoped<CookieHandler>();
+builder.Services.AddScoped<TokenHandler>();
 builder.Services.AddHttpClient<IDevBookWebApiClient, DevBookWebApiClient>(
 	opt => opt.BaseAddress = new Uri("https://localhost:7126")) // use direct address, .net Aspire(AppHost proj) discovery does not seem to work for WASM
-	.AddHttpMessageHandler<CookieHandler>();
+	.AddHttpMessageHandler<TokenHandler>();
 builder.Services.AddScoped<IDevBookWebApiActionExecutor, DevBookWebApiActionExecutor>();
 
 await builder.Build().RunAsync();

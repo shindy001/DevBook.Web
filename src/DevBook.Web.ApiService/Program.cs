@@ -8,7 +8,7 @@ builder.Services.AddEndpointsApiExplorer()
 	.ConfigureHttpJsonOptions(opt
 		=> opt.SerializerOptions.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull);
 
-builder.Services.AddAuthentication().AddBearerToken(IdentityConstants.BearerScheme, opt => opt.BearerTokenExpiration = TimeSpan.FromSeconds(30));
+builder.Services.AddAuthentication().AddBearerToken(IdentityConstants.BearerScheme, opt => opt.BearerTokenExpiration = TimeSpan.FromMinutes(30));
 builder.Services.AddAuthorizationBuilder();
 builder.Services.AddIdentityCore<DevBookUser>()
 	.AddEntityFrameworkStores<DevBookDbContext>()

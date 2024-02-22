@@ -10,6 +10,8 @@ using DevBook.Web.Client.WASM.ApiClient;
 using MudBlazor;
 using Blazored.LocalStorage;
 
+Uri DevBookWebApiUri = new("https://localhost:7126");
+
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
@@ -41,11 +43,14 @@ builder.Services.AddMudServices(config =>
 // blazored local storage service
 builder.Services.AddBlazoredLocalStorage();
 
-// DevBookWebApi client
-builder.Services.AddScoped<TokenHandler>();
-builder.Services.AddHttpClient<IDevBookWebApiClient, DevBookWebApiClient>(
-	opt => opt.BaseAddress = new Uri("https://localhost:7126")) // use direct address, .net Aspire(AppHost proj) discovery does not seem to work for WASM
-	.AddHttpMessageHandler<TokenHandler>();
+// DevBookWebApiFactory creates defautl api client with no delegating handler
+builder.Services.AddHttpClient<IDevBookWebApiClientFactory, DevBookWebApiClientFactory>(opt => opt.BaseAddress = DevBookWebApiUri);
+builder.Services.AddScoped<ITokenService, TokenService>();
+
+// DevBookWebApi with delegating handler that also handles auto token refresh
+builder.Services.AddHttpClient<IDevBookWebApiClient, DevBookWebApiClient>(opt => opt.BaseAddress = DevBookWebApiUri)
+	.AddHttpMessageHandler<TokenDelegatingHandler>();
+builder.Services.AddScoped<TokenDelegatingHandler>();
 builder.Services.AddScoped<IDevBookWebApiActionExecutor, DevBookWebApiActionExecutor>();
 
 await builder.Build().RunAsync();

@@ -35,10 +35,4 @@ public interface IAccountManagement
 	/// </summary>
 	/// <returns>true if authenticated</returns>
 	public Task<bool> CheckAuthenticatedAsync();
-
-	/// <summary>
-	/// Refresh tokens.
-	/// </summary>
-	/// <returns>The result of the request serialized to <see cref="Success"/> or <see cref="ApiError"/>.</returns>
-	public Task<OneOf<Success, ApiError>> RefreshTokensAsync();
 }

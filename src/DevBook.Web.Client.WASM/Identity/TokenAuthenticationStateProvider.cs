@@ -1,5 +1,4 @@
-﻿using Blazored.LocalStorage;
-using DevBook.Web.Client.WASM.ApiClient;
+﻿using DevBook.Web.Client.WASM.ApiClient;
 using DevBook.WebApiClient.Generated;
 using Microsoft.AspNetCore.Components.Authorization;
 using OneOf;
@@ -11,7 +10,7 @@ namespace DevBook.Web.Client.WASM.Identity;
 
 internal sealed class TokenAuthenticationStateProvider(
 	IDevBookWebApiActionExecutor _devBookWebApiActionExecutor,
-	ILocalStorageService _localStorageService)
+	ITokenService _tokenService)
 	: AuthenticationStateProvider, IAccountManagement
 {
 	/// <summary>
@@ -51,7 +50,7 @@ internal sealed class TokenAuthenticationStateProvider(
 
 		if (result.IsT0 && result.AsT0 is AccessTokenResponse tokenResponse && tokenResponse is not null)
 		{
-			await SetTokens(tokenResponse.AccessToken ?? string.Empty, tokenResponse.RefreshToken ?? string.Empty);
+			await _tokenService.SetTokens(tokenResponse.AccessToken, tokenResponse.RefreshToken);
 			NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
 			return new Success();
 		}
@@ -69,7 +68,7 @@ internal sealed class TokenAuthenticationStateProvider(
 	/// </summary>
 	public async Task LogoutAsync()
 	{
-		await RemoveTokens();
+		await _tokenService.RemoveTokens();
 		NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
 	}
 
@@ -90,37 +89,10 @@ internal sealed class TokenAuthenticationStateProvider(
 
 		if (result.IsT1 && result.AsT1 is ApiError apiError && apiError.StatusCode is HttpStatusCode.Unauthorized)
 		{
-			var refreshResponse = await RefreshTokensAsync();
-			refreshResponse.Switch(
-				async success =>
-				{
-					var resultRetry = await _devBookWebApiActionExecutor.Execute(x => x.Identity_ManageInfoGETAsync());
-					userInfo = result.IsT0 ? result.AsT0 : null;
-				},
-				apiError => { });
+			_ = await _tokenService.RefreshTokens();
 		}
 
 		return GetAuthenticationState(userInfo);
-	}
-
-	// TODO - extract to TokenService
-	public async Task<OneOf<Success, ApiError>> RefreshTokensAsync()
-	{
-		var refreshToken = await _localStorageService.GetItemAsStringAsync(IdentityConstants.RefreshTokenName);
-
-		if (string.IsNullOrWhiteSpace(refreshToken))
-		{
-			return new ApiError(HttpStatusCode.PreconditionFailed, ["RefreshToken not found"]);
-		}
-
-		var response = await _devBookWebApiActionExecutor.Execute(x => x.Identity_RefreshAsync(new RefreshRequest { RefreshToken = refreshToken }));
-		return await response.Match<Task<OneOf<Success, ApiError>>>(
-			async successResponse =>
-			{
-				await SetTokens(successResponse.AccessToken, successResponse.RefreshToken);
-				return new Success();
-			},
-			async apiError => { return await Task.FromResult(new ApiError(apiError.StatusCode, apiError.Errors)); });
 	}
 
 	private AuthenticationState GetAuthenticationState(InfoResponse? userInfo)
@@ -143,18 +115,5 @@ internal sealed class TokenAuthenticationStateProvider(
 		_isAuthenticated = !string.IsNullOrWhiteSpace(userInfo?.Email);
 
 		return new AuthenticationState(user);
-	}
-
-	// TODO - extract to TokenService
-	private async Task SetTokens(string? accessToken, string? refreshToken)
-	{
-		await _localStorageService.SetItemAsStringAsync(IdentityConstants.TokenName, accessToken ?? string.Empty);
-		await _localStorageService.SetItemAsStringAsync(IdentityConstants.RefreshTokenName, refreshToken ?? string.Empty);
-	}
-
-	// TODO - extract to TokenService
-	private async Task RemoveTokens()
-	{
-		await _localStorageService.RemoveItemsAsync([IdentityConstants.TokenName, IdentityConstants.RefreshTokenName]);
 	}
 }

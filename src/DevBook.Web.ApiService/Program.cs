@@ -1,6 +1,6 @@
 var builder = WebApplication.CreateBuilder(args);
 
-var corsProductionOrigin = builder.Configuration.GetValue<string>("CorsProductionOrigin")!;
+var DevBookClientOrigin = builder.Configuration.GetValue<string>("DevBookClientOrigin")!;
 builder.AddServiceDefaults();
 
 builder.Services.AddInfrastructure();
@@ -18,7 +18,7 @@ builder.Services.AddIdentityCore<DevBookUser>()
 builder.Services.AddCors(options =>
 {
 	options.AddPolicy("DevBookClient", 
-		p => p.WithOrigins("http://localhost:5240", "https://localhost:7136", corsProductionOrigin)
+		p => p.WithOrigins(DevBookClientOrigin)
 		.AllowAnyMethod()
 		.SetIsOriginAllowed(isAllowed => true)
 		.AllowAnyHeader()

@@ -10,11 +10,11 @@ using DevBook.Web.Client.WASM.ApiClient;
 using MudBlazor;
 using Blazored.LocalStorage;
 
-Uri DevBookWebApiUri = new("https://localhost:7126");
-
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
+
+Uri DevBookWebApiUri = new(builder.Configuration["DevBookApiAddress"] ?? string.Empty);
 
 // set up authorization
 builder.Services.AddCascadingAuthenticationState();
@@ -53,4 +53,6 @@ builder.Services.AddHttpClient<IDevBookWebApiClient, DevBookWebApiClient>(opt =>
 builder.Services.AddScoped<TokenDelegatingHandler>();
 builder.Services.AddScoped<IDevBookWebApiActionExecutor, DevBookWebApiActionExecutor>();
 
+Console.WriteLine(
+	$"Client Hosting Environment: {builder.HostEnvironment.Environment}");
 await builder.Build().RunAsync();

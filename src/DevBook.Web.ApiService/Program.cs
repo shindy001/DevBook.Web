@@ -1,5 +1,6 @@
 var builder = WebApplication.CreateBuilder(args);
 
+var corsProductionOrigin = builder.Configuration.GetValue<string>("CorsProductionOrigin")!;
 builder.AddServiceDefaults();
 
 builder.Services.AddInfrastructure();
@@ -14,11 +15,10 @@ builder.Services.AddIdentityCore<DevBookUser>()
 	.AddEntityFrameworkStores<DevBookDbContext>()
 	.AddApiEndpoints();
 
-// TODO - also setup cors origins for production
 builder.Services.AddCors(options =>
 {
 	options.AddPolicy("DevBookClient", 
-		p => p.WithOrigins("http://localhost:5240", "https://localhost:7136")
+		p => p.WithOrigins("http://localhost:5240", "https://localhost:7136", corsProductionOrigin)
 		.AllowAnyMethod()
 		.SetIsOriginAllowed(isAllowed => true)
 		.AllowAnyHeader()

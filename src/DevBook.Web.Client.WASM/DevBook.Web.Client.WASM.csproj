@@ -49,16 +49,9 @@
     <ProjectReference Include="..\DevBook.Web.Shared\DevBook.Web.Shared.csproj" />
   </ItemGroup>
 
-  <Target Name="RunTailwindGen" AfterTargets="BeforePublish">
-    <Message Importance="high" Text="Make sure that your machine supports included tailwindcss.exe (win-x64)..." />
-    <Message Importance="high" Text="Generating tailwind.css..." />
-    <Exec Command="$(ProjectDir)tailwindcss.exe -i ./Styles/tailwind.css -o ./wwwroot/tailwind.css" Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Windows)))' " />
-    <Exec Command="$(ProjectDir)tailwindcss-linux -i ./Styles/tailwind.css -o ./wwwroot/tailwind.css" Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Linux)))' " />
-  </Target>
-
-  <!-- Start tailwindcss.exe in watch mode for hot reload - spawns a new powershell window after debug build/rebuild -->
+  <!-- Start tailwindcss in watch mode for hot reload - spawns a new powershell window after debug build/rebuild -->
   <Target Name="StartTailwindWatch" AfterTargets="AfterBuild; AfterRebuild" Condition="'$(Configuration)' == 'Debug'">
-    <Message Importance="high" Text="Make sure that your machine supports included tailwindcss.exe (win-x64)..." />
+    <Message Importance="high" Text="Make sure that your machine has setup tailwindcss (executable available in env path)..." />
     <Message Importance="high" Text="Starting tailwind watch..." />
     <Exec Command="powershell Start-Process $(ProjectDir)tailwindwatch.bat" Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Windows)))' " />
   </Target>

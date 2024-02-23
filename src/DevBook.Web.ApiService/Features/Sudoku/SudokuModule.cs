@@ -18,8 +18,7 @@ internal sealed class SudokuModule : IFeatureModule
 		endpointsBuilder
 			.MapGroup("/sudoku")
 			.MapSudokuEndpoints()
-			.WithTags($"{nameof(SudokuModule)}_{nameof(SudokuEndpoints)}")
-			.RequireAuthorization();
+			.WithTags($"{nameof(SudokuModule)}_{nameof(SudokuEndpoints)}");
 
 		return endpointsBuilder;
 	}

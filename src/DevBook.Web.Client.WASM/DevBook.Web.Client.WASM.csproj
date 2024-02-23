@@ -27,7 +27,7 @@
       <Namespace>DevBook.WebApiClient.Generated</Namespace>
       <ClassName>DevBookWebApiClient</ClassName>
       <OutputPath>$(ProjectDir)ApiClient\Generated\IDevBookWebApiClient.cs</OutputPath>
-      <Options>/OperationGenerationMode:MultipleClientsFromOperationId /GenerateNullableReferenceTypes:true /GenerateClientInterfaces:true /UseBaseUrl:false"</Options>
+      <Options>/OperationGenerationMode:MultipleClientsFromOperationId /GenerateNullableReferenceTypes:true /GenerateClientInterfaces:true /UseBaseUrl:false</Options>
     </OpenApiReference>
   </ItemGroup>
   

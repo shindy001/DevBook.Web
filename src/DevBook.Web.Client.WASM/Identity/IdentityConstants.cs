@@ -2,6 +2,7 @@
 
 public static class IdentityConstants
 {
-	public static readonly string TokenName = "token";
-	public static readonly string RefreshTokenName = "refreshtoken";
+	public static readonly string Token = "token";
+	public static readonly string RefreshToken = "refreshtoken";
+	public static readonly string TokenExpireAt = "expires";
 }

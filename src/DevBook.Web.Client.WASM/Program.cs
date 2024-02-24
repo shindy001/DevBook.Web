@@ -16,6 +16,8 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 
 Uri DevBookWebApiUri = new(builder.Configuration["DevBookApiAddress"] ?? string.Empty);
 
+builder.Services.AddSingleton(TimeProvider.System);
+
 // set up authorization
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddOptions();

@@ -7,31 +7,43 @@ namespace DevBook.Web.Client.WASM.Identity;
 internal interface ITokenService
 {
 	public Task<string> GetToken();
-	public Task SetTokens(string? token, string? refreshToken);
+	public Task SetTokens(string? token, string? refreshToken, long tokenExpiresInSeconds);
 	public Task RemoveTokens();
 	public Task<bool> RefreshTokens();
+	Task<bool> IsTokenValid();
 }
 
-internal sealed class TokenService(IDevBookWebApiClientFactory _devBookWebApiClientFactory, ILocalStorageService _localStorageService) : ITokenService
+internal sealed class TokenService(
+	IDevBookWebApiClientFactory _devBookWebApiClientFactory,
+	ILocalStorageService _localStorageService,
+	TimeProvider _timeProvider)
+	: ITokenService
 {
 	private readonly IDevBookWebApiClient _devBookWebApiClient = _devBookWebApiClientFactory.Create();
 
 	public async Task<string> GetToken()
 	{
-		return await _localStorageService.GetItemAsStringAsync(IdentityConstants.TokenName) ?? string.Empty;
+		return await _localStorageService.GetItemAsStringAsync(IdentityConstants.Token) ?? string.Empty;
 	}
 
-	public async Task SetTokens(string? token, string? refreshToken)
+	public async Task SetTokens(string? token, string? refreshToken, long tokenExpiresInSeconds)
 	{
-		await _localStorageService.SetItemAsStringAsync(IdentityConstants.TokenName, token ?? string.Empty);
-		await _localStorageService.SetItemAsStringAsync(IdentityConstants.RefreshTokenName, refreshToken ?? string.Empty);
+		var expiresAt = _timeProvider.GetUtcNow().AddSeconds(tokenExpiresInSeconds);
+		await _localStorageService.SetItemAsStringAsync(IdentityConstants.Token, token ?? string.Empty);
+		await _localStorageService.SetItemAsStringAsync(IdentityConstants.RefreshToken, refreshToken ?? string.Empty);
+		await _localStorageService.SetItemAsStringAsync(IdentityConstants.TokenExpireAt, expiresAt.ToString("o"));
+	}
+
+	public async Task RemoveTokens()
+	{
+		await _localStorageService.RemoveItemsAsync([IdentityConstants.Token, IdentityConstants.RefreshToken, IdentityConstants.TokenExpireAt]);
 	}
 
 	public async Task<bool> RefreshTokens()
 	{
 		try
 		{
-			var refreshToken = await _localStorageService.GetItemAsStringAsync(IdentityConstants.RefreshTokenName);
+			var refreshToken = await _localStorageService.GetItemAsStringAsync(IdentityConstants.RefreshToken);
 
 			if (string.IsNullOrWhiteSpace(refreshToken))
 			{
@@ -39,7 +51,7 @@ internal sealed class TokenService(IDevBookWebApiClientFactory _devBookWebApiCli
 			}
 
 			var response = await _devBookWebApiClient.Identity_RefreshAsync(new RefreshRequest { RefreshToken = refreshToken });
-			await SetTokens(response.AccessToken, response.RefreshToken);
+			await SetTokens(response.AccessToken, response.RefreshToken, response.ExpiresIn);
 			return true;
 		}
 		catch (ApiException)
@@ -48,8 +60,9 @@ internal sealed class TokenService(IDevBookWebApiClientFactory _devBookWebApiCli
 		}
 	}
 
-	public async Task RemoveTokens()
+	public async Task<bool> IsTokenValid()
 	{
-		await _localStorageService.RemoveItemsAsync([IdentityConstants.TokenName, IdentityConstants.RefreshTokenName]);
+		var token = await _localStorageService.GetItemAsStringAsync(IdentityConstants.TokenExpireAt);
+		return !string.IsNullOrWhiteSpace(token) && DateTimeOffset.Parse(token) > _timeProvider.GetUtcNow();
 	}
 }

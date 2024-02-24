@@ -50,7 +50,7 @@ internal sealed class TokenAuthenticationStateProvider(
 
 		if (result.IsT0 && result.AsT0 is AccessTokenResponse tokenResponse && tokenResponse is not null)
 		{
-			await _tokenService.SetTokens(tokenResponse.AccessToken, tokenResponse.RefreshToken);
+			await _tokenService.SetTokens(tokenResponse.AccessToken, tokenResponse.RefreshToken, tokenResponse.ExpiresIn);
 			NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
 			return new Success();
 		}
@@ -84,12 +84,11 @@ internal sealed class TokenAuthenticationStateProvider(
 
 	public async override Task<AuthenticationState> GetAuthenticationStateAsync()
 	{
-		var result = await _devBookWebApiActionExecutor.Execute(x => x.Identity_ManageInfoGETAsync());
-		InfoResponse? userInfo = result.IsT0 ? result.AsT0 : null;
-
-		if (result.IsT1 && result.AsT1 is ApiError apiError && apiError.StatusCode is HttpStatusCode.Unauthorized)
+		InfoResponse? userInfo = null;
+		if (await _tokenService.IsTokenValid() || await _tokenService.RefreshTokens())
 		{
-			_ = await _tokenService.RefreshTokens();
+			var result = await _devBookWebApiActionExecutor.Execute(x => x.Identity_ManageInfoGETAsync());
+			userInfo = result.IsT0 ? result.AsT0 : null;
 		}
 
 		return GetAuthenticationState(userInfo);

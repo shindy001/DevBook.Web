@@ -40,6 +40,9 @@
     [SupplyParameterFromQuery(Name = "returnUrl")]
     public string? ReturnUrl { get; set; }
 
+    [SupplyParameterFromQuery(Name = "email")]
+    public string? QueryEmail { get; set; }
+
     [Inject] IAccountManagement AccountManagement { get; init; } = null!;
     [Inject] NavigationManager NavigationManager { get; init; } = null!;
 
@@ -48,6 +51,14 @@
 
     bool showLoginErrors;
     string[] loginErrors = [];
+
+    protected override void OnInitialized()
+    {
+        if (!string.IsNullOrWhiteSpace(QueryEmail))
+        {
+            _loginForm.Email = QueryEmail;
+        }
+    }
 
     private async Task OnValidSubmit()
     {

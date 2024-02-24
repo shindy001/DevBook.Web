@@ -43,6 +43,7 @@
 
   <ItemGroup>
     <Folder Include="ApiClient\Generated\" />
+    <Folder Include="wwwroot\css\tailwind\" />
   </ItemGroup>
 
   <ItemGroup>

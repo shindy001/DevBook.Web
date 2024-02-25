@@ -11,13 +11,13 @@
 			OnClick="MenuDrawerToggle" />
 		<MudText Typo="Typo.h5" Class="ml-3">DevBook</MudText>
 		<MudSpacer />
-		<div>
+		<div class="flex items-center">
 			<AuthorizeView>
 				<Authorized>
-					<MudButton
-						Variant="Variant.Outlined"
-						Color="@(_isDarkModeEnabled ? Color.Primary : Color.Inherit)"
-						Href="/account/logout">
+					<MudText Class="m-2">@context.User.Identity?.Name</MudText>
+					<MudButton Variant="Variant.Outlined"
+							   Color="@(_isDarkModeEnabled ? Color.Primary : Color.Inherit)"
+							   Href="/account/logout">
 						Logout
 					</MudButton>
 				</Authorized>
@@ -30,6 +30,7 @@
 					</MudButton>
 				</NotAuthorized>
 			</AuthorizeView>
+
 			<MudTooltip Delay="_tooltipDelayInMs" Text="Toggle Dark Mode" Placement="Placement.Bottom">
 				<MudIconButton
 					Class='@(_isDarkModeEnabled ? "d-none" : "")'

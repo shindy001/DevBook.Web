@@ -548,6 +548,10 @@ video {
   margin: 0.25rem;
 }
 
+.m-2 {
+  margin: 0.5rem;
+}
+
 .m-4 {
   margin: 1rem;
 }
@@ -747,12 +751,12 @@ video {
   background-color: rgb(127 29 29 / var(--tw-bg-opacity));
 }
 
-.p-4 {
-  padding: 1rem;
-}
-
 .p-1 {
   padding: 0.25rem;
+}
+
+.p-4 {
+  padding: 1rem;
 }
 
 .text-center {

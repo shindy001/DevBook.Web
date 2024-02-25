@@ -1,7 +1,7 @@
 ﻿@page "/tasks"
 
 <PageTitle>Tasks</PageTitle>
-<div class="flex m-4 space-x-4 overflow-y-auto">
+<div class="flex space-x-4 overflow-y-auto p-4">
     <MudCard Class="grow">
         <MudCardHeader>
             <CardHeaderContent>
@@ -9,7 +9,7 @@
             </CardHeaderContent>
         </MudCardHeader>
         <MudCardContent>
-            <div class="flex flex-col items-start">
+            <div class="flex flex-col items-start p-1">
                 <MudButton Class="flex-none" StartIcon="@Icons.Material.Filled.Add" Color="Color.Primary" OnClick="() => ShowCreateTaskDetailCard()">Add New Task</MudButton>
                 @if(_pageModel.RunningTask is null)
                 {
@@ -115,6 +115,7 @@
         return (end - start)?.Humanize(2, minUnit: TimeUnit.Second) ?? string.Empty;
     }
 
+    // TODO move earnings calculation to the server (per day summaries grouped by currency)
     private string CalculateEarningsPerDay(PageModel.TasksInDay tasksInDay)
     {
         double earnings = 0;

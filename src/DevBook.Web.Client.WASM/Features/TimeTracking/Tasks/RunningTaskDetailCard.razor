@@ -10,6 +10,28 @@
                 <MudCardContent>
                     <MudTextField Label="Description" @bind-Value="_updateRunningTaskForm.Description" For="@(() => _updateRunningTaskForm.Description)" />
                     <MudTextField Label="Details" Class="mt-3" @bind-Value="_updateRunningTaskForm.Details" For="@(() => _updateRunningTaskForm.Details)" />
+                    <MudSelect T="Project" @bind-Value="_updateRunningTaskForm.Project" Label="Project" AnchorOrigin="Origin.BottomCenter">
+                        @if (!_updateRunningTaskForm.AvailableProjects.Any())
+                        {
+                            <MudSelectItem T="Project" Value="@(null)">
+                                    <div class="flex">
+                                        <MudText>No projects, </MudText>
+                                        <MudLink Href="projects/create" Class="ml-3">Create New Here</MudLink>
+                                    </div>
+                            </MudSelectItem>
+                        } else
+                        {
+                            @foreach(var project in _updateRunningTaskForm.AvailableProjects)
+                            {
+                                <MudSelectItem Value="@project">
+                                    <div class="flex">
+                                        <div style="color: @project.HexColor"><MudIcon Icon="@Icons.Material.Filled.Circle" /></div>
+                                        <MudText Class="ml-3">@project.Name</MudText>
+                                    </div>
+                                </MudSelectItem>
+                            }
+                        }
+                    </MudSelect>
                     <MudTimePicker Label="Start" @bind-Time="_updateRunningTaskForm.Start" PickerClosed="SetValidStartTime" />
                 </MudCardContent>
                 <MudCardActions>
@@ -32,6 +54,7 @@
     [Inject] ISnackbar Snackbar { get; set; } = null!;
 
     private UpdateRunningTaskForm _updateRunningTaskForm = new();
+    private Project[] _availableProjects = [];
     private Guid? _taskId;
 
     public async Task PopulateRunningTaskDetailCard(Guid? id)
@@ -63,6 +86,7 @@
         await Executor.ExecuteCommand(new UpdateTaskCommand(
                 Id: _taskId!.Value,
                 Description: _updateRunningTaskForm.Description,
+                Project: _updateRunningTaskForm.Project,
                 Details: _updateRunningTaskForm.Details,
                 Start: _updateRunningTaskForm.Start!.Value
             ));
@@ -76,9 +100,12 @@
 
         public string? Description { get; set; }
         public string? Details { get; set; }
+        public Project? Project { get; set; }
 
         [Required]
         public TimeSpan? Start { get; set; } = Now.TimeOfDay;
+
+        public Project[] AvailableProjects { get; set; } = [];
     }
 
     private sealed record GetUpdateTaskFormQuery(Guid Id) : IQuery<UpdateRunningTaskForm>;
@@ -88,13 +115,21 @@
     {
         public async Task<UpdateRunningTaskForm> Handle(GetUpdateTaskFormQuery request, CancellationToken cancellationToken)
         {
-            var result = await devBookWebApiActionExecutor.Execute(x => x.WorkTasks_GetByIdAsync(request.Id, cancellationToken));
-            return result.Match(
+            Project[] availableProjects = [];
+            var projectsResult = await devBookWebApiActionExecutor.Execute(x => x.Projects_GetAllAsync(cancellationToken));
+            projectsResult.Match(
+                projects => availableProjects = projects.Select(x => Project.FromDto(x)).ToArray(),
+                apiError => throw new DevBookException(apiError.Errors));
+
+            var workTaskResult = await devBookWebApiActionExecutor.Execute(x => x.WorkTasks_GetByIdAsync(request.Id, cancellationToken));
+            return workTaskResult.Match(
                 task => new UpdateRunningTaskForm
                     {
                         Description = task.Description,
                         Details = task.Details,
-                        Start = task.Start
+                        Start = task.Start,
+                        Project = task.Project is not null && availableProjects.FirstOrDefault(project => project.Id == task?.Project?.Id) is Project project ? project : null,
+                        AvailableProjects = availableProjects
                     },
                 apiError => throw new DevBookException(apiError.Errors));
         }
@@ -104,6 +139,7 @@
         Guid Id,
         string? Description,
         string? Details,
+        Project? Project,
         TimeSpan Start)
         : ICommand;
 
@@ -119,7 +155,8 @@
                     {
                         Description = request.Description,
                         Details = request.Details,
-                        Start = request.Start
+                        ProjectId = request?.Project?.Id ?? null,
+                        Start = request?.Start
                     },
                 cancellationToken));
 

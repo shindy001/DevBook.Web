@@ -10,6 +10,28 @@
                 <MudCardContent>
                     <MudTextField Label="Description" @bind-Value="_createOrUpdateTaskForm.Description" For="@(() => _createOrUpdateTaskForm.Description)" />
                     <MudTextField Label="Details" Class="mt-3" @bind-Value="_createOrUpdateTaskForm.Details" For="@(() => _createOrUpdateTaskForm.Details)" />
+                    <MudSelect T="Project" @bind-Value="_createOrUpdateTaskForm.Project" Label="Project" AnchorOrigin="Origin.BottomCenter">
+                        @if (!_createOrUpdateTaskForm.AvailableProjects.Any())
+                        {
+                            <MudSelectItem T="Project" Value="@(null)">
+                                    <div class="flex">
+                                        <MudText>No projects, </MudText>
+                                        <MudLink Href="projects/create" Class="ml-3">Create New Here</MudLink>
+                                    </div>
+                            </MudSelectItem>
+                        } else
+                        {
+                            @foreach(var project in _createOrUpdateTaskForm.AvailableProjects)
+                            {
+                                <MudSelectItem Value="@project">
+                                    <div class="flex">
+                                        <div style="color: @project.HexColor"><MudIcon Icon="@Icons.Material.Filled.Circle" /></div>
+                                        <MudText Class="ml-3">@project.Name</MudText>
+                                    </div>
+                                </MudSelectItem>
+                            }
+                        }
+                    </MudSelect>
                     <MudDatePicker Label="Day" Class="mt-3" @bind-Date="_createOrUpdateTaskForm.Date" DateFormat="dd.MM.yyyy" For="@(() => _createOrUpdateTaskForm.Date)" />
                     <MudTimePicker Label="Start" @bind-Time="_createOrUpdateTaskForm.Start" For="@(() => _createOrUpdateTaskForm.Start)" />
                     <MudTimePicker Label="End" @bind-Time="_createOrUpdateTaskForm.End" For="@(() => _createOrUpdateTaskForm.End)" />
@@ -49,6 +71,7 @@
         else
         {
             _createOrUpdateTaskForm = new();
+            _createOrUpdateTaskForm.AvailableProjects = await Executor.ExecuteQuery(new GetProjectsQuery());
         }
         StateHasChanged();
     }
@@ -64,7 +87,7 @@
         if (_taskId is null)
         {
             await Executor.ExecuteCommand(new CreateTaskCommand(
-                ProjectId: _createOrUpdateTaskForm.ProjectId,
+                ProjectId: _createOrUpdateTaskForm.Project?.Id,
                 Description: _createOrUpdateTaskForm.Description,
                 Details: _createOrUpdateTaskForm.Details,
                 Date: _createOrUpdateTaskForm.Date!.Value,
@@ -77,7 +100,7 @@
         {
             await Executor.ExecuteCommand(new UpdateTaskCommand(
                 Id: _taskId.Value,
-                ProjectId: _createOrUpdateTaskForm.ProjectId,
+                ProjectId: _createOrUpdateTaskForm.Project?.Id,
                 Description: _createOrUpdateTaskForm.Description,
                 Details: _createOrUpdateTaskForm.Details,
                 Date: _createOrUpdateTaskForm.Date!.Value,
@@ -93,12 +116,12 @@
     {
         private static DateTimeOffset Now = DateTimeOffset.Now;
 
-        public Guid? ProjectId { get; set; }
-
         [Required(AllowEmptyStrings = false)]
         public string? Description { get; set; }
 
         public string? Details { get; set; }
+
+        public Project? Project { get; set; }
 
         [Required]
         public DateTime? Date { get; set; } = DateTimeOffset.Now.Date;
@@ -109,6 +132,8 @@
         [Required]
         [TimeSpanGreaterThanAttribute("Start")]
         public TimeSpan? End { get; set; } = Now.TimeOfDay.Add(TimeSpan.FromHours(1));
+
+        public Project[] AvailableProjects { get; set; } = [];
     }
 
     private sealed record GetUpdateTaskFormQuery(Guid Id) : IQuery<CreateOrUpdateTaskForm>;
@@ -118,17 +143,38 @@
     {
         public async Task<CreateOrUpdateTaskForm> Handle(GetUpdateTaskFormQuery request, CancellationToken cancellationToken)
         {
+            Project[] availableProjects = [];
+            var projectsResult = await devBookWebApiActionExecutor.Execute(x => x.Projects_GetAllAsync(cancellationToken));
+            projectsResult.Match(
+                projects => availableProjects = projects.Select(x => Project.FromDto(x)).ToArray(),
+                apiError => throw new DevBookException(apiError.Errors));
+
             var result = await devBookWebApiActionExecutor.Execute(x => x.WorkTasks_GetByIdAsync(request.Id, cancellationToken));
             return result.Match(
                 task => new CreateOrUpdateTaskForm
                     {
-                        ProjectId = task.Project?.Id,
+                        Project = task.Project is null ? null : Project.FromDto(task.Project),
                         Description = task.Description,
                         Details = task.Details,
                         Date = task.Date.Date,
                         Start = task.Start,
-                        End = task.End
+                        End = task.End,
+                        AvailableProjects = availableProjects
                     },
+                apiError => throw new DevBookException(apiError.Errors));
+        }
+    }
+
+    private sealed record GetProjectsQuery : IQuery<Project[]>;
+
+    private sealed class GetPageModelQueryHandler(IDevBookWebApiActionExecutor devBookWebApiActionExecutor)
+        : IQueryHandler<GetProjectsQuery, Project[]>
+    {
+        public async Task<Project[]> Handle(GetProjectsQuery request, CancellationToken cancellationToken)
+        {
+            var result = await devBookWebApiActionExecutor.Execute(x => x.Projects_GetAllAsync(cancellationToken));
+            return result.Match(
+                projects => projects.Select(x => Project.FromDto(x)).ToArray(),
                 apiError => throw new DevBookException(apiError.Errors));
         }
     }

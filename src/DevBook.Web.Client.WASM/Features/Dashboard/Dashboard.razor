@@ -1,25 +1,66 @@
 ﻿@page "/"
 @page "/dashboard"
-@using Microsoft.AspNetCore.Components.Authorization
 
 <PageTitle>Dashboard</PageTitle>
 
-<AuthorizeView>
-    <Authorized>
-        <p>Hello, @context.User.Identity?.Name!</p>
-    </Authorized>
-    <NotAuthorized>
-        <p>You're not authorized.</p>
-    </NotAuthorized>
-</AuthorizeView>
-
-@code {
-    [CascadingParameter]
-    private Task<AuthenticationState> AuthenticationState { get; set; } = null!;
-
-    protected override async Task OnInitializedAsync()
-    {
-        var authState = await AuthenticationState;
-        var user = authState.User;
-    }
-}
+<MudCard Class="m-4">
+    <MudCardHeader Class="flex flex-col items-start justify-between">
+        <div class="mb-4">
+            <MudText Typo="Typo.h5">Welcome to My <b>DevBook</b></MudText>
+        </div>
+        <p><i>(Beware) This is a safe space for my experimentation.</i></p>
+        <MudDivider Class="mb-4" />
+        <div>
+            <div>
+                <MudText Typo="Typo.h6">What is currently implemented</MudText>
+                <ul>
+                    <li class="mt-6">
+                        Authentication:
+                        <ul class="list-disc mx-6">
+                            <li>Token based</li>
+                            <li>You can <MudLink href="account/register">register</MudLink> and <MudLink href="account/login">login</MudLink>.</li>
+                            <li>Token have 30 min ttl, after that is refreshed automatically.</li>
+                        </ul>
+                    </li>
+                    <li class="mt-6">
+                        Time management (for signed in users only):
+                        <ul class="list-disc mx-6">
+                            <li>Track your spent time by creating a <MudLink href="tasks">task or running</MudLink> a <MudLink href="tasks">timer</MudLink>.</li>
+                            <li>Create a <MudLink href="projects">Project</MudLink>, set your hourly rate, assign task to it and see your earnings.</li>
+                            <li><i>Comming soon... - </i>Analyze your time spent and earnings at <MudLink href="analytics">Analytics</MudLink>.</li>
+                        </ul>
+                    </li>
+                    <li class="mt-6">
+                        <MudLink href="sudoku">Sudoku</MudLink> - Bored already? Play a game of sudoku (or cheat by using autosolving algorithm).
+                    </li>
+                </ul>
+            </div>
+            <MudDivider Class="my-4" />
+            <div>
+                <MudText Typo="Typo.h6">Technology stack <MudLink href="https://github.com/shindy001/DevBook.Web/tree/main">(DevBook main repository)</MudLink></MudText>
+                <ul>
+                    <li class="mt-6">
+                        <MudLink href="https://github.com/shindy001/DevBook.Web/tree/main/src/DevBook.Web.Client.WASM">DevBook Client</MudLink> (this web application)
+                        <ul class="list-disc mx-6">
+                            <li><MudLink href="https://dotnet.microsoft.com/en-us/download">.NET v8</MudLink></li>
+                            <li><MudLink href="https://dotnet.microsoft.com/en-us/apps/aspnet/web-apps/blazor">Blazor (WASM)</MudLink></li>
+                            <li><MudLink href="https://mudblazor.com/">MudBlazor</MudLink> (as a component lib)</li>
+                            <li><MudLink href="https://tailwindcss.com/">Tailwind</MudLink> (css lib)</li>
+                            <li><MudLink href="https://azure.microsoft.com/en-gb/products/app-service/static">Azure Static Web Apps</MudLink> (WASM hosting)</li>
+                        </ul>
+                    </li>
+                    <li class="mt-6">
+                        <MudLink href="https://github.com/shindy001/DevBook.Web/tree/main/src/DevBook.Web.ApiService">DevBook Api Service</MudLink> (per user data / other apis)
+                        <ul class="list-disc mx-6">
+                            <li><MudLink href="https://dotnet.microsoft.com/en-us/download">.NET v8</MudLink></li>
+                            <li><MudLink href="https://dotnet.microsoft.com/en-us/apps/aspnet/apis">ASP.NET Core Webapi</MudLink> (minimal)</li>
+                            <li><MudLink href="https://learn.microsoft.com/en-us/ef/core/">Entity Framework core v8</MudLink> (ORM)</li>
+                            <li><MudLink href="https://www.sqlite.org/">SQLite</MudLink> (DB)</li>
+                            <li><MudLink href="https://azure.microsoft.com/en-gb/products/app-service">Azure App Service</MudLink> (webapi hosting)</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </MudCardHeader>
+</MudCard>

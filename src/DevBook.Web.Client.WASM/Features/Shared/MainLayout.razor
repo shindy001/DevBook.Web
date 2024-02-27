@@ -6,65 +6,78 @@
 <MudSnackbarProvider />
 
 <MudLayout>
-	<MudAppBar Elevation="1">
-		<MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start"
-			OnClick="MenuDrawerToggle" />
-		<MudText Typo="Typo.h5" Class="ml-3">DevBook</MudText>
-		<MudSpacer />
-		<div class="flex items-center">
-			<AuthorizeView>
-				<Authorized>
-					<MudText Class="m-2">@context.User.Identity?.Name</MudText>
-					<MudButton Variant="Variant.Outlined"
-							   Color="@(_isDarkModeEnabled ? Color.Primary : Color.Inherit)"
-							   Href="/account/logout">
-						Logout
-					</MudButton>
-				</Authorized>
-				<NotAuthorized>
-					<MudButton
-						Variant="Variant.Outlined"
-						Color="@(_isDarkModeEnabled ? Color.Primary : Color.Inherit)"
-						Href="/account/login">
-						Login
-					</MudButton>
-				</NotAuthorized>
-			</AuthorizeView>
+	<ErrorBoundary @ref="_fatalErrorBoundary">
+		<ChildContent>
+			<MudAppBar Elevation="1">
+				<MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start"
+					OnClick="MenuDrawerToggle" />
+				<MudText Typo="Typo.h5" Class="ml-3">DevBook</MudText>
+				<MudSpacer />
 
-			<MudTooltip Delay="_tooltipDelayInMs" Text="Toggle Dark Mode" Placement="Placement.Bottom">
-				<MudIconButton
-					Class='@(_isDarkModeEnabled ? "d-none" : "")'
-					OnClick="ToggleTheme" Icon="@Icons.Material.Filled.DarkMode"
-					Color="@(_isDarkModeEnabled ? Color.Primary : Color.Inherit)" />
-			</MudTooltip>
-			<MudTooltip Delay="_tooltipDelayInMs" Text="Toggle Light Mode" Placement="Placement.Bottom">
-				<MudIconButton
-					Class='@(_isDarkModeEnabled ? "" : "d-none")'
-					OnClick="ToggleTheme" Icon="@Icons.Material.Filled.LightMode"
-					Color="@(_isDarkModeEnabled ? Color.Primary : Color.Inherit)" />
-			</MudTooltip>
-		</div>
+				<ErrorBoundary @ref="_errorBoundary">
+					<ChildContent>
+						<div class="flex items-center">
+			
+							<AuthorizeView>
+								<Authorized>
+									<MudText Class="m-2">@context.User.Identity?.Name</MudText>
+									<MudButton Variant="Variant.Outlined"
+											   Color="@(_isDarkModeEnabled ? Color.Primary : Color.Inherit)"
+											   Href="/account/logout">
+										Logout
+									</MudButton>
+								</Authorized>
+								<NotAuthorized>
+									<MudButton
+										Variant="Variant.Outlined"
+										Color="@(_isDarkModeEnabled ? Color.Primary : Color.Inherit)"
+										Href="/account/login">
+										Login
+									</MudButton>
+								</NotAuthorized>
+							</AuthorizeView>
+
+							<MudTooltip Delay="_tooltipDelayInMs" Text="Toggle Dark Mode" Placement="Placement.Bottom">
+								<MudIconButton
+									Class='@(_isDarkModeEnabled ? "d-none" : "")'
+									OnClick="ToggleTheme" Icon="@Icons.Material.Filled.DarkMode"
+									Color="@(_isDarkModeEnabled ? Color.Primary : Color.Inherit)" />
+							</MudTooltip>
+							<MudTooltip Delay="_tooltipDelayInMs" Text="Toggle Light Mode" Placement="Placement.Bottom">
+								<MudIconButton
+									Class='@(_isDarkModeEnabled ? "" : "d-none")'
+									OnClick="ToggleTheme" Icon="@Icons.Material.Filled.LightMode"
+									Color="@(_isDarkModeEnabled ? Color.Primary : Color.Inherit)" />
+							</MudTooltip>
+						</div>
+					</ChildContent>
+					<ErrorContent>
+						<ErrorDialog @ref="_errorDialog"
+								 Title="Uh oh. Something went wrong."
+								 ErrorMessage="@($"{(context is DevBookException ex && ex.Errors.Any() ? string.Join(Environment.NewLine, ex.Errors) : context.Message)}")"
+								 Confirm="ConfirmError" />
+					</ErrorContent>
+				</ErrorBoundary>
 		
-	</MudAppBar>
-	<MudDrawer @bind-Open="_menuDrawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
-		<NavMenu />
-	</MudDrawer>
-	<MudMainContent>
-		<ErrorBoundary @ref="_errorBoundary">
-			<ChildContent>
+			</MudAppBar>
+			<MudDrawer @bind-Open="_menuDrawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
+				<NavMenu />
+			</MudDrawer>
+			<MudMainContent>
 				@Body
-			</ChildContent>
-			<ErrorContent>
-				<ErrorDialog @ref="_errorDialog"
-					Title="Uh oh. Something went wrong."
-					ErrorMessage="@($"{(context is DevBookException ex && ex.Errors.Any() ? string.Join(Environment.NewLine, ex.Errors) : context.Message)}")"
-					Confirm="ConfirmError" />
-			</ErrorContent>
-		</ErrorBoundary>
-	</MudMainContent>
+			</MudMainContent>
+		</ChildContent>
+		<ErrorContent>
+			<ErrorDialog @ref="_errorDialog"
+						 Title="Uh oh. Something went wrong."
+						 ErrorMessage="@($"{(context is DevBookException ex && ex.Errors.Any() ? string.Join(Environment.NewLine, ex.Errors) : context.Message)}")"
+						 Confirm="ConfirmError" />
+		</ErrorContent>
+	</ErrorBoundary>
 </MudLayout>
 
 @code {
+	ErrorBoundary? _fatalErrorBoundary;
 	ErrorBoundary? _errorBoundary;
 	ErrorDialog _errorDialog = null!;
 	private bool _menuDrawerOpen = true;
@@ -76,6 +89,7 @@
 	protected override void OnParametersSet()
 	{
 		// On each page navigation, reset any error state
+		_fatalErrorBoundary?.Recover();
 		_errorBoundary?.Recover();
 	}
 
@@ -101,6 +115,7 @@
 	private void ConfirmError()
 	{
 		_mudDialogProvider.DismissAll();
+		_fatalErrorBoundary?.Recover();
 		_errorBoundary?.Recover();
 	}
 }

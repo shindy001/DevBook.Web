@@ -1,3 +1,6 @@
+![ApiService Deploy](https://github.com/shindy001/DevBook.Web/actions/workflows/deploy-devbook-api.yml/badge.svg)
+![DevBook Client Deploy](https://github.com/shindy001/DevBook.Web/actions/workflows/deploy-devbook-webapp.yml/badge.svg)
+
 # DevBook.Web
 
 DevBook.Web is an application for experimental purposes.

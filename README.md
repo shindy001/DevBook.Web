@@ -3,7 +3,7 @@
 
 # DevBook.Web
 
-DevBook.Web is an application for experimental purposes.
+DevBook.Web is an application for experimental purposes. Hosted at [https://ambitious-sky-0c0191303.4.azurestaticapps.net/](https://ambitious-sky-0c0191303.4.azurestaticapps.net/)
 
 ## Current state of Features (more to come)
 - [x] Authentication (.net identity)

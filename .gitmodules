@@ -1,0 +1,3 @@
+[submodule "src/devbook-server"]
+	path = src/devbook-server
+	url = https://github.com/shindy001/devbook-server

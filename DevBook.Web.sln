@@ -3,13 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.9.34407.89
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DevBook.Web.ApiService", "src\DevBook.Web.ApiService\DevBook.Web.ApiService.csproj", "{8AD432E5-DFCB-43EF-A187-F2ADF11D52A0}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DevBook.Web.AppHost", "src\DevBook.Web.AppHost\DevBook.Web.AppHost.csproj", "{35E33AF7-40A9-41B1-B73A-FDE3611789DE}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DevBook.Web.Shared", "src\DevBook.Web.Shared\DevBook.Web.Shared.csproj", "{CBE20807-1518-449E-860D-4E886A571F92}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Server", "Server", "{0149830C-EA30-44B9-A607-7DB121B3B9F0}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Client", "Client", "{B4727FD7-D837-4956-99BD-096041D51B15}"
 EndProject
@@ -17,7 +11,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shared", "Shared", "{1A48B9
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DevBook.Web.Client.WASM", "src\DevBook.Web.Client.WASM\DevBook.Web.Client.WASM.csproj", "{F6974150-EA50-41F7-B103-131A4E8A3B35}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DevBook.Web.ServiceDefaults", "src\DevBook.Web.ServiceDefaults\DevBook.Web.ServiceDefaults.csproj", "{3E67967E-177D-448D-9D55-9DD64F1389FA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DevBook.Web.ServiceDefaults", "src\DevBook.Web.ServiceDefaults\DevBook.Web.ServiceDefaults.csproj", "{3E67967E-177D-448D-9D55-9DD64F1389FA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -25,14 +19,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{8AD432E5-DFCB-43EF-A187-F2ADF11D52A0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8AD432E5-DFCB-43EF-A187-F2ADF11D52A0}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8AD432E5-DFCB-43EF-A187-F2ADF11D52A0}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8AD432E5-DFCB-43EF-A187-F2ADF11D52A0}.Release|Any CPU.Build.0 = Release|Any CPU
-		{35E33AF7-40A9-41B1-B73A-FDE3611789DE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{35E33AF7-40A9-41B1-B73A-FDE3611789DE}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{35E33AF7-40A9-41B1-B73A-FDE3611789DE}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{35E33AF7-40A9-41B1-B73A-FDE3611789DE}.Release|Any CPU.Build.0 = Release|Any CPU
 		{CBE20807-1518-449E-860D-4E886A571F92}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{CBE20807-1518-449E-860D-4E886A571F92}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CBE20807-1518-449E-860D-4E886A571F92}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -50,8 +36,6 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{8AD432E5-DFCB-43EF-A187-F2ADF11D52A0} = {0149830C-EA30-44B9-A607-7DB121B3B9F0}
-		{35E33AF7-40A9-41B1-B73A-FDE3611789DE} = {1A48B92C-F155-4818-B72F-60CE0AF4CED4}
 		{CBE20807-1518-449E-860D-4E886A571F92} = {1A48B92C-F155-4818-B72F-60CE0AF4CED4}
 		{F6974150-EA50-41F7-B103-131A4E8A3B35} = {B4727FD7-D837-4956-99BD-096041D51B15}
 		{3E67967E-177D-448D-9D55-9DD64F1389FA} = {1A48B92C-F155-4818-B72F-60CE0AF4CED4}

@@ -1,9 +1,9 @@
-![ApiService Deploy](https://github.com/shindy001/DevBook.Web/actions/workflows/deploy-devbook-api.yml/badge.svg)
 ![DevBook Client Deploy](https://github.com/shindy001/DevBook.Web/actions/workflows/deploy-devbook-webapp.yml/badge.svg)
 
 # DevBook.Web
 
-DevBook.Web is an application for experimental purposes. Hosted at [https://ambitious-sky-0c0191303.4.azurestaticapps.net/](https://ambitious-sky-0c0191303.4.azurestaticapps.net/)
+DevBook.Web is an application for experimental purposes. Hosted at [https://ambitious-sky-0c0191303.4.azurestaticapps.net/](https://ambitious-sky-0c0191303.4.azurestaticapps.net/).
+Uses [DevBookServer](https://github.com/shindy001/devbook-server) webapi as backend.
 
 ## Current state of Features (more to come)
 - [x] Authentication (.net identity)
@@ -29,19 +29,11 @@ DevBook.Web is an application for experimental purposes. Hosted at [https://ambi
 ![DevBook_Sudoku_info](https://github.com/shindy001/DevBook.Web/assets/23438364/2c921cd4-f286-4295-b4f3-d341c61ee989)
 
 ## Technology stack
-#### DevBook Client
   - .NET v8
   - Blazor (WASM)
   - MudBlazor (as a component lib)
   - Tailwind (css lib)
   - Azure Static Web Apps (WASM hosting)
-
-#### DevBook Api Service (per user data / other apis)
-  - .NET v8
-  - ASP.NET Core Webapi (minimal)
-  - Entity Framework core v8 (ORM)
-  - SQLite (DB)
-  - Azure App Service (webapi hosting)
 
 ## Dev Requirements
 - `Visual Studio` or `VSCode with C# Dev Kit`
@@ -50,9 +42,7 @@ DevBook.Web is an application for experimental purposes. Hosted at [https://ambi
 - Blazor WASM (ASP.net and web development workload)
 
 ## Deployment
-Both Client and ApiService are deployed by using ```github actions (manually)```. ```Client``` is deployed to [Azure Static Web Apps](https://azure.microsoft.com/en-gb/products/app-service/static), ```ApiService``` to [Azure App Service](https://azure.microsoft.com/en-gb/products/app-service)
-
+Deployed is handled by ```github actions (manually)```. WebApp is deployed to [Azure Static Web Apps](https://azure.microsoft.com/en-gb/products/app-service/static).
 ## How to run
 1. Open DevBook.Web.sln
-1. Select DevBook.Web.ApiService configuration and start "https" configuration without debugging
 1. Select DevBook.Web.Client.WASM configuration and start "https" configuration (if run as debug, this will also start tailwind watch in terminal to hot reload tailwind css - this requires to have tailwind cli executable in env path)

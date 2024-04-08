@@ -21,7 +21,7 @@
 
   <ItemGroup>
     <!-- Connected service - DevBook.Web.ApiService to generate IDevBookWebApiClient class -->
-    <OpenApiReference Include="..\DevBook.Web.ApiService\devbook.api.yaml">
+    <OpenApiReference Include="..\devbook-server\src\DevBook.API\devbook.api.yaml">
       <CodeGenerator>NSwagCSharp</CodeGenerator>
       <Link>ApiClient\OpenAPIs\devbook.api.yaml</Link>
       <Namespace>DevBook.WebApiClient.Generated</Namespace>

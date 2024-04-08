@@ -3,6 +3,7 @@
 # DevBook.Web
 
 DevBook.Web is an application for experimental purposes. Hosted at [https://ambitious-sky-0c0191303.4.azurestaticapps.net/](https://ambitious-sky-0c0191303.4.azurestaticapps.net/).
+<br><br>
 Uses [DevBookServer](https://github.com/shindy001/devbook-server) webapi as backend.
 
 ## Current state of Features (more to come)

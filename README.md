@@ -44,6 +44,9 @@ Uses [DevBookServer](https://github.com/shindy001/devbook-server) webapi as back
 
 ## Deployment
 Deployed is handled by ```github actions (manually)```. WebApp is deployed to [Azure Static Web Apps](https://azure.microsoft.com/en-gb/products/app-service/static).
+
 ## How to run
+1. Clone repo with --recurse-submodules (git clone --recurse-submodules https://repo-address). If you already cloned the repo without recurse, use ```git submodule update --init --recursive``` to initialize and update repo submodules (```devbook-server``` submodule in \src\devbook-server).
 1. Open DevBook.Web.sln
+1. Build/Rebuild solution - this will also start tailwind watch and devbook-server api in terminal windows
 1. Select DevBook.Web.Client.WASM configuration and start "https" configuration (if run as debug, this will also start tailwind watch in terminal to hot reload tailwind css - this requires to have tailwind cli executable in env path)

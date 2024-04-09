@@ -56,4 +56,11 @@
     <Message Importance="high" Text="Starting tailwind watch..." />
     <Exec Command="powershell Start-Process $(ProjectDir)tailwindwatch.bat" Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Windows)))' " />
   </Target>
+
+  <!-- Start devbook-server if not running - spawns a new powershell window after debug build/rebuild -->
+  <Target Name="StartDevBookServer" AfterTargets="AfterBuild; AfterRebuild" Condition="'$(Configuration)' == 'Debug'">
+    <Message Importance="high" Text="Make sure you have up to date submodules in your repository..." />
+    <Message Importance="high" Text="Starting devbook-server from submodule..." />
+    <Exec Command="powershell Start-Process $(ProjectDir)start-devbookserver.bat" Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Windows)))' " />
+  </Target>
 </Project>

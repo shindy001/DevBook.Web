@@ -5,7 +5,6 @@ using MudBlazor.Services;
 using DevBook.WebApiClient.Generated;
 using DevBook.Web.Client.WASM.Features.Shared;
 using DevBook.Web.Client.WASM.Identity;
-using DevBook.Web.Shared.Extensions;
 using DevBook.Web.Client.WASM.ApiClient;
 using MudBlazor;
 using Blazored.LocalStorage;
@@ -26,7 +25,7 @@ builder.Services.AddScoped<AuthenticationStateProvider, TokenAuthenticationState
 builder.Services.AddScoped(sp => (IAccountManagement)sp.GetRequiredService<AuthenticationStateProvider>());
 
 // register command/queries support
-builder.Services.AddCommandsAndQueriesExecutor(typeof(Program).Assembly);
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblies(typeof(Program).Assembly));
 
 // register MudBlazor
 builder.Services.AddMudServices(config =>

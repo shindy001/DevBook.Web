@@ -40,7 +40,7 @@
 </MudCard>
 
 @code {
-    [Inject] private IExecutor Executor { get; set; } = null!;
+    [Inject] private IMediator Mediator { get; set; } = null!;
     [Inject] private NavigationManager NavigationManager { get; init; } = null!;
 
     private PageModel _pageModel = new();
@@ -51,7 +51,7 @@
     protected override async Task OnInitializedAsync()
     {
         _loading = true;
-        _pageModel = await Executor.ExecuteQuery(new GetPageModelQuery());
+        _pageModel = await Mediator.Send(new GetPageModelQuery());
         _loading = false;
     }
 
@@ -71,7 +71,7 @@
         NavigationManager.NavigateTo($"/projects/{rowClickEvent.Item.Id}");
     }
 
-    private sealed record GetPageModelQuery : IQuery<PageModel>;
+    private sealed record GetPageModelQuery : IRequest<PageModel>;
 
     private sealed record PageModel
     {
@@ -79,7 +79,7 @@
     }
 
     private sealed class GetPageModelQueryHandler(IDevBookWebApiActionExecutor devBookWebApiActionExecutor)
-        : IQueryHandler<GetPageModelQuery, PageModel>
+        : IRequestHandler<GetPageModelQuery, PageModel>
     {
         public async Task<PageModel> Handle(GetPageModelQuery request, CancellationToken cancellationToken)
         {

@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace DevBook.Web.Shared.Validation;
+namespace DevBook.Web.Client.WASM.Validation;
+
 public class TimeSpanGreaterThanAttribute : ValidationAttribute
 {
 	private readonly string _comparisonProperty;

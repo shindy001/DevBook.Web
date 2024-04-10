@@ -4,23 +4,23 @@
     [Parameter] public Guid? TaskId { get; set; }
     [Parameter] public EventCallback OnDelete { get; set; }
 
-    [Inject] private IExecutor Executor { get; set; } = null!;
+    [Inject] private IMediator Mediator { get; set; } = null!;
     [Inject] ISnackbar Snackbar { get; set; } = null!;
 
     private async Task Delete()
     {
         if (TaskId != null)
         {
-            await Executor.ExecuteCommand(new DeleteTaskCommand(TaskId.Value));
+            await Mediator.Send(new DeleteTaskCommand(TaskId.Value));
             Snackbar.Add("Delete successful", Severity.Success);
             await OnDelete.InvokeAsync();
         } 
     }
 
-    private sealed record DeleteTaskCommand(Guid TaskId) : ICommand;
+    private sealed record DeleteTaskCommand(Guid TaskId) : IRequest;
 
     private sealed class DeleteTaskCommandHandler(IDevBookWebApiActionExecutor devBookWebApiActionExecutor)
-        : ICommandHandler<DeleteTaskCommand>
+        : IRequestHandler<DeleteTaskCommand>
     {
         public async Task Handle(DeleteTaskCommand request, CancellationToken cancellationToken)
         {

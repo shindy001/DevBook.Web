@@ -55,7 +55,7 @@
     [Parameter] public EventCallback OnCancel { get; set; }
     [Parameter] public EventCallback OnDelete { get; set; }
 
-    [Inject] private IExecutor Executor { get; set; } = null!;
+    [Inject] private IMediator Mediator { get; set; } = null!;
     [Inject] ISnackbar Snackbar { get; set; } = null!;
 
     private CreateOrUpdateTaskForm _createOrUpdateTaskForm = new();
@@ -66,12 +66,12 @@
         _taskId = id;
         if (_taskId is not null)
         {
-            _createOrUpdateTaskForm = await Executor.ExecuteQuery(new GetUpdateTaskFormQuery(_taskId.Value));
+            _createOrUpdateTaskForm = await Mediator.Send(new GetUpdateTaskFormQuery(_taskId.Value));
         }
         else
         {
             _createOrUpdateTaskForm = new();
-            _createOrUpdateTaskForm.AvailableProjects = await Executor.ExecuteQuery(new GetProjectsQuery());
+            _createOrUpdateTaskForm.AvailableProjects = await Mediator.Send(new GetProjectsQuery());
         }
         StateHasChanged();
     }
@@ -86,7 +86,7 @@
     {
         if (_taskId is null)
         {
-            await Executor.ExecuteCommand(new CreateTaskCommand(
+            await Mediator.Send(new CreateTaskCommand(
                 ProjectId: _createOrUpdateTaskForm.Project?.Id,
                 Description: _createOrUpdateTaskForm.Description,
                 Details: _createOrUpdateTaskForm.Details,
@@ -98,7 +98,7 @@
         }
         else
         {
-            await Executor.ExecuteCommand(new UpdateTaskCommand(
+            await Mediator.Send(new UpdateTaskCommand(
                 Id: _taskId.Value,
                 ProjectId: _createOrUpdateTaskForm.Project?.Id,
                 Description: _createOrUpdateTaskForm.Description,
@@ -136,10 +136,10 @@
         public Project[] AvailableProjects { get; set; } = [];
     }
 
-    private sealed record GetUpdateTaskFormQuery(Guid Id) : IQuery<CreateOrUpdateTaskForm>;
+    private sealed record GetUpdateTaskFormQuery(Guid Id) : IRequest<CreateOrUpdateTaskForm>;
 
     private sealed class GetUpdateTaskFormQueryHandler(IDevBookWebApiActionExecutor devBookWebApiActionExecutor)
-        : IQueryHandler<GetUpdateTaskFormQuery, CreateOrUpdateTaskForm>
+        : IRequestHandler<GetUpdateTaskFormQuery, CreateOrUpdateTaskForm>
     {
         public async Task<CreateOrUpdateTaskForm> Handle(GetUpdateTaskFormQuery request, CancellationToken cancellationToken)
         {
@@ -165,10 +165,10 @@
         }
     }
 
-    private sealed record GetProjectsQuery : IQuery<Project[]>;
+    private sealed record GetProjectsQuery : IRequest<Project[]>;
 
     private sealed class GetPageModelQueryHandler(IDevBookWebApiActionExecutor devBookWebApiActionExecutor)
-        : IQueryHandler<GetProjectsQuery, Project[]>
+        : IRequestHandler<GetProjectsQuery, Project[]>
     {
         public async Task<Project[]> Handle(GetProjectsQuery request, CancellationToken cancellationToken)
         {
@@ -186,10 +186,10 @@
         DateTimeOffset Date,
         TimeSpan Start,
         TimeSpan End)
-        : ICommand;
+        : IRequest;
 
     private sealed class CreateTaskCommandHandler(IDevBookWebApiActionExecutor devBookWebApiActionExecutor)
-        : ICommandHandler<CreateTaskCommand>
+        : IRequestHandler<CreateTaskCommand>
     {
         public async Task Handle(CreateTaskCommand request, CancellationToken cancellationToken)
         {
@@ -220,10 +220,10 @@
         DateTimeOffset Date,
         TimeSpan Start,
         TimeSpan End)
-        : ICommand;
+        : IRequest;
 
     private sealed class UpdateTaskCommandHandler(IDevBookWebApiActionExecutor devBookWebApiActionExecutor)
-        : ICommandHandler<UpdateTaskCommand>
+        : IRequestHandler<UpdateTaskCommand>
     {
         public async Task Handle(UpdateTaskCommand request, CancellationToken cancellationToken)
         {

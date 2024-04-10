@@ -50,7 +50,7 @@
     [Parameter] public EventCallback OnUpdate { get; set; }
     [Parameter] public EventCallback OnDelete { get; set; }
 
-    [Inject] private IExecutor Executor { get; set; } = null!;
+    [Inject] private IMediator Mediator { get; set; } = null!;
     [Inject] ISnackbar Snackbar { get; set; } = null!;
 
     private UpdateRunningTaskForm _updateRunningTaskForm = new();
@@ -62,7 +62,7 @@
         _taskId = id;
         if (_taskId is not null)
         {
-            _updateRunningTaskForm = await Executor.ExecuteQuery(new GetUpdateTaskFormQuery(_taskId.Value));
+            _updateRunningTaskForm = await Mediator.Send(new GetUpdateTaskFormQuery(_taskId.Value));
         }
         else
         {
@@ -83,7 +83,7 @@
 
     private async Task OnValidSubmit()
     {
-        await Executor.ExecuteCommand(new UpdateTaskCommand(
+        await Mediator.Send(new UpdateTaskCommand(
                 Id: _taskId!.Value,
                 Description: _updateRunningTaskForm.Description,
                 Project: _updateRunningTaskForm.Project,
@@ -108,10 +108,10 @@
         public Project[] AvailableProjects { get; set; } = [];
     }
 
-    private sealed record GetUpdateTaskFormQuery(Guid Id) : IQuery<UpdateRunningTaskForm>;
+    private sealed record GetUpdateTaskFormQuery(Guid Id) : IRequest<UpdateRunningTaskForm>;
 
     private sealed class GetUpdateTaskFormQueryHandler(IDevBookWebApiActionExecutor devBookWebApiActionExecutor)
-        : IQueryHandler<GetUpdateTaskFormQuery, UpdateRunningTaskForm>
+        : IRequestHandler<GetUpdateTaskFormQuery, UpdateRunningTaskForm>
     {
         public async Task<UpdateRunningTaskForm> Handle(GetUpdateTaskFormQuery request, CancellationToken cancellationToken)
         {
@@ -141,10 +141,10 @@
         string? Details,
         Project? Project,
         TimeSpan Start)
-        : ICommand;
+        : IRequest;
 
     private sealed class UpdateTaskCommandHandler(IDevBookWebApiActionExecutor devBookWebApiActionExecutor)
-        : ICommandHandler<UpdateTaskCommand>
+        : IRequestHandler<UpdateTaskCommand>
     {
         public async Task Handle(UpdateTaskCommand request, CancellationToken cancellationToken)
         {

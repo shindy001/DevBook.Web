@@ -47,7 +47,7 @@
 @code {
     [Parameter] public required Guid ProjectId { get; set; }
 
-    [Inject] private IExecutor Executor { get; set; } = null!;
+    [Inject] private IMediator Mediator { get; set; } = null!;
     [Inject] private NavigationManager NavigationManager { get; init; } = null!;
 
     private PageModel _pageModel = new();
@@ -55,7 +55,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var updateForm = await Executor.ExecuteQuery(new GetUpdateProjectFormQuery(ProjectId));
+        var updateForm = await Mediator.Send(new GetUpdateProjectFormQuery(ProjectId));
         _pageModel.UpdateForm.Name = updateForm.Name;
         _pageModel.UpdateForm.Details = updateForm.Details;
         _pageModel.UpdateForm.Currency = updateForm.Currency;
@@ -65,7 +65,7 @@
 
     private async Task OnValidSubmit()
     {
-        await Executor.ExecuteCommand(new UpdateProjectCommand(
+        await Mediator.Send(new UpdateProjectCommand(
             Id: ProjectId,
             Name: _pageModel.UpdateForm.Name,
             Details: _pageModel.UpdateForm.Details,
@@ -92,10 +92,10 @@
         }
     }
 
-    private sealed record GetUpdateProjectFormQuery(Guid Id) : IQuery<PageModel.UpdateProjectForm>;
+    private sealed record GetUpdateProjectFormQuery(Guid Id) : IRequest<PageModel.UpdateProjectForm>;
 
     private sealed class GetUpdateProjectFormQueryHandler(IDevBookWebApiActionExecutor devBookWebApiActionExecutor)
-        : IQueryHandler<GetUpdateProjectFormQuery, PageModel.UpdateProjectForm>
+        : IRequestHandler<GetUpdateProjectFormQuery, PageModel.UpdateProjectForm>
     {
         public async Task<PageModel.UpdateProjectForm> Handle(GetUpdateProjectFormQuery request, CancellationToken cancellationToken)
         {
@@ -120,10 +120,10 @@
         string? Currency,
         int? HourlyRate,
         string? HexColor)
-        : ICommand;
+        : IRequest;
 
     private sealed class UpdateProjectCommandHandler(IDevBookWebApiActionExecutor devBookWebApiActionExecutor)
-        : ICommandHandler<UpdateProjectCommand>
+        : IRequestHandler<UpdateProjectCommand>
     {
         public async Task Handle(UpdateProjectCommand request, CancellationToken cancellationToken)
         {

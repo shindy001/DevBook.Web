@@ -72,7 +72,7 @@
 </div>
 
 @code {
-    [Inject] private IExecutor Executor { get; set; } = null!;
+    [Inject] private IMediator Mediator { get; set; } = null!;
     [Inject] private NavigationManager NavigationManager { get; init; } = null!;
 
     private TaskDetailCard _taskDetailCard = null!;
@@ -184,7 +184,7 @@
 
     private async Task RefreshItems(bool closeDetail = false)
     {
-        _pageModel = await Executor.ExecuteQuery(new GetPageModelQuery());
+        _pageModel = await Mediator.Send(new GetPageModelQuery());
         _runningTaskElapsedTime = GetTaskElapsedTime(_pageModel.RunningTask?.End, _pageModel.RunningTask?.Start);
         if (closeDetail)
         {
@@ -196,7 +196,7 @@
     private async Task StartWork()
     {
         var dateTimeOffset = DateTimeOffset.Now;
-        await Executor.ExecuteCommand(new StartWorkCommand(Description: "New Task", Date: dateTimeOffset, Start: dateTimeOffset.TimeOfDay));
+        await Mediator.Send(new StartWorkCommand(Description: "New Task", Date: dateTimeOffset, Start: dateTimeOffset.TimeOfDay));
         await RefreshItems();
     }
 
@@ -204,11 +204,11 @@
     {
         var runningTask = _pageModel.RunningTask;
         var dateTimeOffset = DateTimeOffset.Now;
-        await Executor.ExecuteCommand(new StopWorkCommand(TaskId: taskId, End: DateTimeOffset.Now.TimeOfDay));
+        await Mediator.Send(new StopWorkCommand(TaskId: taskId, End: DateTimeOffset.Now.TimeOfDay));
         await RefreshItems();
     }
 
-    private sealed record GetPageModelQuery : IQuery<PageModel>;
+    private sealed record GetPageModelQuery : IRequest<PageModel>;
 
     private sealed record PageModel
     {
@@ -229,7 +229,7 @@
     }
 
     private sealed class GetPageModelQueryHandler(IDevBookWebApiActionExecutor devBookWebApiActionExecutor)
-        : IQueryHandler<GetPageModelQuery, PageModel>
+        : IRequestHandler<GetPageModelQuery, PageModel>
     {
         public async Task<PageModel> Handle(GetPageModelQuery request, CancellationToken cancellationToken)
         {
@@ -248,10 +248,10 @@
         string Description,
         DateTimeOffset Date,
         TimeSpan Start)
-        : ICommand;
+        : IRequest;
 
     private sealed class StartWorkCommandCommandHandler(IDevBookWebApiActionExecutor devBookWebApiActionExecutor)
-        : ICommandHandler<StartWorkCommand>
+        : IRequestHandler<StartWorkCommand>
     {
         public async Task Handle(StartWorkCommand request, CancellationToken cancellationToken)
         {
@@ -274,10 +274,10 @@
     private sealed record StopWorkCommand(
         Guid TaskId,
         TimeSpan End)
-        : ICommand;
+        : IRequest;
 
     private sealed class StopWorkCommandCommandHandler(IDevBookWebApiActionExecutor devBookWebApiActionExecutor)
-        : ICommandHandler<StopWorkCommand>
+        : IRequestHandler<StopWorkCommand>
     {
         public async Task Handle(StopWorkCommand request, CancellationToken cancellationToken)
         {

@@ -48,7 +48,7 @@
 </MudCard>
 
 @code {
-    [Inject] private IExecutor Executor { get; set; } = null!;
+    [Inject] private IMediator Mediator { get; set; } = null!;
     [Inject] private NavigationManager NavigationManager { get; init; } = null!;
 
     private readonly CreateProjectForm _createProjectForm = new() { Name = "New Project" };
@@ -57,7 +57,7 @@
     private async Task OnValidSubmit()
     {
         _processing = true;
-        await Executor.ExecuteCommand(
+        await Mediator.Send(
             new CreateProjectCommand(
                 Name: _createProjectForm.Name,
                 Details: _createProjectForm.Details,
@@ -86,10 +86,10 @@
         string? Currency,
         int? HourlyRate,
         string? HexColor)
-        : ICommand;
+        : IRequest;
 
     private sealed class CreateProjectCommandHandler(IDevBookWebApiActionExecutor devBookWebApiActionExecutor)
-        : ICommandHandler<CreateProjectCommand>
+        : IRequestHandler<CreateProjectCommand>
     {
         public async Task Handle(CreateProjectCommand request, CancellationToken cancellationToken)
         {

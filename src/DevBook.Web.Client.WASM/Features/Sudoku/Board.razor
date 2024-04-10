@@ -79,7 +79,7 @@
 @code {
     [Inject] NavigationManager NavigationManager { get; set; } = null!;
     [Inject] ILocalStorageService LocalStorage { get; set; } = null!;
-    [Inject] IExecutor Executor { get; set; } = null!;
+    [Inject] IMediator Mediator { get; set; } = null!;
 
     private SudokuData _sudokuData = new();
     private IEnumerable<IGrouping<int, SudokuNumber>> _currentNumbersBySegments = [];
@@ -119,7 +119,7 @@
 
     private async Task<SudokuData> GetSudokuData()
     {
-        var boardData = await Executor.ExecuteQuery(new GetBoardDataQuery());
+        var boardData = await Mediator.Send(new GetBoardDataQuery());
         var gridNumbersArray = boardData.GridNumbers
             .Select(innerCollection => innerCollection.ToArray())
             .ToArray();
@@ -370,10 +370,10 @@
 
     void IDisposable.Dispose() => NavigationManager.LocationChanged -= async (s, a) => await _saveSudokuDataFn!(s, a);
 
-    private sealed record GetBoardDataQuery : IQuery<BoardData>;
+    private sealed record GetBoardDataQuery : IRequest<BoardData>;
 
     private sealed class GetSudokuDataQueryHandler(IDevBookWebApiActionExecutor devBookWebApiActionExecutor)
-        : IQueryHandler<GetBoardDataQuery, BoardData>
+        : IRequestHandler<GetBoardDataQuery, BoardData>
     {
         public async Task<BoardData> Handle(GetBoardDataQuery request, CancellationToken cancellationToken)
         {

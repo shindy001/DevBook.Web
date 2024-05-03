@@ -1,4 +1,4 @@
-﻿@page "/Projects/{ProjectId:guid}"
+﻿@page "/Projects/{ProjectId}"
 
 <PageTitle>Update Project</PageTitle>
 
@@ -45,35 +45,54 @@
 </MudCard>
 
 @code {
-    [Parameter] public required Guid ProjectId { get; set; }
+    [Parameter] public required string ProjectId { get; set; }
 
-    [Inject] private IMediator Mediator { get; set; } = null!;
+    [Inject] private IDevBookWebApiGraphQLClient Client { get; set; } = null!;
+    [Inject] private DevBookWebApiGraphQLClientStoreAccessor Store { get;set; } = null!;
     [Inject] private NavigationManager NavigationManager { get; init; } = null!;
+    [Inject] ISnackbar Snackbar { get; set; } = null!;
+
 
     private PageModel _pageModel = new();
     private bool _processing = false;
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
-        var updateForm = await Mediator.Send(new GetUpdateProjectFormQuery(ProjectId));
-        _pageModel.UpdateForm.Name = updateForm.Name;
-        _pageModel.UpdateForm.Details = updateForm.Details;
-        _pageModel.UpdateForm.Currency = updateForm.Currency;
-        _pageModel.UpdateForm.HourlyRate = updateForm.HourlyRate;
-        _pageModel.UpdateForm.HexColor = updateForm.HexColor;
+        var projectDto = Store.EntityStore.CurrentSnapshot.GetEntity<ProjectDtoEntity>(new EntityId(nameof(IUpdateProject_UpdateProject.ProjectDto), ProjectId));
+        if (projectDto is not null)
+        {
+            _pageModel.UpdateForm.Name = projectDto.Name;
+            _pageModel.UpdateForm.Details = projectDto.Details;
+            _pageModel.UpdateForm.Currency = projectDto.Currency;
+            _pageModel.UpdateForm.HourlyRate = projectDto.HourlyRate;
+            _pageModel.UpdateForm.HexColor = projectDto.HexColor;
+        }
     }
 
     private async Task OnValidSubmit()
     {
-        await Mediator.Send(new UpdateProjectCommand(
-            Id: ProjectId,
-            Name: _pageModel.UpdateForm.Name,
-            Details: _pageModel.UpdateForm.Details,
-            Currency: _pageModel.UpdateForm.Currency,
-            HourlyRate: _pageModel.UpdateForm.HourlyRate,
-            HexColor: _pageModel.UpdateForm.HexColor));
-
-        NavigationManager.NavigateTo("/projects");
+        _processing = true;
+        var result = await Client.UpdateProject.ExecuteAsync(
+            new()
+            {
+                Id = Guid.Parse(ProjectId),
+                Name = _pageModel.UpdateForm.Name,
+                Details = _pageModel.UpdateForm.Details,
+                Currency = _pageModel.UpdateForm.Currency,
+                HourlyRate = _pageModel.UpdateForm.HourlyRate,
+                HexColor = _pageModel.UpdateForm.HexColor
+            }
+        );
+        
+        if (result.Errors.Any())
+        {
+            Snackbar.Add($"Cannot update project - {result.Errors.FirstOrDefault()?.Message ?? string.Empty}", Severity.Error);
+            _processing = false;
+        }
+        else
+        {
+            NavigationManager.NavigateTo("/projects");
+        }
     }
 
     private sealed record PageModel
@@ -89,60 +108,6 @@
             public string? Currency { get; set; }
             public int? HourlyRate { get; set; }
             public string? HexColor { get; set; }
-        }
-    }
-
-    private sealed record GetUpdateProjectFormQuery(Guid Id) : IRequest<PageModel.UpdateProjectForm>;
-
-    private sealed class GetUpdateProjectFormQueryHandler(IDevBookWebApiActionExecutor devBookWebApiActionExecutor)
-        : IRequestHandler<GetUpdateProjectFormQuery, PageModel.UpdateProjectForm>
-    {
-        public async Task<PageModel.UpdateProjectForm> Handle(GetUpdateProjectFormQuery request, CancellationToken cancellationToken)
-        {
-            var result = await devBookWebApiActionExecutor.Execute(x => x.Projects_GetByIdAsync(request.Id, cancellationToken));
-            return result.Match(
-                project => new PageModel.UpdateProjectForm
-                    {
-                        Name = project.Name,
-                        Details = project.Details,
-                        HourlyRate = project.HourlyRate,
-                        Currency = project.Currency,
-                        HexColor = project.HexColor
-                    },
-                apiError => throw new DevBookException(apiError.Errors));
-        }
-    }
-
-    private sealed record UpdateProjectCommand(
-        Guid Id,
-        string Name,
-        string? Details,
-        string? Currency,
-        int? HourlyRate,
-        string? HexColor)
-        : IRequest;
-
-    private sealed class UpdateProjectCommandHandler(IDevBookWebApiActionExecutor devBookWebApiActionExecutor)
-        : IRequestHandler<UpdateProjectCommand>
-    {
-        public async Task Handle(UpdateProjectCommand request, CancellationToken cancellationToken)
-        {
-            var result = await devBookWebApiActionExecutor.Execute(
-                x => x.Projects_UpdateAsync(
-                    id: request.Id,
-                    body: new() 
-                    {
-                        Name = request.Name,
-                        Details = request.Details,
-                        Currency = request.Currency,
-                        HourlyRate = request.HourlyRate,
-                        HexColor = request.HexColor
-                    },
-                cancellationToken));
-
-            result.Match(
-                success => success,
-                apiError => throw new DevBookException(apiError.Errors));
         }
     }
 }

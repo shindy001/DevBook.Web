@@ -2,6 +2,7 @@ query GetProjects {
   projects {
     id
     name
+    details
     hourlyRate
     currency
     hexColor

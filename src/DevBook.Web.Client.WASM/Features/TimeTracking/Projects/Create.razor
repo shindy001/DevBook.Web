@@ -48,9 +48,9 @@
 </MudCard>
 
 @code {
-    [Inject] IDevBookWebApiGraphQLClient Client { get; set; } = null!;
+    [Inject] private IDevBookWebApiGraphQLClient Client { get; set; } = null!;
     [Inject] private NavigationManager NavigationManager { get; init; } = null!;
-    [Inject] ISnackbar Snackbar { get; set; } = null!;
+    [Inject] private ISnackbar Snackbar { get; set; } = null!;
 
     private readonly CreateProjectForm _createProjectForm = new() { Name = "New Project" };
     private bool _processing = false;

@@ -1,0 +1,221 @@
+schema {
+  query: Query
+  mutation: Mutation
+}
+
+type WorkTaskDto {
+  id: UUID!
+  project: ProjectDto
+  description: String
+  details: String
+  date: DateTime!
+  start: TimeSpan!
+  end: TimeSpan
+}
+
+type Mutation {
+  createProject(input: CreateProjectInput!): CreateProjectPayload!
+  deleteProject(input: DeleteProjectInput!): DeleteProjectPayload!
+  patchProject(input: PatchProjectInput!): PatchProjectPayload!
+  updateProject(input: UpdateProjectInput!): UpdateProjectPayload!
+  createWorkTask(input: CreateWorkTaskInput!): CreateWorkTaskPayload!
+  deleteWorkTask(input: DeleteWorkTaskInput!): DeleteWorkTaskPayload!
+  patchWorkTask(input: PatchWorkTaskInput!): PatchWorkTaskPayload!
+  startWorkTask(input: StartWorkTaskInput!): StartWorkTaskPayload!
+  updateWorkTask(input: UpdateWorkTaskInput!): UpdateWorkTaskPayload!
+}
+
+type ProjectDto {
+  id: UUID!
+  name: String!
+  details: String
+  hourlyRate: Int
+  currency: String
+  hexColor: String
+}
+
+union PatchProjectError = NotFoundError
+
+union ProjectResult = ProjectDto | NotFoundError
+
+type NotFoundError implements Error {
+  id: UUID!
+  message: String!
+}
+
+type BoardData {
+  gridNumbers: [[Int!]!]!
+  solutionNumbers: [[Int!]!]!
+}
+
+union PatchWorkTaskError = NotFoundError
+
+input PatchProjectInput {
+  id: UUID!
+  name: String
+  details: String
+  hourlyRate: Int
+  currency: String
+  hexColor: String
+}
+
+input UpdateProjectInput {
+  id: UUID!
+  name: String!
+  details: String
+  hourlyRate: Int
+  currency: String
+  hexColor: String
+}
+
+"The `DateTime` scalar represents an ISO-8601 compliant date time type."
+scalar DateTime
+
+interface Error {
+  message: String!
+}
+
+input StartWorkTaskInput {
+  description: String
+  date: DateTime!
+  start: TimeSpan!
+}
+
+union WorkTaskResult = WorkTaskDto | NotFoundError
+
+type UpdateProjectPayload {
+  projectDto: ProjectDto
+  errors: [UpdateProjectError!]
+}
+
+type WorkTaskListResponse {
+  activeWorkTask: WorkTaskDto
+  workTasksInDay: [KeyValuePairOfDateOnlyAndIEnumerableOfWorkTaskDto!]!
+}
+
+input CreateWorkTaskInput {
+  projectId: UUID
+  description: String
+  details: String
+  date: DateTime!
+  start: TimeSpan!
+  end: TimeSpan!
+}
+
+union UpdateProjectError = NotFoundError
+
+type PatchWorkTaskPayload {
+  workTaskDto: WorkTaskDto
+  errors: [PatchWorkTaskError!]
+}
+
+scalar UUID
+
+type Query {
+  boardData: BoardData!
+  project(input: GetProjectInput!): ProjectResult!
+  projects: [ProjectDto!]!
+  workTask(input: WorkTaskInput!): WorkTaskResult!
+  workTaskList: WorkTaskListResponse!
+}
+
+input DeleteProjectInput {
+  id: UUID!
+}
+
+type CreateWorkTaskPayload {
+  workTaskDto: WorkTaskDto
+}
+
+input GetProjectInput {
+  id: UUID!
+}
+
+type SuccessResult {
+  message: String!
+}
+
+input WorkTaskInput {
+  id: UUID!
+}
+
+"The `Date` scalar represents an ISO-8601 compliant date type."
+scalar Date
+
+type DeleteWorkTaskPayload {
+  successResult: SuccessResult
+}
+
+input UpdateWorkTaskInput {
+  id: UUID!
+  projectId: UUID
+  description: String
+  details: String
+  date: DateTime!
+  start: TimeSpan!
+  end: TimeSpan!
+}
+
+type UpdateWorkTaskPayload {
+  workTaskDto: WorkTaskDto
+  errors: [UpdateWorkTaskError!]
+}
+
+type DeleteProjectPayload {
+  successResult: SuccessResult
+}
+
+type StartWorkTaskPayload {
+  workTaskDto: WorkTaskDto
+}
+
+type CreateProjectPayload {
+  projectDto: ProjectDto
+}
+
+input DeleteWorkTaskInput {
+  id: UUID!
+}
+
+type PatchProjectPayload {
+  projectDto: ProjectDto
+  errors: [PatchProjectError!]
+}
+
+type KeyValuePairOfDateOnlyAndIEnumerableOfWorkTaskDto {
+  key: Date!
+  value: [WorkTaskDto!]!
+}
+
+union UpdateWorkTaskError = NotFoundError
+
+"The `TimeSpan` scalar represents an ISO-8601 compliant duration type."
+scalar TimeSpan
+
+input PatchWorkTaskInput {
+  id: UUID!
+  projectId: UUID
+  description: String
+  details: String
+  date: DateTime
+  start: TimeSpan
+  end: TimeSpan
+}
+
+"Defines when a policy shall be executed."
+enum ApplyPolicy {
+  "Before the resolver was executed."
+  BEFORE_RESOLVER
+  "After the resolver was executed."
+  AFTER_RESOLVER
+  "The policy is applied in the validation step before the execution."
+  VALIDATION
+}
+
+input CreateProjectInput {
+  name: String!
+  details: String
+  hourlyRate: Int
+  currency: String
+  hexColor: String
+}

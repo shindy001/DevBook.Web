@@ -1,0 +1,9 @@
+query GetProjects {
+  projects {
+    id
+    name
+    hourlyRate
+    currency
+    hexColor
+  }
+}

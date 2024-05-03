@@ -14,48 +14,44 @@
         </CardHeaderContent>
     </MudCardHeader>
     <MudCardContent>
-        <MudTable T="Project" Items="@_pageModel.Projects" Loading="@_loading" LoadingProgressColor="Color.Primary" Hover="true" Filter="((x) => FilterFunc(x, _searchString))" OnRowClick="@OpenUpdateProjectPage">
-            <ToolBarContent>
-                <MudTextField 
-                    @bind-Value="_searchString"
-                    Immediate="true"
-                    Placeholder="Search"
-                    Adornment="Adornment.Start"
-                    AdornmentIcon="@Icons.Material.Filled.Search"
-                    IconSize="Size.Medium" />
-            </ToolBarContent>
-            <HeaderContent>
-                <MudTh></MudTh>
-            </HeaderContent>
-            <RowTemplate>
-                <MudTd Class="flex cursor-pointer">
-                    <div class="flex">
-                        <div style="color: @context.HexColor"><MudIcon Icon="@Icons.Material.Filled.Circle" /></div>
-                        <MudText Class="ml-3">@context.Name @(context.HourlyRate != null ? $"({context.HourlyRate} {context.Currency}/h)" : "")</MudText>
-                    </div>
-                </MudTd>
-            </RowTemplate>
-        </MudTable>
+        <UseGetProjects Context="result">
+            <LoadingContent>
+                Loading...
+            </LoadingContent>
+            <ChildContent>
+                <MudTable T="IGetProjects_Projects" Items="@result.Projects" Hover="true" Filter="((x) => FilterFunc(x, _searchString))" OnRowClick="@OpenUpdateProjectPage">
+                    <ToolBarContent>
+                        <MudTextField 
+                            @bind-Value="_searchString"
+                            Immediate="true"
+                            Placeholder="Search"
+                            Adornment="Adornment.Start"
+                            AdornmentIcon="@Icons.Material.Filled.Search"
+                            IconSize="Size.Medium" />
+                    </ToolBarContent>
+                    <HeaderContent>
+                        <MudTh></MudTh>
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd Class="flex cursor-pointer">
+                            <div class="flex">
+                                <div style="color: @context.HexColor"><MudIcon Icon="@Icons.Material.Filled.Circle" /></div>
+                                <MudText Class="ml-3">@context.Name @(context.HourlyRate != null ? $"({context.HourlyRate} {context.Currency}/h)" : "")</MudText>
+                            </div>
+                        </MudTd>
+                    </RowTemplate>
+                </MudTable>
+            </ChildContent>
+        </UseGetProjects>
+        
     </MudCardContent>
 </MudCard>
 
 @code {
-    [Inject] private IMediator Mediator { get; set; } = null!;
     [Inject] private NavigationManager NavigationManager { get; init; } = null!;
-
-    private PageModel _pageModel = new();
     private string _searchString = string.Empty;
 
-    private bool _loading = false;
-
-    protected override async Task OnInitializedAsync()
-    {
-        _loading = true;
-        _pageModel = await Mediator.Send(new GetPageModelQuery());
-        _loading = false;
-    }
-
-    private bool FilterFunc(Project project, string searchString)
+    private bool FilterFunc(IGetProjects_Projects project, string searchString)
     {
         if (string.IsNullOrWhiteSpace(searchString))
             return true;
@@ -66,27 +62,8 @@
         return false;
     }
 
-    private void OpenUpdateProjectPage(TableRowClickEventArgs<Project> rowClickEvent)
+    private void OpenUpdateProjectPage(TableRowClickEventArgs<IGetProjects_Projects> rowClickEvent)
     {
         NavigationManager.NavigateTo($"/projects/{rowClickEvent.Item.Id}");
-    }
-
-    private sealed record GetPageModelQuery : IRequest<PageModel>;
-
-    private sealed record PageModel
-    {
-        public IEnumerable<Project> Projects { get; init; } = [];
-    }
-
-    private sealed class GetPageModelQueryHandler(IDevBookWebApiActionExecutor devBookWebApiActionExecutor)
-        : IRequestHandler<GetPageModelQuery, PageModel>
-    {
-        public async Task<PageModel> Handle(GetPageModelQuery request, CancellationToken cancellationToken)
-        {
-            var result = await devBookWebApiActionExecutor.Execute(x => x.Projects_GetAllAsync(cancellationToken));
-            return result.Match(
-                projects => new PageModel { Projects = projects.Select(x => Project.FromDto(x)) },
-                apiError => throw new DevBookException(apiError.Errors));
-        }
     }
 }

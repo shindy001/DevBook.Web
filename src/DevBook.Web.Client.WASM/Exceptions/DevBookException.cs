@@ -2,7 +2,7 @@
 
 public class DevBookException : Exception
 {
-	private readonly static string DefaultError = "There was an error.";
+	private readonly static string DefaultError = "Sorry, there was an error.";
 
 	public IList<string> Errors { get; } = [];
 

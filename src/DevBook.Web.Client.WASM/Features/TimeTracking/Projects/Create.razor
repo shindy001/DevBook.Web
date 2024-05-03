@@ -48,8 +48,9 @@
 </MudCard>
 
 @code {
-    [Inject] private IMediator Mediator { get; set; } = null!;
+    [Inject] IDevBookWebApiGraphQLClient Client { get; set; } = null!;
     [Inject] private NavigationManager NavigationManager { get; init; } = null!;
+    [Inject] ISnackbar Snackbar { get; set; } = null!;
 
     private readonly CreateProjectForm _createProjectForm = new() { Name = "New Project" };
     private bool _processing = false;
@@ -57,16 +58,25 @@
     private async Task OnValidSubmit()
     {
         _processing = true;
-        await Mediator.Send(
-            new CreateProjectCommand(
-                Name: _createProjectForm.Name,
-                Details: _createProjectForm.Details,
-                Currency: _createProjectForm.Currency,
-                HourlyRate: _createProjectForm.HourlyRate,
-                HexColor: _createProjectForm.HexColor));
-        _processing = false;
+        var result = await Client.CreateProject.ExecuteAsync(
+            new()
+            {
+                Name = _createProjectForm.Name,
+                Details = _createProjectForm.Details,
+                Currency = _createProjectForm.Currency,
+                HourlyRate = _createProjectForm.HourlyRate,
+                HexColor = _createProjectForm.HexColor
+            });
 
-        NavigationManager.NavigateTo("/projects");
+        if (result.Errors.Any())
+        {
+            Snackbar.Add($"Cannot create project - {result.Errors.FirstOrDefault()?.Message ?? string.Empty}", Severity.Error);
+            _processing = false;
+        }
+        else
+        {
+            NavigationManager.NavigateTo("/projects");
+        }
     }
 
     private sealed record CreateProjectForm
@@ -78,36 +88,5 @@
         public string? Currency { get; set; }
         public int? HourlyRate { get; set; }
         public string? HexColor { get; set; }
-    }
-
-    private sealed record CreateProjectCommand(
-        string Name,
-        string? Details,
-        string? Currency,
-        int? HourlyRate,
-        string? HexColor)
-        : IRequest;
-
-    private sealed class CreateProjectCommandHandler(IDevBookWebApiActionExecutor devBookWebApiActionExecutor)
-        : IRequestHandler<CreateProjectCommand>
-    {
-        public async Task Handle(CreateProjectCommand request, CancellationToken cancellationToken)
-        {
-            var result = await devBookWebApiActionExecutor.Execute(
-                x => x.Projects_CreateAsync(
-                    new() 
-                    {
-                        Name = request.Name,
-                        Details = request.Details,
-                        Currency = request.Currency,
-                        HourlyRate = request.HourlyRate,
-                        HexColor = request.HexColor
-                    },
-                cancellationToken));
-
-            result.Match(
-                success => success,
-                apiError => throw new DevBookException(apiError.Errors));
-        }
     }
 }

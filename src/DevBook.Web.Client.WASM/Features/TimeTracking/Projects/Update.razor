@@ -56,18 +56,37 @@
     private PageModel _pageModel = new();
     private bool _processing = false;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        var projectDto = Store.EntityStore.CurrentSnapshot.GetEntity<ProjectDtoEntity>(new EntityId(nameof(IUpdateProject_UpdateProject.ProjectDto), ProjectId));
-        if (projectDto is not null)
+        var projectEntity = await GetProject(ProjectId);
+        if (projectEntity is not null)
         {
-            _pageModel.UpdateForm.Name = projectDto.Name;
-            _pageModel.UpdateForm.Details = projectDto.Details;
-            _pageModel.UpdateForm.Currency = projectDto.Currency;
-            _pageModel.UpdateForm.HourlyRate = projectDto.HourlyRate;
-            _pageModel.UpdateForm.HexColor = projectDto.HexColor;
+            _pageModel.UpdateForm.Name = projectEntity.Name;
+            _pageModel.UpdateForm.Details = projectEntity.Details;
+            _pageModel.UpdateForm.Currency = projectEntity.Currency;
+            _pageModel.UpdateForm.HourlyRate = projectEntity.HourlyRate;
+            _pageModel.UpdateForm.HexColor = projectEntity.HexColor;
+        }
+        else
+        {
+            Snackbar.Add($"Project '{ProjectId}' not found", Severity.Error);
+            NavigationManager.NavigateTo("/projects");
         }
     }
+
+    private async Task<ProjectDtoEntity?> GetProject(string id)
+    {
+        var projectDtoEntity = GetStoredProject(ProjectId);
+        if (projectDtoEntity is null)
+        {
+            await FetchProject(id);
+            projectDtoEntity = GetStoredProject(ProjectId);
+        }
+        return projectDtoEntity;
+    }
+
+    private async Task FetchProject(string id) => await Client.GetProject.ExecuteAsync(new() { Id = Guid.Parse(id) });
+    private ProjectDtoEntity? GetStoredProject(string id) => Store.EntityStore.CurrentSnapshot.GetEntity<ProjectDtoEntity>(new EntityId(nameof(IUpdateProject_UpdateProject.ProjectDto), ProjectId));
 
     private async Task OnValidSubmit()
     {

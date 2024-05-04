@@ -1,0 +1,21 @@
+query GetProject($input: GetProjectInput!) {
+  project(input: $input) {
+    ...on ProjectDto {
+      id
+      name
+      details
+      hourlyRate,
+      currency,
+      hexColor
+    }
+
+    ... on NotFoundError {
+      id
+      message
+    }
+
+    ... on Error {
+      message
+    }
+  }
+}

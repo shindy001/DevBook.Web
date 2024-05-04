@@ -1,4 +1,5 @@
 ﻿@page "/Account/Login"
+@attribute [AllowAnonymous]
 
 <div class="flex justify-center">
     <EditForm Model="@_loginForm" OnValidSubmit="OnValidSubmit">

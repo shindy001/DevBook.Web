@@ -1,0 +1,8 @@
+﻿@code {
+    [Inject] private NavigationManager Navigation { get; set; } = null!;
+
+    protected override void OnInitialized()
+    {
+        Navigation.NavigateTo($"account/login?returnUrl={Navigation.ToBaseRelativePath(Navigation.Uri)}");
+    }
+}

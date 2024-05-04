@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using MudBlazor.Services;
 using DevBook.WebApiClient.Generated;
-using DevBook.Web.Client.WASM.Features.Shared;
+using DevBook.Web.Client.WASM.Features;
 using DevBook.Web.Client.WASM.Identity;
 using DevBook.Web.Client.WASM.ApiClient;
 using MudBlazor;

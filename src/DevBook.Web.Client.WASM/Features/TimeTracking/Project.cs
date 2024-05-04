@@ -1,6 +1,6 @@
 ﻿using DevBook.WebApiClient.Generated;
 
-namespace DevBook.Web.Client.WASM.Features.TimeTracking.Projects;
+namespace DevBook.Web.Client.WASM.Features.TimeTracking;
 
 public sealed record Project(Guid Id, string Name, int? HourlyRate = null, string? Currency = null, string? HexColor = null)
 {

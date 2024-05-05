@@ -1,4 +1,5 @@
 ﻿@page "/Projects/Create"
+@using DevBook.Web.Client.WASM.Features.TimeTracking.Projects.Commands
 
 <PageTitle>Create Project</PageTitle>
 
@@ -48,7 +49,7 @@
 </MudCard>
 
 @code {
-    [Inject] private IDevBookWebApiGraphQLClient Client { get; set; } = null!;
+    [Inject] private IMediator Mediator { get; set; } = null!;
     [Inject] private NavigationManager NavigationManager { get; init; } = null!;
     [Inject] private ISnackbar Snackbar { get; set; } = null!;
 
@@ -58,25 +59,19 @@
     private async Task OnValidSubmit()
     {
         _processing = true;
-        var result = await Client.CreateProject.ExecuteAsync(
-            new()
-            {
-                Name = _createProjectForm.Name,
-                Details = _createProjectForm.Details,
-                Currency = _createProjectForm.Currency,
-                HourlyRate = _createProjectForm.HourlyRate,
-                HexColor = _createProjectForm.HexColor
-            });
+        var result = await Mediator.Send(
+            new CreateProjectCommand(
+                Name: _createProjectForm.Name,
+                Details: _createProjectForm.Details,
+                Currency: _createProjectForm.Currency,
+                HourlyRate: _createProjectForm.HourlyRate,
+                HexColor: _createProjectForm.HexColor));
+        _processing = false;
 
-        if (result.Errors.Any())
-        {
-            Snackbar.Add($"Cannot create project - {result.Errors.FirstOrDefault()?.Message ?? string.Empty}", Severity.Error);
-            _processing = false;
-        }
-        else
-        {
-            NavigationManager.NavigateTo("/projects");
-        }
+        result.Switch(
+            success => NavigationManager.NavigateTo("/projects"),
+            error => Snackbar.Add($"Cannot create project - {error.Description}", Severity.Error)
+        );
     }
 
     private sealed record CreateProjectForm

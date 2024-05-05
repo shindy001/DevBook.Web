@@ -1,4 +1,4 @@
-﻿@page "/Projects/{ProjectId}"
+﻿@page "/Projects/{ProjectId:guid}"
 
 <PageTitle>Update Project</PageTitle>
 
@@ -12,20 +12,20 @@
         </CardHeaderContent>
     </MudCardHeader>
     <MudCardContent>
-        <EditForm Model="@_pageModel.UpdateForm" OnValidSubmit="OnValidSubmit">
+        <EditForm Model="@_updateProjectForm" OnValidSubmit="OnValidSubmit">
             <DataAnnotationsValidator />
             <MudCard>
                 <MudCardContent>
-                    <MudTextField Label="Name" @bind-Value="_pageModel.UpdateForm.Name" For="@(() => _pageModel.UpdateForm.Name)" />
-                    <MudTextField Label="Details" Class="mt-3" @bind-Value="_pageModel.UpdateForm.Details" For="@(() => _pageModel.UpdateForm.Details)" />
+                    <MudTextField Label="Name" @bind-Value="_updateProjectForm.Name" For="@(() => _updateProjectForm.Name)" />
+                    <MudTextField Label="Details" Class="mt-3" @bind-Value="_updateProjectForm.Details" For="@(() => _updateProjectForm.Details)" />
                     <div class="flex space-x-6">
-                        <MudTextField Label="Hourly rate" Class="mt-3" @bind-Value="_pageModel.UpdateForm.HourlyRate" For="@(() => _pageModel.UpdateForm.HourlyRate)" />
-                        <MudTextField Label="Currency" Class="mt-3" @bind-Value="_pageModel.UpdateForm.Currency" For="@(() => _pageModel.UpdateForm.Currency)" />
+                        <MudTextField Label="Hourly rate" Class="mt-3" @bind-Value="_updateProjectForm.HourlyRate" For="@(() => _updateProjectForm.HourlyRate)" />
+                        <MudTextField Label="Currency" Class="mt-3" @bind-Value="_updateProjectForm.Currency" For="@(() => _updateProjectForm.Currency)" />
                     </div>
                     <div class="flex items-end mt-2">
-                        <div class="w-6 h-6 mr-2 mb-1 rounded-full" style="background: @(_pageModel.UpdateForm.HexColor ?? "#adadb1")"></div>
+                        <div class="w-6 h-6 mr-2 mb-1 rounded-full" style="background: @(_updateProjectForm.HexColor ?? "#adadb1")"></div>
                         <MudColorPicker
-                            @bind-Text="_pageModel.UpdateForm.HexColor"
+                            @bind-Text="_updateProjectForm.HexColor"
                             Placeholder="Color"
                             Label="Color"
                             Adornment="Adornment.None"
@@ -45,81 +45,62 @@
 </MudCard>
 
 @code {
-    [Parameter] public required string ProjectId { get; set; }
+    [Parameter] public required Guid ProjectId { get; set; }
 
     [Inject] private IMediator Mediator { get; set; } = null!;
-    [Inject] private IDevBookWebApiGraphQLClient Client { get; set; } = null!;
-    [Inject] private DevBookWebApiGraphQLClientStoreAccessor Store { get;set; } = null!;
     [Inject] private NavigationManager NavigationManager { get; init; } = null!;
     [Inject] ISnackbar Snackbar { get; set; } = null!;
 
-
-    private PageModel _pageModel = new();
+    private UpdateProjectForm _updateProjectForm = new();
     private bool _processing = false;
 
     protected override async Task OnInitializedAsync()
     {
-        var projectEntity = await GetProject(ProjectId);
-        if (projectEntity is not null)
-        {
-            _pageModel.UpdateForm.Name = projectEntity.Name;
-            _pageModel.UpdateForm.Details = projectEntity.Details;
-            _pageModel.UpdateForm.Currency = projectEntity.Currency;
-            _pageModel.UpdateForm.HourlyRate = projectEntity.HourlyRate;
-            _pageModel.UpdateForm.HexColor = projectEntity.HexColor;
-        }
-        else
-        {
-            Snackbar.Add($"Project '{ProjectId}' not found", Severity.Error);
-            NavigationManager.NavigateTo("/projects");
-        }
-    }
+        var result = await Mediator.Send(new GetProject.Query(ProjectId));
 
-    private async Task<ProjectDtoEntity?> GetProject(string id)
-    {
-        var projectDtoEntity = GetStoredProject(ProjectId);
-        if (projectDtoEntity is null)
-        {
-            await FetchProject(id);
-            projectDtoEntity = GetStoredProject(ProjectId);
-        }
-        return projectDtoEntity;
+        result.Switch(
+            project => 
+            { 
+                _updateProjectForm.Name = project.Name;
+                _updateProjectForm.Details = project.Details;
+                _updateProjectForm.Currency = project.Currency;
+                _updateProjectForm.HourlyRate = project.HourlyRate;
+                _updateProjectForm.HexColor = project.HexColor;
+            },
+            error =>
+            {
+                Snackbar.Add($"Cannot update project: {error.Name} - {error.Description}", Severity.Error);
+                NavigationManager.NavigateTo("/projects");
+            }
+        );
     }
-
-    private async Task FetchProject(string id) => await Client.GetProject.ExecuteAsync(new() { Id = Guid.Parse(id) });
-    private ProjectDtoEntity? GetStoredProject(string id) => Store.EntityStore.CurrentSnapshot.GetEntity<ProjectDtoEntity>(new EntityId(nameof(IUpdateProject_UpdateProject.ProjectDto), ProjectId));
 
     private async Task OnValidSubmit()
     {
         _processing = true;
         var result = await Mediator.Send(new UpdateProjectCommand(
-            Id: Guid.Parse(ProjectId),
-            Name: _pageModel.UpdateForm.Name,
-            Details: _pageModel.UpdateForm.Details,
-            Currency: _pageModel.UpdateForm.Currency,
-            HourlyRate: _pageModel.UpdateForm.HourlyRate,
-            HexColor: _pageModel.UpdateForm.HexColor));
+            Id: ProjectId,
+            Name: _updateProjectForm.Name,
+            Details: _updateProjectForm.Details,
+            Currency: _updateProjectForm.Currency,
+            HourlyRate: _updateProjectForm.HourlyRate,
+            HexColor: _updateProjectForm.HexColor));
         _processing = false;
 
         result.Switch(
             success => NavigationManager.NavigateTo("/projects"),
-            error => Snackbar.Add($"Cannot create project - {error.Description}", Severity.Error)
+            error => Snackbar.Add($"Cannot update project: {error.Name} - {error.Description}", Severity.Error)
         );
     }
 
-    private sealed record PageModel
+    private sealed record UpdateProjectForm
     {
-        public UpdateProjectForm UpdateForm { get; init; } = new();
+        [Required(AllowEmptyStrings = false)]
+        public string Name { get; set; } = string.Empty;
 
-        public sealed record UpdateProjectForm
-        {
-            [Required(AllowEmptyStrings = false)]
-            public string Name { get; set; } = string.Empty;
-
-            public string? Details { get; set; }
-            public string? Currency { get; set; }
-            public int? HourlyRate { get; set; }
-            public string? HexColor { get; set; }
-        }
+        public string? Details { get; set; }
+        public string? Currency { get; set; }
+        public int? HourlyRate { get; set; }
+        public string? HexColor { get; set; }
     }
 }

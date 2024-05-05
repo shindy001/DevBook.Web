@@ -1,7 +1,4 @@
-﻿using DevBook.Web.Client.WASM.Errors;
-using StrawberryShake;
-
-namespace DevBook.Web.Client.WASM.Features.TimeTracking.Projects.Commands;
+﻿namespace DevBook.Web.Client.WASM.Features.TimeTracking.Projects.Commands;
 
 internal sealed record CreateProjectCommand(
 	string Name,
@@ -25,12 +22,6 @@ internal sealed class CreateProjectCommandHandler(IDevBookWebApiGraphQLClient cl
 				HexColor = request.HexColor
 			}, cancellationToken);
 
-		if (result.IsSuccessResult())
-		{
-			return new Success();
-		}
-
-		var error = result.Errors.FirstOrDefault();
-		return new DevBookError(error?.Exception?.GetType().Name, error?.Message);
+		return ResultsHelper.FromOperationResult(result);
 	}
 }

@@ -22,6 +22,6 @@ internal sealed class CreateProjectCommandHandler(IDevBookWebApiGraphQLClient cl
 				HexColor = request.HexColor
 			}, cancellationToken);
 
-		return ResultsHelper.FromOperationResult(result);
+		return result.Unwrap();
 	}
 }

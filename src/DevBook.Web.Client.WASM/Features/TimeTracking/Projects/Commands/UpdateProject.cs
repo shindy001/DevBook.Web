@@ -25,6 +25,6 @@ internal sealed class UpdateProjectCommandHandler(IDevBookWebApiGraphQLClient cl
 			},
 			cancellationToken);
 
-		return ResultsHelper.FromOperationResult(result);
+		return result.Unwrap();
 	}
 }

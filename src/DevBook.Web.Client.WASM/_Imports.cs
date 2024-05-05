@@ -11,6 +11,7 @@ global using Blazored.LocalStorage;
 global using MediatR;
 global using OneOf;
 global using OneOf.Types;
+global using StrawberryShake;
 
 global using DevBook.WebApiClient.Generated;
 global using DevBook.WebApiGraphQLClient.Generated;

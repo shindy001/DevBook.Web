@@ -1,6 +1,4 @@
-﻿using System.Net;
-
-namespace DevBook.Web.Client.WASM.Identity;
+﻿namespace DevBook.Web.Client.WASM.Identity;
 
 /// <summary>
 /// Handler to ensure cookie credentials are automatically sent over with each request.

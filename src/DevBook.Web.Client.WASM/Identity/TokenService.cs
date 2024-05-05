@@ -1,8 +1,4 @@
-﻿using Blazored.LocalStorage;
-using DevBook.Web.Client.WASM.ApiClient;
-using DevBook.WebApiClient.Generated;
-
-namespace DevBook.Web.Client.WASM.Identity;
+﻿namespace DevBook.Web.Client.WASM.Identity;
 
 internal interface ITokenService
 {

@@ -1,12 +1,4 @@
-﻿using DevBook.Web.Client.WASM.ApiClient;
-using DevBook.WebApiClient.Generated;
-using Microsoft.AspNetCore.Components.Authorization;
-using OneOf;
-using OneOf.Types;
-using System.Net;
-using System.Security.Claims;
-
-namespace DevBook.Web.Client.WASM.Identity;
+﻿namespace DevBook.Web.Client.WASM.Identity;
 
 internal sealed class TokenAuthenticationStateProvider(
 	IDevBookWebApiActionExecutor _devBookWebApiActionExecutor,

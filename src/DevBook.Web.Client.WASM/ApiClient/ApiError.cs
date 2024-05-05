@@ -1,5 +1,3 @@
-﻿using System.Net;
-
-namespace DevBook.Web.Client.WASM.ApiClient;
+﻿namespace DevBook.Web.Client.WASM.ApiClient;
 
 public readonly record struct ApiError(HttpStatusCode StatusCode, string[] Errors);

@@ -1,6 +1,4 @@
-﻿using DevBook.WebApiClient.Generated;
-
-namespace DevBook.Web.Client.WASM.Features.TimeTracking;
+﻿namespace DevBook.Web.Client.WASM.Features.TimeTracking;
 
 public sealed record WorkTask(Guid Id, Project? Project, string? Description, DateTimeOffset Date, TimeSpan Start, TimeSpan? End)
 {

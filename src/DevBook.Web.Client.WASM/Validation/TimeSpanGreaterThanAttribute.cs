@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace DevBook.Web.Client.WASM.Validation;
+﻿namespace DevBook.Web.Client.WASM.Validation;
 
 public class TimeSpanGreaterThanAttribute : ValidationAttribute
 {

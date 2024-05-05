@@ -1,7 +1,4 @@
-﻿
-using DevBook.WebApiClient.Generated;
-
-namespace DevBook.Web.Client.WASM.ApiClient;
+﻿namespace DevBook.Web.Client.WASM.ApiClient;
 
 internal interface IDevBookWebApiClientFactory
 {

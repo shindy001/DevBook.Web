@@ -47,6 +47,7 @@
 @code {
     [Parameter] public required string ProjectId { get; set; }
 
+    [Inject] private IMediator Mediator { get; set; } = null!;
     [Inject] private IDevBookWebApiGraphQLClient Client { get; set; } = null!;
     [Inject] private DevBookWebApiGraphQLClientStoreAccessor Store { get;set; } = null!;
     [Inject] private NavigationManager NavigationManager { get; init; } = null!;
@@ -91,27 +92,19 @@
     private async Task OnValidSubmit()
     {
         _processing = true;
-        var result = await Client.UpdateProject.ExecuteAsync(
-            new()
-            {
-                Id = Guid.Parse(ProjectId),
-                Name = _pageModel.UpdateForm.Name,
-                Details = _pageModel.UpdateForm.Details,
-                Currency = _pageModel.UpdateForm.Currency,
-                HourlyRate = _pageModel.UpdateForm.HourlyRate,
-                HexColor = _pageModel.UpdateForm.HexColor
-            }
+        var result = await Mediator.Send(new UpdateProjectCommand(
+            Id: Guid.Parse(ProjectId),
+            Name: _pageModel.UpdateForm.Name,
+            Details: _pageModel.UpdateForm.Details,
+            Currency: _pageModel.UpdateForm.Currency,
+            HourlyRate: _pageModel.UpdateForm.HourlyRate,
+            HexColor: _pageModel.UpdateForm.HexColor));
+        _processing = false;
+
+        result.Switch(
+            success => NavigationManager.NavigateTo("/projects"),
+            error => Snackbar.Add($"Cannot create project - {error.Description}", Severity.Error)
         );
-        
-        if (result.Errors.Any())
-        {
-            Snackbar.Add($"Cannot update project - {result.Errors.FirstOrDefault()?.Message ?? string.Empty}", Severity.Error);
-            _processing = false;
-        }
-        else
-        {
-            NavigationManager.NavigateTo("/projects");
-        }
     }
 
     private sealed record PageModel

@@ -17,5 +17,6 @@ global using DevBook.WebApiGraphQLClient.Generated;
 
 global using DevBook.Web.Client.WASM.ApiClient;
 global using DevBook.Web.Client.WASM.Exceptions;
+global using DevBook.Web.Client.WASM.Results;
 global using DevBook.Web.Client.WASM.Identity;
 global using DevBook.Web.Client.WASM.Features;

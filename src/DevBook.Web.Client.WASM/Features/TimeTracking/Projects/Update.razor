@@ -78,7 +78,7 @@
     private async Task OnValidSubmit()
     {
         _processing = true;
-        var result = await Mediator.Send(new UpdateProjectCommand(
+        var result = await Mediator.Send(new UpdateProject.Command(
             Id: ProjectId,
             Name: _updateProjectForm.Name,
             Details: _updateProjectForm.Details,

@@ -1,6 +1,9 @@
 ﻿namespace DevBook.Web.Client.WASM.Features.TimeTracking.Projects.Commands;
 
-internal sealed record CreateProjectCommand(
+
+public static class CreateProject
+{
+	internal sealed record Command(
 	string Name,
 	string? Details,
 	string? Currency,
@@ -8,20 +11,21 @@ internal sealed record CreateProjectCommand(
 	string? HexColor)
 	: IRequest<OneOf<Success, DevBookError>>;
 
-internal sealed class CreateProjectCommandHandler(IDevBookWebApiGraphQLClient client) : IRequestHandler<CreateProjectCommand, OneOf<Success, DevBookError>>
-{
-	public async Task<OneOf<Success, DevBookError>> Handle(CreateProjectCommand request, CancellationToken cancellationToken)
+	private sealed class Handler(IDevBookWebApiGraphQLClient client) : IRequestHandler<Command, OneOf<Success, DevBookError>>
 	{
-		var result = await client.CreateProject.ExecuteAsync(
-			new()
-			{
-				Name = request.Name,
-				Details = request.Details,
-				Currency = request.Currency,
-				HourlyRate = request.HourlyRate,
-				HexColor = request.HexColor
-			}, cancellationToken);
+		public async Task<OneOf<Success, DevBookError>> Handle(Command request, CancellationToken cancellationToken)
+		{
+			var result = await client.CreateProject.ExecuteAsync(
+				new()
+				{
+					Name = request.Name,
+					Details = request.Details,
+					Currency = request.Currency,
+					HourlyRate = request.HourlyRate,
+					HexColor = request.HexColor
+				}, cancellationToken);
 
-		return result.Unwrap();
+			return result.Unwrap();
+		}
 	}
 }

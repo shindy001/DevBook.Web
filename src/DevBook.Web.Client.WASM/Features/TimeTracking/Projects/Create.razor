@@ -59,7 +59,7 @@
     {
         _processing = true;
         var result = await Mediator.Send(
-            new CreateProjectCommand(
+            new CreateProject.Command(
                 Name: _createProjectForm.Name,
                 Details: _createProjectForm.Details,
                 Currency: _createProjectForm.Currency,

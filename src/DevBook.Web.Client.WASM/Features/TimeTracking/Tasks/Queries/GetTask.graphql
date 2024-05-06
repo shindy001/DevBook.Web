@@ -1,0 +1,20 @@
+query GetWorkTask($input: WorkTaskInput!) {
+  workTask(input: $input) {
+    ...on WorkTaskDto {
+      id
+      project {
+        id
+        name
+      }
+      description
+      details
+      date
+      start
+      end
+    }
+    ... on NotFoundError {
+      __typename
+      message
+    }
+  }
+}

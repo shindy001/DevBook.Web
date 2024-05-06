@@ -54,7 +54,6 @@
     [Parameter] public EventCallback OnCreateOrUpdate { get; set; }
     [Parameter] public EventCallback OnCancel { get; set; }
     [Parameter] public EventCallback OnDelete { get; set; }
-
     [Inject] private IMediator Mediator { get; set; } = null!;
     [Inject] ISnackbar Snackbar { get; set; } = null!;
 
@@ -64,16 +63,45 @@
     public async Task PopulateTaskDetailCard(Guid? id)
     {
         _taskId = id;
+        var projects = await FetchProjects();
         if (_taskId is not null)
         {
-            _createOrUpdateTaskForm = await Mediator.Send(new GetUpdateTaskFormQuery(_taskId.Value));
+            WorkTask task = await FetchTask(_taskId.Value);
+            _createOrUpdateTaskForm = new CreateOrUpdateTaskForm
+            {
+                Project = task.Project is null ? null : task.Project,
+                Description = task.Description,
+                Details = task.Details,
+                Date = task.Date.Date,
+                Start = task.Start,
+                End = task.End,
+                AvailableProjects = projects
+            };
         }
         else
         {
             _createOrUpdateTaskForm = new();
-            _createOrUpdateTaskForm.AvailableProjects = await Mediator.Send(new GetProjectsQuery());
+            _createOrUpdateTaskForm.AvailableProjects = projects;
         }
         StateHasChanged();
+    }
+
+    private async Task<Project[]> FetchProjects()
+    {
+        var result = await Mediator.Send(new GetProjects.Query());
+        return result.Match(
+            projects => projects.ToArray(),
+            error => throw new DevBookException($"Fetch error: {error.Description}")
+        );
+    }
+
+    private async Task<WorkTask> FetchTask(Guid id)
+    {
+        var result = await Mediator.Send(new GetTask.Query(id));
+        return result.Match(
+            task => task,
+            error => throw new DevBookException($"Fetch error: {error.Description}")
+        );
     }
 
     private void OnInvalidSubmit(EditContext context)
@@ -84,9 +112,10 @@
 
     private async Task OnValidSubmit()
     {
+        OneOf<Success, DevBookError> result;
         if (_taskId is null)
         {
-            await Mediator.Send(new CreateTaskCommand(
+            result = await Mediator.Send(new CreateTask.Command(
                 ProjectId: _createOrUpdateTaskForm.Project?.Id,
                 Description: _createOrUpdateTaskForm.Description,
                 Details: _createOrUpdateTaskForm.Details,
@@ -94,11 +123,10 @@
                 Start: _createOrUpdateTaskForm.Start!.Value,
                 End: _createOrUpdateTaskForm.End!.Value
             ));
-            Snackbar.Add("Create successful", Severity.Success);
         }
         else
         {
-            await Mediator.Send(new UpdateTaskCommand(
+            result = await Mediator.Send(new UpdateTask.Command(
                 Id: _taskId.Value,
                 ProjectId: _createOrUpdateTaskForm.Project?.Id,
                 Description: _createOrUpdateTaskForm.Description,
@@ -107,8 +135,16 @@
                 Start: _createOrUpdateTaskForm.Start!.Value,
                 End: _createOrUpdateTaskForm.End!.Value
             ));
-            Snackbar.Add("Update successful", Severity.Success);
         }
+
+        await result.Match(
+            async (success) =>
+            {
+                Snackbar.Add("Create/Update successful", Severity.Success);
+                await OnCreateOrUpdate.InvokeAsync();
+            },
+            error => Task.FromResult(Snackbar.Add($"Create/Update failed: {error.Description}", Severity.Error))
+    );
         await OnCreateOrUpdate.InvokeAsync();
     }
 
@@ -134,116 +170,5 @@
         public TimeSpan? End { get; set; } = Now.TimeOfDay.Add(TimeSpan.FromHours(1));
 
         public Project[] AvailableProjects { get; set; } = [];
-    }
-
-    private sealed record GetUpdateTaskFormQuery(Guid Id) : IRequest<CreateOrUpdateTaskForm>;
-
-    private sealed class GetUpdateTaskFormQueryHandler(IDevBookWebApiActionExecutor devBookWebApiActionExecutor)
-        : IRequestHandler<GetUpdateTaskFormQuery, CreateOrUpdateTaskForm>
-    {
-        public async Task<CreateOrUpdateTaskForm> Handle(GetUpdateTaskFormQuery request, CancellationToken cancellationToken)
-        {
-            Project[] availableProjects = [];
-            var projectsResult = await devBookWebApiActionExecutor.Execute(x => x.Projects_GetAllAsync(cancellationToken));
-            projectsResult.Match(
-                projects => availableProjects = projects.Select(x => Project.FromDto(x)).ToArray(),
-                apiError => throw new DevBookException(apiError.Errors));
-
-            var result = await devBookWebApiActionExecutor.Execute(x => x.WorkTasks_GetByIdAsync(request.Id, cancellationToken));
-            return result.Match(
-                task => new CreateOrUpdateTaskForm
-                    {
-                        Project = task.Project is null ? null : Project.FromDto(task.Project),
-                        Description = task.Description,
-                        Details = task.Details,
-                        Date = task.Date.Date,
-                        Start = task.Start,
-                        End = task.End,
-                        AvailableProjects = availableProjects
-                    },
-                apiError => throw new DevBookException(apiError.Errors));
-        }
-    }
-
-    private sealed record GetProjectsQuery : IRequest<Project[]>;
-
-    private sealed class GetPageModelQueryHandler(IDevBookWebApiActionExecutor devBookWebApiActionExecutor)
-        : IRequestHandler<GetProjectsQuery, Project[]>
-    {
-        public async Task<Project[]> Handle(GetProjectsQuery request, CancellationToken cancellationToken)
-        {
-            var result = await devBookWebApiActionExecutor.Execute(x => x.Projects_GetAllAsync(cancellationToken));
-            return result.Match(
-                projects => projects.Select(x => Project.FromDto(x)).ToArray(),
-                apiError => throw new DevBookException(apiError.Errors));
-        }
-    }
-    
-    private sealed record CreateTaskCommand(
-        Guid? ProjectId,
-        string? Description,
-        string? Details,
-        DateTimeOffset Date,
-        TimeSpan Start,
-        TimeSpan End)
-        : IRequest;
-
-    private sealed class CreateTaskCommandHandler(IDevBookWebApiActionExecutor devBookWebApiActionExecutor)
-        : IRequestHandler<CreateTaskCommand>
-    {
-        public async Task Handle(CreateTaskCommand request, CancellationToken cancellationToken)
-        {
-            var result = await devBookWebApiActionExecutor.Execute(
-                x => x.WorkTasks_CreateAsync(
-                    new() 
-                    {
-                        ProjectId = request.ProjectId,
-                        Description = request.Description,
-                        Details = request.Details,
-                        Date = request.Date,
-                        Start = request.Start,
-                        End = request.End
-                    },
-                cancellationToken));
-
-            result.Match(
-                success => success,
-                apiError => throw new DevBookException(apiError.Errors));
-        }
-    }
-
-    private sealed record UpdateTaskCommand(
-        Guid Id,
-        Guid? ProjectId,
-        string? Description,
-        string? Details,
-        DateTimeOffset Date,
-        TimeSpan Start,
-        TimeSpan End)
-        : IRequest;
-
-    private sealed class UpdateTaskCommandHandler(IDevBookWebApiActionExecutor devBookWebApiActionExecutor)
-        : IRequestHandler<UpdateTaskCommand>
-    {
-        public async Task Handle(UpdateTaskCommand request, CancellationToken cancellationToken)
-        {
-            var result = await devBookWebApiActionExecutor.Execute(
-                x => x.WorkTasks_UpdateAsync(
-                    request.Id,
-                    new()
-                    {
-                        ProjectId = request.ProjectId,
-                        Description = request.Description,
-                        Details = request.Details,
-                        Date = request.Date,
-                        Start = request.Start,
-                        End = request.End
-                    },
-                cancellationToken));
-
-            result.Match(
-                success => success,
-                apiError => throw new DevBookException(apiError.Errors));
-        }
     }
 }

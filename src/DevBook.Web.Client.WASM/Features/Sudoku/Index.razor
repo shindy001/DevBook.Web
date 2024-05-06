@@ -1,4 +1,6 @@
 ﻿@page "/Sudoku"
+
+@using DevBook.Web.Client.WASM.Features.Sudoku.Queries
 @attribute [AllowAnonymous]
 
 <PageTitle>Sudoku</PageTitle>
@@ -9,7 +11,14 @@
             <div class="flex flex-row justify-between">
                 <MudText Typo="Typo.h5">Sudoku</MudText>
                 <div class="flex gap-2">
-                    <MudButton StartIcon="@Icons.Material.Filled.Add" Variant="Variant.Filled" Color="Color.Primary" OnClick="GetNewBoard">New Board</MudButton>
+                    <MudButton Disabled="@_fetchingData" OnClick="GetNewBoard" StartIcon="@Icons.Material.Filled.Add" Variant="Variant.Filled" Color="Color.Primary">
+                        
+                        <MudText>New Board</MudText>
+                        @if (_fetchingData)
+                        {
+                            <MudProgressCircular Class="mr-3" Size="Size.Small" Indeterminate="true"/>
+                        }
+                    </MudButton>
                     <MudButton StartIcon="@Icons.Material.Filled.RestartAlt" Variant="Variant.Filled" Color="Color.Primary" OnClick="ResetBoard">Reset Board</MudButton>
                 </div>
             </div>
@@ -81,12 +90,14 @@
     [Inject] NavigationManager NavigationManager { get; set; } = null!;
     [Inject] ILocalStorageService LocalStorage { get; set; } = null!;
     [Inject] IMediator Mediator { get; set; } = null!;
+    [Inject] private ISnackbar Snackbar { get; set; } = null!;
 
     private SudokuData _sudokuData = new();
     private IEnumerable<IGrouping<int, SudokuNumber>> _currentNumbersBySegments = [];
 
     private bool _showWinMessage = false;
     private bool _showInvalidSolution = false;
+    private bool _fetchingData = false;
     private CancellationTokenSource _autoSolverCancellationTokenSource = new();
     private Func<object?, LocationChangedEventArgs, Task>? _saveSudokuDataFn;
 
@@ -100,11 +111,9 @@
     private async Task InitializeBoard()
     {
         var savedData = await GetSavedSudokuData();
-
         _sudokuData = savedData is not null && savedData.CurrentNumbers.Any()
             ? _sudokuData = savedData
             : _sudokuData = await GetSudokuData();
-
         GroupNumbersToSegments();
     }
 
@@ -120,24 +129,26 @@
 
     private async Task<SudokuData> GetSudokuData()
     {
-        var boardData = await Mediator.Send(new GetBoardDataQuery());
-        var gridNumbersArray = boardData.GridNumbers
-            .Select(innerCollection => innerCollection.ToArray())
-            .ToArray();
+        var result = await Mediator.Send(new GetBoardData.Query());
 
-        return new SudokuData
-        {
-            GridOrigin = gridNumbersArray,
-            CurrentNumbers = GetSudokuNumbers(gridNumbersArray),
-        };
+        return result.Match(
+            data => new SudokuData { GridOrigin = data, CurrentNumbers = GetSudokuNumbers(data) },
+            error =>
+            {
+                Snackbar.Add($"Error while fetching board data - {error.Description}", Severity.Error);
+                return new SudokuData();
+            }
+        );
     }
 
     private async Task GetNewBoard()
     {
+        _fetchingData = true;
         StopAutoSolver();
         _sudokuData = await GetSudokuData();
         GroupNumbersToSegments();
         HideSolutionMessages();
+        _fetchingData = false;
     }
 
     private void ResetBoard()
@@ -370,18 +381,4 @@
     }
 
     void IDisposable.Dispose() => NavigationManager.LocationChanged -= async (s, a) => await _saveSudokuDataFn!(s, a);
-
-    private sealed record GetBoardDataQuery : IRequest<BoardData>;
-
-    private sealed class GetSudokuDataQueryHandler(IDevBookWebApiActionExecutor devBookWebApiActionExecutor)
-        : IRequestHandler<GetBoardDataQuery, BoardData>
-    {
-        public async Task<BoardData> Handle(GetBoardDataQuery request, CancellationToken cancellationToken)
-        {
-            var result = await devBookWebApiActionExecutor.Execute(x => x.Sudoku_BoardAsync(cancellationToken));
-            return result.Match(
-                data => data,
-                apiError => throw new DevBookException(apiError.Errors));
-        }
-    }
 }

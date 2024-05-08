@@ -69,7 +69,7 @@
             },
             error =>
             {
-                Snackbar.Add($"Cannot update project: {error.Name} - {error.Description}", Severity.Error);
+                Snackbar.Add($"{error.Name}: {error.Description}", Severity.Error);
                 NavigationManager.NavigateTo("/projects");
             }
         );
@@ -88,8 +88,12 @@
         _processing = false;
 
         result.Switch(
-            success => NavigationManager.NavigateTo("/projects"),
-            error => Snackbar.Add($"Cannot update project: {error.Name} - {error.Description}", Severity.Error)
+            success =>
+            {
+                Snackbar.Add("Update successful", Severity.Success);
+                NavigationManager.NavigateTo("/projects");
+            },
+            error => Snackbar.Add($"{error.Name}: {error.Description}", Severity.Error)
         );
     }
 

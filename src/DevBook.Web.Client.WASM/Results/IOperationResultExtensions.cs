@@ -12,7 +12,14 @@ public static class IOperationResultExtensions
 	{
 		if (operationResult.IsSuccessResult())
 		{
-			return unwrapDataFunc();
+			try
+			{
+				return unwrapDataFunc();
+			}
+			catch (Exception e)
+			{
+				return new DevBookError(Description: e.Message);
+			}
 		}
 
 		var error = operationResult.Errors.FirstOrDefault();

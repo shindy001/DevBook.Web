@@ -9,14 +9,12 @@ internal static class GetProject
 		public async Task<OneOf<Project, DevBookError>> Handle(Query request, CancellationToken cancellationToken)
 		{
 			var result = await client.GetProject.ExecuteAsync(new() { Id = request.Id }, cancellationToken);
-			var project = result.Data?.Project as GetProject_Project_ProjectDto;
-
-			if (result.IsErrorResult() || project is null)
+			return result.Data?.Project switch
 			{
-				return result.CreateError();
-			}
-
-			return result.Unwrap(() => new Project(project.Id, project.Name, project.Details, project.HourlyRate, project.Currency, project.HexColor));
+				IGetProject_Project_ProjectDto proj => new Project(proj.Id, proj.Name, proj.Details, proj.HourlyRate, proj.Currency, proj.HexColor),
+				IGetProject_Project_NotFoundError => new DevBookError(Description: $"Project not found"),
+				_ => throw new DevBookException()
+			};
 		}
 	}
 }

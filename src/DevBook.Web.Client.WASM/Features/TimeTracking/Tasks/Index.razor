@@ -196,7 +196,7 @@
     private async Task StartWork()
     {
         var dateTimeOffset = DateTimeOffset.Now;
-        await Mediator.Send(new StartWorkCommand(Description: "New Task", Date: dateTimeOffset, Start: dateTimeOffset.TimeOfDay));
+        await Mediator.Send(new StartTask.Command(Description: "New Task", Date: dateTimeOffset, Start: dateTimeOffset.TimeOfDay));
         await RefreshItems();
     }
 
@@ -204,7 +204,7 @@
     {
         var runningTask = _pageModel.RunningTask;
         var dateTimeOffset = DateTimeOffset.Now;
-        await Mediator.Send(new StopWorkCommand(TaskId: taskId, End: DateTimeOffset.Now.TimeOfDay));
+        await Mediator.Send(new StopTask.Command(Id: taskId, End: DateTimeOffset.Now.TimeOfDay));
         await RefreshItems();
     }
 
@@ -240,54 +240,6 @@
                     RunningTask = workTasksList.ActiveWorkTask is null ? null : WorkTask.FromDto(workTasksList.ActiveWorkTask),
                     TasksInDays = workTasksList?.WorkTasksInDay?.Select(x => new PageModel.TasksInDay(DateOnly.Parse(x.Key), x.Value.Select(x => WorkTask.FromDto(x)).ToArray())) ?? []
                 },
-                apiError => throw new DevBookException(apiError.Errors));
-        }
-    }
-
-    private sealed record StartWorkCommand(
-        string Description,
-        DateTimeOffset Date,
-        TimeSpan Start)
-        : IRequest;
-
-    private sealed class StartWorkCommandCommandHandler(IDevBookWebApiActionExecutor devBookWebApiActionExecutor)
-        : IRequestHandler<StartWorkCommand>
-    {
-        public async Task Handle(StartWorkCommand request, CancellationToken cancellationToken)
-        {
-            var result = await devBookWebApiActionExecutor.Execute(
-                x => x.WorkTasks_StartAsync(
-                    new()
-                        {
-                            Description = request.Description,
-                            Date = request.Date,
-                            Start = request.Start
-                        },
-                cancellationToken));
-
-            result.Match(
-                success => success,
-                apiError => throw new DevBookException(apiError.Errors));
-        }
-    }
-
-    private sealed record StopWorkCommand(
-        Guid TaskId,
-        TimeSpan End)
-        : IRequest;
-
-    private sealed class StopWorkCommandCommandHandler(IDevBookWebApiActionExecutor devBookWebApiActionExecutor)
-        : IRequestHandler<StopWorkCommand>
-    {
-        public async Task Handle(StopWorkCommand request, CancellationToken cancellationToken)
-        {
-            var result = await devBookWebApiActionExecutor.Execute(
-                x => x.WorkTasks_PatchAsync(
-                    request.TaskId,
-                    new() { End = request.End }, cancellationToken));
-
-            result.Match(
-                success => success,
                 apiError => throw new DevBookException(apiError.Errors));
         }
     }

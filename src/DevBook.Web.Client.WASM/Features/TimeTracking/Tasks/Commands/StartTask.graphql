@@ -1,0 +1,7 @@
+mutation StartTask($input: StartWorkTaskInput!) {
+  startWorkTask(input: $input) {
+    workTaskDto {
+      id
+    }
+  }
+}

@@ -1,0 +1,7 @@
+mutation StopTask($input: PatchWorkTaskInput!) {
+  patchWorkTask(input: $input) {
+    workTaskDto {
+      id
+    }
+  }
+}

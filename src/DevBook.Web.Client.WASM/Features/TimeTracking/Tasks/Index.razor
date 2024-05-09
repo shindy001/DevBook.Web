@@ -79,7 +79,7 @@
     private RunningTaskDetailCard _runingTaskDetailCard = null!;
     MudListItem? _selectedItem;
     object? _selectedTask;
-    private PageModel _pageModel = new();
+    private ListTasks.Model _pageModel = new();
     private bool _showTaskDetailCard = false;
     private bool _showRunningTaskDetailCard = false;
     private string _runningTaskElapsedTime = string.Empty;
@@ -116,7 +116,7 @@
     }
 
     // TODO move earnings calculation to the server (per day summaries grouped by currency)
-    private string CalculateEarningsPerDay(PageModel.TasksInDay tasksInDay)
+    private string CalculateEarningsPerDay(ListTasks.Model.TasksInDay tasksInDay)
     {
         double earnings = 0;
         string? currency = null;
@@ -132,19 +132,19 @@
         return currency is not null && earnings > 0 ? $"{Math.Round(earnings, 5).ToString("0.00")} {currency}" : string.Empty;
     }
 
-    private IEnumerable<PageModel.TasksInDay> GroupTasksByDay(IEnumerable<WorkTask> tasks)
+    private IEnumerable<ListTasks.Model.TasksInDay> GroupTasksByDay(IEnumerable<WorkTask> tasks)
     {
-        List<PageModel.TasksInDay> tasksInDays = new();
+        List<ListTasks.Model.TasksInDay> tasksInDays = new();
         var dayGroups = tasks.OrderByDescending(x => x.Date).GroupBy(x => DateOnly.FromDateTime(x.Date.DateTime));
         foreach(var group in dayGroups)
         {
-            tasksInDays.Add(new PageModel.TasksInDay(group.Key, group.Select(x => x).ToArray()));
+            tasksInDays.Add(new ListTasks.Model.TasksInDay(group.Key, group.Select(x => x).ToArray()));
         }
 
         return tasksInDays;
     }
 
-    private bool FilterFunc(PageModel.TasksInDay tasksInDay, string searchString)
+    private bool FilterFunc(ListTasks.Model.TasksInDay tasksInDay, string searchString)
     {
         if (string.IsNullOrWhiteSpace(searchString))
             return true;
@@ -184,7 +184,13 @@
 
     private async Task RefreshItems(bool closeDetail = false)
     {
-        _pageModel = await Mediator.Send(new GetPageModelQuery());
+        var result = await Mediator.Send(new ListTasks.Query());
+        
+        result.Switch(
+            data => _pageModel = data,
+            error => throw new DevBookException($"Fetch error: {error.Description}")
+        );
+
         _runningTaskElapsedTime = GetTaskElapsedTime(_pageModel.RunningTask?.End, _pageModel.RunningTask?.Start);
         if (closeDetail)
         {
@@ -206,41 +212,5 @@
         var dateTimeOffset = DateTimeOffset.Now;
         await Mediator.Send(new StopTask.Command(Id: taskId, End: DateTimeOffset.Now.TimeOfDay));
         await RefreshItems();
-    }
-
-    private sealed record GetPageModelQuery : IRequest<PageModel>;
-
-    private sealed record PageModel
-    {
-        public WorkTask? RunningTask { get; set; } = null;
-        public IEnumerable<TasksInDay> TasksInDays { get; set; } = [];
-
-        public sealed record TasksInDay
-        {
-            public DateOnly Day { get; init; }
-            public WorkTask[] Tasks { get; init; }
-
-            public TasksInDay(DateOnly day, WorkTask[] tasks)
-            {
-                Day = day;
-                Tasks = tasks;
-            }
-        }
-    }
-
-    private sealed class GetPageModelQueryHandler(IDevBookWebApiActionExecutor devBookWebApiActionExecutor)
-        : IRequestHandler<GetPageModelQuery, PageModel>
-    {
-        public async Task<PageModel> Handle(GetPageModelQuery request, CancellationToken cancellationToken)
-        {
-            var result = await devBookWebApiActionExecutor.Execute(x => x.WorkTasks_ListAsync(cancellationToken));
-            return result.Match(
-                workTasksList => new PageModel
-                {
-                    RunningTask = workTasksList.ActiveWorkTask is null ? null : WorkTask.FromDto(workTasksList.ActiveWorkTask),
-                    TasksInDays = workTasksList?.WorkTasksInDay?.Select(x => new PageModel.TasksInDay(DateOnly.Parse(x.Key), x.Value.Select(x => WorkTask.FromDto(x)).ToArray())) ?? []
-                },
-                apiError => throw new DevBookException(apiError.Errors));
-        }
     }
 }

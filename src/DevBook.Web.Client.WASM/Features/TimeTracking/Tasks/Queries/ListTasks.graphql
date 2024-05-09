@@ -1,0 +1,39 @@
+query ListTasks {
+  workTaskList {
+    activeWorkTask {
+      id
+      project {
+        id
+        name
+        details
+        hourlyRate
+        currency
+        hexColor
+      }
+      description
+      details
+      date
+      start
+      end
+    },
+    workTasksInDay {
+      key
+      value {
+        id
+        project {
+          id
+          name
+          details
+          hourlyRate
+          currency
+          hexColor
+        }
+        description
+        details
+        date
+        start
+        end
+      }
+    }
+  }
+}

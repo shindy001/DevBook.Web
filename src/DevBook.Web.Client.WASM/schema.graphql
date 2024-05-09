@@ -43,11 +43,6 @@ type NotFoundError implements Error {
   message: String!
 }
 
-type BoardData {
-  gridNumbers: [[Int!]!]!
-  solutionNumbers: [[Int!]!]!
-}
-
 union PatchWorkTaskError = NotFoundError
 
 input PatchProjectInput {
@@ -112,7 +107,7 @@ type PatchWorkTaskPayload {
 scalar UUID
 
 type Query {
-  boardData: BoardData!
+  boardData: BoardDataDto!
   project(input: GetProjectInput!): ProjectResult!
   projects: [ProjectDto!]!
   workTask(input: WorkTaskInput!): WorkTaskResult!
@@ -175,6 +170,11 @@ type CreateProjectPayload {
 
 input DeleteWorkTaskInput {
   id: UUID!
+}
+
+type BoardDataDto {
+  gridNumbers: [[Int!]!]!
+  solutionNumbers: [[Int!]!]!
 }
 
 type PatchProjectPayload {

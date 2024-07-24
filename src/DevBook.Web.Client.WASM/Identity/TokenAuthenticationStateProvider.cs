@@ -25,7 +25,7 @@ internal sealed class TokenAuthenticationStateProvider(
 	{
 		return await _devBookWebApiActionExecutor.Execute(x => x.Identity_RegisterAsync(
 			new RegisterRequest { Email = email, Password = password }));
- 	}
+	}
 
 	/// <summary>
 	/// User login.
@@ -36,8 +36,6 @@ internal sealed class TokenAuthenticationStateProvider(
 	public async Task<OneOf<Success, ApiError>> LoginAsync(string email, string password)
 	{
 		var result = await _devBookWebApiActionExecutor.Execute(x => x.Identity_LoginAsync(
-			useCookies: false,
-			useSessionCookies: false,
 			body: new LoginRequest { Email = email, Password = password }));
 
 		if (result.IsT0 && result.AsT0 is AccessTokenResponse tokenResponse && tokenResponse is not null)
@@ -79,7 +77,7 @@ internal sealed class TokenAuthenticationStateProvider(
 		InfoResponse? userInfo = null;
 		if (await _tokenService.IsTokenValid() || await _tokenService.RefreshTokens())
 		{
-			var result = await _devBookWebApiActionExecutor.Execute(x => x.Identity_ManageInfoGETAsync());
+			var result = await _devBookWebApiActionExecutor.Execute(x => x.Identity_InfoAsync());
 			userInfo = result.IsT0 ? result.AsT0 : null;
 		}
 

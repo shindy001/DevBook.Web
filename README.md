@@ -23,7 +23,6 @@ Uses [DevBookServer](https://github.com/shindy001/devbook-server) webapi as back
   - Solution can be validated (incorrent numbers are highlighted)
 - [ ] Time Management analytics - time tracking / earnings graphs
 - [ ] Time Management exports - export to excel stylesheet
-- [ ] Server integration tests
 - [ ] CI tests pipeline
 
 ![DevBook_Dashboard_info](https://github.com/shindy001/DevBook.Web/assets/23438364/7c60d4b9-d1ea-43b8-af1b-cc1aef513601)
